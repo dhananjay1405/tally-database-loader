@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ENVELOPE>
+    <HEADER>
+        <VERSION>1</VERSION>
+        <TALLYREQUEST>Export</TALLYREQUEST>
+        <TYPE>Data</TYPE>
+        <ID>MyReport</ID>
+    </HEADER>
+    <BODY>
+        <DESC>
+            <STATICVARIABLES>
+                <SVEXPORTFORMAT>$$SysName:ASCII</SVEXPORTFORMAT>
+            </STATICVARIABLES>
+            <TDL>
+                <TDLMESSAGE>
+                    <REPORT NAME="MyReport">
+                        <FORMS>MyForm</FORMS>
+                    </REPORT>
+                    <FORM NAME="MyForm">
+                        <PARTS>MyPart</PARTS>
+                    </FORM>
+                    <PART NAME="MyPart">
+                        <LINES>MyLine</LINES>
+                        <REPEAT>MyLine : MyCollection</REPEAT>
+                        <SCROLLED>Vertical</SCROLLED>
+                    </PART>
+                    <LINE NAME="MyLine">
+                        <FIELDS>FldGuid,FldName,FldParent,FldAddress,FldEOL</FIELDS>
+                    </LINE>
+                    <FIELD NAME="FldGuid">
+                        <SET>$Guid</SET>
+                    </FIELD>
+                    <FIELD NAME="FldName">
+                        <SET>$$StringFindAndReplace:$Name:'"':'""'</SET>
+                    </FIELD>
+                    <FIELD NAME="FldParent">
+                        <SET>$$StringFindAndReplace:$Parent:'"':'""'</SET>
+                    </FIELD>
+                    <FIELD NAME="FldAddress">
+                        <SET>if $$IsEmpty:$Address then $$StrByCharCode:245 else $$StringFindAndReplace:($$FullList:Address:$Address):'"':'""'</SET>
+                    </FIELD>
+                    <FIELD NAME="FldEOL">
+                        <SET>†</SET>
+                    </FIELD>
+                    <COLLECTION NAME="MyCollection">
+                        <TYPE>Godown</TYPE>
+                    </COLLECTION>
+                </TDLMESSAGE>
+            </TDL>
+        </DESC>
+    </BODY>
+</ENVELOPE>

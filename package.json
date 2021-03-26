@@ -1,0 +1,20 @@
+{
+  "name": "tally-database-loader",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "mysql": "^2.18.1",
+    "tedious": "^11.0.5"
+  },
+  "devDependencies": {
+    "@types/mysql": "^2.15.18",
+    "@types/node": "^14.14.32",
+    "@types/tedious": "^4.0.3"
+  }
+}

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ENVELOPE>
+    <HEADER>
+        <VERSION>1</VERSION>
+        <TALLYREQUEST>Export</TALLYREQUEST>
+        <TYPE>Data</TYPE>
+        <ID>MyReport</ID>
+    </HEADER>
+    <BODY>
+        <DESC>
+            <STATICVARIABLES>
+                <SVEXPORTFORMAT>$$SysName:ASCII</SVEXPORTFORMAT>
+                <SVFROMDATE>{fromDate}</SVFROMDATE>
+                <SVTODATE>{toDate}</SVTODATE>
+            </STATICVARIABLES>
+            <TDL>
+                <TDLMESSAGE>
+                    <REPORT NAME="MyReport">
+                        <FORMS>MyForm</FORMS>
+                    </REPORT>
+                    <FORM NAME="MyForm">
+                        <PARTS>MyVoucherPart</PARTS>
+                    </FORM>
+                    <PART NAME="MyVoucherPart">
+                        <LINE>MyVoucherLine</LINE>
+                        <REPEAT>MyVoucherLine : MyCollection</REPEAT>
+                        <SCROLLED>Vertical</SCROLLED>
+                    </PART>
+                    <PART NAME="MyAccountsPart">
+                        <LINE>MyAccountsLine</LINE>
+                        <REPEAT>MyAccountsLine : AllLedgerEntries</REPEAT>
+                        <SCROLLED>Vertical</SCROLLED>
+                    </PART>
+                    <PART NAME="MyInventoryPart">
+                        <LINE>MyInventoryLine</LINE>
+                        <REPEAT>MyInventoryLine : AllInventoryEntries</REPEAT>
+                        <SCROLLED>Vertical</SCROLLED>
+                    </PART>
+                    <LINE NAME="MyVoucherLine">
+                        <FIELDS>FldVoucherIdentifier,FldGuid,FldDate,FldType,FldNumber,FldNarration,FldIsInvoice,FldEOL</FIELDS>
+                        <EXPLODE>MyAccountsPart</EXPLODE>
+                        <EXPLODE>MyInventoryPart</EXPLODE>
+                    </LINE>
+                    <LINE NAME="MyAccountsLine">
+                        <FIELDS>FldAccountsIdentifier,FldGuid,FldLedgerName,FldLedgerAmount,FldEOL</FIELDS>
+                    </LINE>
+                    <LINE NAME="MyInventoryLine">
+                        <FIELDS>FldInventoryIdentifier,FldGuid,FldItemName,FldItemQuantity,FldItemAmount,FldItemAdditionalAmount,FldItemDiscount,FldItemGodownName,FldEOL</FIELDS>
+                    </LINE>
+                    <FIELD NAME="FldVoucherIdentifier">
+                        <SET>"V"</SET>
+                    </FIELD>
+                    <FIELD NAME="FldAccountsIdentifier">
+                        <SET>"A"</SET>
+                    </FIELD>
+                    <FIELD NAME="FldInventoryIdentifier">
+                        <SET>"I"</SET>
+                    </FIELD>
+                    <FIELD NAME="FldGuid">
+                        <SET>$Guid</SET>
+                    </FIELD>
+                    <FIELD NAME="FldType">
+                        <SET>$$StringFindAndReplace:$VoucherTypeName:'"':'""'</SET>
+                    </FIELD>
+                    <FIELD NAME="FldDate">
+                        <SET>(($$YearOfDate:$Date)*10000)+(($$MonthOfDate:$Date)*100)+(($$DayOfDate:$Date)*1)</SET>
+                    </FIELD>
+                    <FIELD NAME="FldNumber">
+                        <SET>if $$IsEmpty:$VoucherNumber then $$StrByCharCode:245 else ($$StringFindAndReplace:$VoucherNumber:'"':'""')</SET>
+                    </FIELD>
+                    <FIELD NAME="FldNarration">
+                        <SET>if $$IsEmpty:$Narration then $$StrByCharCode:245 else ($$StringFindAndReplace:$Narration:'"':'""')</SET>
+                    </FIELD>
+                    <FIELD NAME="FldIsInvoice">
+                        <SET>if $IsInvoice then 1 else 0</SET>
+                    </FIELD>
+                    <FIELD NAME="FldLedgerName">
+                        <SET>$$StringFindAndReplace:$LedgerName:'"':'""'</SET>
+                    </FIELD>
+                    <FIELD NAME="FldLedgerAmount">
+                        <SET>$$StringFindAndReplace:(if $$IsDebit:$Amount then -$$NumValue:$Amount else $$NumValue:$Amount):"(-)":"-"</SET>
+                    </FIELD>
+                    <FIELD NAME="FldItemName">
+                        <SET>if $$IsEmpty:$StockItemName then $$StrByCharCode:245 else ($$StringFindAndReplace:$StockItemName:'"':'""')</SET>
+                    </FIELD>
+                    <FIELD NAME="FldItemQuantity">
+                        <SET>$$StringFindAndReplace:(if $$IsInwards:$ActualQty then $$NumValue:$ActualQty else -$$NumValue:$ActualQty):"(-)":"-"</SET>
+                    </FIELD>
+                    <FIELD NAME="FldItemAmount">
+                        <SET>$$StringFindAndReplace:(if $$IsDebit:$Amount then -$$NumValue:$Amount else $$NumValue:$Amount):"(-)":"-"</SET>
+                    </FIELD>
+                    <FIELD NAME="FldItemAdditionalAmount">
+                        <SET>$$StringFindAndReplace:(if $$IsDebit:$AddlAmount then -$$NumValue:$AddlAmount else $$NumValue:$AddlAmount):"(-)":"-"</SET>
+                    </FIELD>
+                    <FIELD NAME="FldItemDiscount">
+                        <SET>$$StringFindAndReplace:(if $$IsNegative:$Discount then -$$NumValue:$Discount else $$NumValue:$Discount):"(-)":"-"</SET>
+                    </FIELD>
+                    <FIELD NAME="FldItemGodownName">
+                        <SET>if $$IsEmpty:$GodownName then $$StrByCharCode:245 else  ($$StringFindAndReplace:$GodownName:'"':'""')</SET>
+                    </FIELD>
+                    <FIELD NAME="FldEOL">
+                        <SET>†</SET>
+                    </FIELD>
+                    <COLLECTION NAME="MyCollection">
+                        <TYPE>Voucher</TYPE>
+                        <FETCH>Narration,AllLedgerEntries,AllInventoryEntries</FETCH>
+                        <FILTER>FilterCancelledVouchers</FILTER>
+                    </COLLECTION>
+                    <SYSTEM TYPE="Formulae" NAME="FilterCancelledVouchers">NOT $IsCancelled</SYSTEM>
+                </TDLMESSAGE>
+            </TDL>
+        </DESC>
+    </BODY>
+</ENVELOPE>

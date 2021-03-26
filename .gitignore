@@ -1,0 +1,7 @@
+node_modules/
+doc/
+csv/
+dist/*.js.map
+import-log.txt
+error-log.txt
+*.zip

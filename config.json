@@ -1,0 +1,19 @@
+{
+    "database": {
+        "technology": "mysql",
+        "server": "127.0.0.1",
+        "port": 3306,
+        "schema": "tallydb",
+        "username": "root",
+        "password": "admin",
+        "loadmethod": "insert"
+    },
+    "tally": {
+        "server": "localhost",
+        "port": 9000,
+        "master": true,
+        "transaction": true,
+        "fromdate": "20190401",
+        "todate": "20200331"
+    }
+}
