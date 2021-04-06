@@ -33,8 +33,9 @@ class _database {
                     let txtCSV = fs.readFileSync(csvFile, 'utf-8');
                     let lstLines = txtCSV.split(/\r\n/g);
                     lstLines.pop(); //remove last empty item
+                    let fieldList = lstLines.shift() || '';
                     while (lstLines.length) { //loop until row is found
-                        sqlQuery = `insert into ${targetTable} values`;
+                        sqlQuery = `insert into ${targetTable} (${fieldList}) values`;
                         //run a loop to keep on appending row to SQL Query values until max allowable size of query is exhausted
                         while (lstLines.length && (sqlQuery.length + lstLines[0].length + 3 < maxQuerySize))
                             sqlQuery += `(${lstLines.shift()}),`; //enclose row values into round braces
@@ -44,7 +45,7 @@ class _database {
                 }
                 else { //File based loading
                     if (this.config.technology == 'mysql') {
-                        sqlQuery = `load data infile '${csvFile.replace(/\\/g, '\\\\')}' into table ${targetTable} fields terminated by ',' enclosed by '"' escaped by '' lines terminated by '\r\n';`;
+                        sqlQuery = `load data infile '${csvFile.replace(/\\/g, '\\\\')}' into table ${targetTable} fields terminated by ',' enclosed by '"' escaped by '' lines terminated by '\r\n' ;`;
                         rowCount = await this.execute(sqlQuery);
                     }
                     else if (this.config.technology == 'mssql') {

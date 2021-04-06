@@ -49,7 +49,7 @@
                         <SET>(($$YearOfDate:$Date)*10000)+(($$MonthOfDate:$Date)*100)+(($$DayOfDate:$Date)*1)</SET>
                     </FIELD>
                     <FIELD NAME="FldClosingValue">
-                        <SET>if $$IsEmpty:$Amount then 0 else $Amount</SET>
+                        <SET>if $$IsEmpty:$Amount then 0 else $$NumValue:$Amount</SET>
                     </FIELD>
                     <FIELD NAME="FldEOL">
                         <SET>†</SET>

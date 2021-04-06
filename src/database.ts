@@ -37,13 +37,15 @@ class _database {
             try {
                 let sqlQuery = '';
                 let rowCount = 0;
+
                 if (this.config.loadmethod == 'insert') { //INSERT query based loading
                     let txtCSV = fs.readFileSync(csvFile, 'utf-8');
                     let lstLines = txtCSV.split(/\r\n/g);
                     lstLines.pop(); //remove last empty item
+                    let fieldList = lstLines.shift() || '';
 
                     while (lstLines.length) { //loop until row is found
-                        sqlQuery = `insert into ${targetTable} values`;
+                        sqlQuery = `insert into ${targetTable} (${fieldList}) values`;
 
                         //run a loop to keep on appending row to SQL Query values until max allowable size of query is exhausted
                         while (lstLines.length && (sqlQuery.length + lstLines[0].length + 3 < maxQuerySize))
@@ -55,11 +57,11 @@ class _database {
                 }
                 else { //File based loading
                     if (this.config.technology == 'mysql') {
-                        sqlQuery = `load data infile '${csvFile.replace(/\\/g, '\\\\')}' into table ${targetTable} fields terminated by ',' enclosed by '"' escaped by '' lines terminated by '\r\n';`;
+                        sqlQuery = `load data infile '${csvFile.replace(/\\/g, '\\\\')}' into table ${targetTable} fields terminated by ',' enclosed by '"' escaped by '' lines terminated by '\r\n' ignore 1 lines ;`;
                         rowCount = await this.execute(sqlQuery);
                     }
                     else if (this.config.technology == 'mssql') {
-                        sqlQuery = `bulk insert ${targetTable} from '${csvFile}' with ( format = 'CSV', codepage = '65001' )`;
+                        sqlQuery = `bulk insert ${targetTable} from '${csvFile}' with ( format = 'CSV', firstrow = 2, codepage = '65001' )`;
                         rowCount = await this.execute(sqlQuery);
                     }
                 }

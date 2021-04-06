@@ -33,14 +33,13 @@ Commandline utility to load data into Database Server from Tally software, inten
 * [License](#license)
 * [Contact](#contact)
 * [Frequently Asked Questions](#frequently-asked-questions)
+* [Release History](#release-history)
 
 <br><br>
 
 ## Version
-
-Build: **1.0.0**
-
-Updated: **26-Mar-2021**
+Latest Version: **1.0.1**
+Updated on: **06-Apr-2021**
 
 <br><br>
 
@@ -58,7 +57,7 @@ Utility requires installation of following as a pre-requisite
 ### Utility
 Database Loader Utility is portable, and does not have a setup wizard like we find for software installation. Zip archive of utility can be downloaded from below link
 
-[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.0.zip)
+[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.1.zip)
 
 Also, it is a commandline utility having no window interface (to keep it minimal and faster)
 
@@ -279,3 +278,21 @@ For any query email to **dhananjay1405@gmail.com** or Whatsapp on **(+91) 90284-
 **Ques:** I got an error **connect ECONNREFUSED 127.0.0.1:3306** in *error-log.txt* file. What is this error about ?
 
 **Ans:** If utility is unable to connnect to database, this error will be generated
+
+<br><br>
+
+## Release History
+
+Version: **1.0.1 [06-Apr-2021]**<br>
+Added:
+* Header column in CSV files is introduced for easy viewing of CSV files from Excel to know exact error. Also these files can easily be imported, if database server is in protected PC with no external access
+
+Fixed:
+* \\ character in text field generated invalid CSV files, interrupting database loading. Proper escaping of backslah is now fixed
+* Character limit for PAN(10) & GST Number(15) field increased in **database-structure.sql** as older versions of Tally were found to be accepting extra characters
+* Closing Stock values for **trn_closingstock_ledger** table were missing 0 if no amount was specified for corresponding date. So now fixed with 0 in amount
+* Commandline process exits with code of 0 = Success / 1 = Error, so that any other dependent programs/scripts can utilise this exit code for troubleshooting
+
+
+Version: **1.0.0 [26-Mar-2021]**<br>
+* Utility released

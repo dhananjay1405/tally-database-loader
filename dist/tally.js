@@ -12,7 +12,9 @@ class _tally {
     constructor() {
         this.lstMasters = ['mst_group', 'mst_ledger', 'mst_vouchertype', 'mst_uom', 'mst_godown', 'mst_stock_group', 'mst_stock_item', 'trn_closingstock_ledger'];
         this.lstTransactions = ['trn_voucher', 'trn_accounting', 'trn_inventory'];
+        this.lstTableInfo = [];
         this.config = JSON.parse(fs.readFileSync('./config.json', 'utf8'))['tally'];
+        this.lstTableInfo = JSON.parse(fs.readFileSync('./table-info.json', 'utf-8'));
     }
     updateCommandlineConfig(lstConfigs) {
         if (lstConfigs.has('tally-server'))
@@ -148,20 +150,23 @@ class _tally {
     }
     processTdlOutputManipulation(txt) {
         let retval = txt;
-        retval = retval.replace(/[\r\n\t]/g, '');
-        retval = retval.replace(/õ/g, '');
-        retval = retval.replace(/,\"†\",/g, '\r\n');
+        retval = retval.replace(/[\r\n\t]/g, ''); //remove line terminators and tabs
+        retval = retval.replace(/õ/g, ''); //remove empty character indicator (as defined in TDL)
+        retval = retval.replace(/\\/g, '\\\\'); //escape single backslash with double
+        retval = retval.replace(/,\"†\",/g, '\r\n'); //substitute end of field terminators indicator (as defined in TDL) with proper line terminators
         return retval;
     }
     processMasterReport(targetTable, substitutions) {
         return new Promise(async (resolve, reject) => {
+            var _a;
             try {
                 let xml = fs.readFileSync(`./xml/${targetTable}.xml`, 'utf-8');
                 if (substitutions && substitutions.size)
                     xml = this.substituteTDLParameters(xml, substitutions);
                 let output = await this.postTallyXML(xml);
                 output = this.processTdlOutputManipulation(output);
-                fs.writeFileSync(`./csv/${targetTable}.csv`, output);
+                let columnHeaders = ((_a = this.lstTableInfo.find(p => p.tableName == targetTable)) === null || _a === void 0 ? void 0 : _a.columnList) + '\r\n';
+                fs.writeFileSync(`./csv/${targetTable}.csv`, columnHeaders + output);
                 resolve();
             }
             catch (err) {
@@ -172,7 +177,9 @@ class _tally {
     }
     processTransactionReport(substitutions) {
         return new Promise(async (resolve, reject) => {
+            var _a, _b, _c;
             try {
+                let columnHeader = '';
                 let xml = fs.readFileSync(`./xml/trn_voucher.xml`, 'utf-8');
                 if (substitutions && substitutions.size)
                     xml = this.substituteTDLParameters(xml, substitutions);
@@ -191,11 +198,14 @@ class _tally {
                     else
                         ;
                 }
-                fs.writeFileSync('./csv/trn_voucher.csv', csvVoucher);
+                columnHeader = ((_a = this.lstTableInfo.find(p => p.tableName == 'trn_voucher')) === null || _a === void 0 ? void 0 : _a.columnList) + '\r\n';
+                fs.writeFileSync('./csv/trn_voucher.csv', columnHeader + csvVoucher);
                 logger_js_1.logger.logMessage('  saving file %s.csv', 'trn_voucher');
-                fs.writeFileSync('./csv/trn_accounting.csv', csvAccounting);
+                columnHeader = ((_b = this.lstTableInfo.find(p => p.tableName == 'trn_accounting')) === null || _b === void 0 ? void 0 : _b.columnList) + '\r\n';
+                fs.writeFileSync('./csv/trn_accounting.csv', columnHeader + csvAccounting);
                 logger_js_1.logger.logMessage('  saving file %s.csv', 'trn_accounting');
-                fs.writeFileSync('./csv/trn_inventory.csv', csvInventory);
+                columnHeader = ((_c = this.lstTableInfo.find(p => p.tableName == 'trn_inventory')) === null || _c === void 0 ? void 0 : _c.columnList) + '\r\n';
+                fs.writeFileSync('./csv/trn_inventory.csv', columnHeader + csvInventory);
                 logger_js_1.logger.logMessage('  saving file %s.csv', 'trn_inventory');
                 resolve();
             }
