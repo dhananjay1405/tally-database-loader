@@ -10,8 +10,8 @@
         <DESC>
             <STATICVARIABLES>
                 <SVEXPORTFORMAT>$$SysName:ASCII</SVEXPORTFORMAT>
-                <SVFROMDATE>{fromDate}</SVFROMDATE>
-                <SVTODATE>{toDate}</SVTODATE>
+                <SVFROMDATE TYPE="DATE">{fromDate}</SVFROMDATE>
+                <SVTODATE TYPE="DATE">{toDate}</SVTODATE>
             </STATICVARIABLES>
             <TDL>
                 <TDLMESSAGE>
