@@ -25,7 +25,7 @@
                         <SCROLLED>Vertical</SCROLLED>
                     </PART>
                     <LINE NAME="MyLine">
-                        <FIELDS>FldGuid,FldName,FldParent,FldPrimaryGroup,FldIsRevenue,FldIsDeemedPositive,FldPosition,FldEOL</FIELDS>
+                        <FIELDS>FldGuid,FldName,FldParent,FldPrimaryGroup,FldIsRevenue,FldIsDeemedPositive,FldIsReserved,FldPosition,FldEOL</FIELDS>
                     </LINE>
                     <FIELD NAME="FldGuid">
                         <SET>$Guid</SET>
@@ -34,7 +34,7 @@
                         <SET>$$StringFindAndReplace:$Name:'"':'""'</SET>
                     </FIELD>
                     <FIELD NAME="FldParent">
-                        <SET>$$StringFindAndReplace:$Parent:'"':'""'</SET>
+                        <SET>if $$IsEqual:$Parent:" Primary" then $$StrByCharCode:245 else $$StringFindAndReplace:$Parent:'"':'""'</SET>
                     </FIELD>
                     <FIELD NAME="FldPrimaryGroup">
                         <SET>$$StringFindAndReplace:$_PrimaryGroup:'"':'""'</SET>
@@ -44,6 +44,9 @@
                     </FIELD>
                     <FIELD NAME="FldIsDeemedPositive">
                         <SET>if $IsDeemedPositive then 1 else 0</SET>
+                    </FIELD>
+                    <FIELD NAME="FldIsReserved">
+                        <SET>if $IsReserved then 1 else 0</SET>
                     </FIELD>
                     <FIELD NAME="FldPosition">
                         <SET>$SortPosition</SET>

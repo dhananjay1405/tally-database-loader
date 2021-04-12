@@ -1,8 +1,8 @@
 [
     {
         "tableName": "mst_group",
-        "columnList": "guid,name,parent,primary_group,is_revenue,is_deemedpositive,sort_position",
-        "datatypeList": "string,string,string,string,number,number,number"
+        "columnList": "guid,name,parent,primary_group,is_revenue,is_deemedpositive,is_reserved,sort_position",
+        "datatypeList": "string,string,string,string,number,number,number,number"
     },
     {
         "tableName": "mst_ledger",
@@ -16,8 +16,8 @@
     },
     {
         "tableName": "mst_uom",
-        "columnList": "guid,name,formalname",
-        "datatypeList": "string,string,string"
+        "columnList": "guid,name,formalname,is_simple_unit,base_units,additional_units,conversion",
+        "datatypeList": "string,string,string,number,string,string,number"
     },
     {
         "tableName": "mst_godown",
@@ -31,13 +31,13 @@
     },
     {
         "tableName": "mst_stock_item",
-        "columnList": "guid,name,parent,uom,opening_balance,opening_value",
-        "datatypeList": "string,string,string,string,number,number"
+        "columnList": "guid,name,parent,uom,opening_balance,opening_value,gst_nature_of_goods,gst_hsn_code,gst_taxability",
+        "datatypeList": "string,string,string,string,number,number,string,string,string"
     },
     {
         "tableName": "trn_voucher",
-        "columnList": "guid,date,voucher_type,voucher_number,narration,is_invoice",
-        "datatypeList": "string,date,string,string,string,number"
+        "columnList": "guid,date,voucher_type,voucher_number,narration,is_invoice,is_accounting_voucher,is_inventory_voucher,is_order_voucher",
+        "datatypeList": "string,date,string,string,string,number,number,number,number"
     },
     {
         "tableName": "trn_accounting",
@@ -46,8 +46,8 @@
     },
     {
         "tableName": "trn_inventory",
-        "columnList": "guid,item,quantity,amount,additional_amount,discount_amount,godown",
-        "datatypeList": "string,string,number,number,number,number,string"
+        "columnList": "guid,item,quantity,amount,additional_amount,discount_amount,godown,tracking_number",
+        "datatypeList": "string,string,number,number,number,number,string,string"
     },
     {
         "tableName": "trn_closingstock_ledger",

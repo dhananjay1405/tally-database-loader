@@ -13,6 +13,7 @@
         "port": 9000,
         "master": true,
         "transaction": true,
+        "batch": "full",
         "fromdate": "20190401",
         "todate": "20200331"
     }

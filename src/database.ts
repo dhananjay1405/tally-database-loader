@@ -141,7 +141,7 @@ class _database {
                     if (connErr)
                         reject(connErr);
                     else
-                        connection.execSql(new mssql.Request(sqlQuery, (queryErr, rowCount) => {
+                        connection.execSql(new mssql.Request('SET QUOTED_IDENTIFIER OFF;\r\n ' + sqlQuery, (queryErr, rowCount) => {
                             if (queryErr)
                                 reject(queryErr);
                             else

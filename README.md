@@ -38,8 +38,10 @@ Commandline utility to load data into Database Server from Tally software, inten
 <br><br>
 
 ## Version
-Latest Version: **1.0.1**
-Updated on: **06-Apr-2021**
+Latest Version: **1.0.2**<br>
+Updated on: **12-Apr-2021**
+
+*Note: Since many more fields of Tally have been added in current version, user should delete & re-create database*
 
 <br><br>
 
@@ -57,7 +59,7 @@ Utility requires installation of following as a pre-requisite
 ### Utility
 Database Loader Utility is portable, and does not have a setup wizard like we find for software installation. Zip archive of utility can be downloaded from below link
 
-[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.1.zip)
+[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.2.zip)
 
 Also, it is a commandline utility having no window interface (to keep it minimal and faster)
 
@@ -189,7 +191,7 @@ Few of the options of Tally may need modification, if default settings of Tally 
 | port | By default Tally runs XML Server on port number **9000**. Modify this if you have assigned different port number in Tally XML Server settings (typically done when you want run Tally.ERP 9 and Tally Prime both at a same time parallely, where you will be changing this port number) |
 | master / transaction | **true** = Export master/transaction data from Tally (*default*) <br> **false** = Skip master/transaction data |
 | fromdate / todate | **YYYYMMDD** = Period from/to for export of transaction and opening balance (in 8 digit format) <br> **auto** = This will export complete transactions (irrespective of selected Financial Year) from Tally by auto-detection of First & Last date of transaction |
-
+| batch | **daily** = Export vouchers day-by-day from Tally to CSV file & then push to database (Speed: **Slow** / RAM Usage: **Low** )<br> **full** = Export all vouchers in one shot from Tally & then push to database (Speed: **Fast** / Ram Usage: **High**) |
 
 <br><br>
 
@@ -282,6 +284,18 @@ For any query email to **dhananjay1405@gmail.com** or Whatsapp on **(+91) 90284-
 <br><br>
 
 ## Release History
+
+Version: **1.0.2 [12-Apr-2021]**<br>
+Added:
+* A configuration option **batch** has been added to handle cases where export of large number transaction rows from Tally in a single HTTP request results in freezing of Tally (due to huge amount of RAM usage). So, assigning value **daily** to this settings exports transactions (or vouchers) data day-by-day into CSV file and then pushes it to Database at once.
+* New fields of Tally related to GST (HSN Code, type of supply, etc) have been added in *stock item* table
+* 3 more flag type of fields added to *voucher* table to determine if voucher is of type accounting / inventory / order. These fields speed-up SQL Query for calculating of closing balance as on date
+
+Fixed:
+* **port** and **server** settings for *Tally* section in the file **config.json** were not effected if default value was overriden. This issue is now fixed
+* In **file** based loading mode, first row of CSV file containing header was even treated as data row. So modified that query to skip 1 row from top
+* SQL Server does not accept text enclosed in *double quotes* in SQL query for row insert by default. Due to this *file* based bulk loading of data failed for MS SQL Server . So modified SQL query for MS SQL Server where *QUOTED_IDENTIFIER* flag is set to *OFF* before the SQL statement
+
 
 Version: **1.0.1 [06-Apr-2021]**<br>
 Added:

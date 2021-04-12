@@ -11,6 +11,7 @@ interface tallyConfig {
     port: number;
     master: boolean;
     transaction: boolean;
+    batch: string;
     fromdate: string;
     todate: string;
 }
@@ -27,6 +28,7 @@ class _tally {
     private lstMasters: string[] = ['mst_group', 'mst_ledger', 'mst_vouchertype', 'mst_uom', 'mst_godown', 'mst_stock_group', 'mst_stock_item', 'trn_closingstock_ledger'];
     private lstTransactions: string[] = ['trn_voucher', 'trn_accounting', 'trn_inventory'];
     private lstTableInfo: tableInfo[] = [];
+    private flgWriteColumnHeader = true; // [ true = write column header to CSV / false = skip it ]
 
     constructor() {
         this.config = JSON.parse(fs.readFileSync('./config.json', 'utf8'))['tally'];
@@ -38,6 +40,7 @@ class _tally {
         if (lstConfigs.has('tally-port')) this.config.port = parseInt(lstConfigs.get('tally-port') || '9000');
         if (lstConfigs.has('tally-master')) this.config.master = lstConfigs.get('tally-master') == 'true';
         if (lstConfigs.has('tally-transaction')) this.config.transaction = lstConfigs.get('tally-transaction') == 'true';
+        if (lstConfigs.has('tally-batch')) this.config.batch = lstConfigs.get('tally-batch') || '';
         if (lstConfigs.has('tally-fromdate') && lstConfigs.has('tally-todate')) {
             let fromDate = lstConfigs.get('tally-fromdate') || '';
             let toDate = lstConfigs.get('tally-todate') || '';
@@ -83,8 +86,18 @@ class _tally {
                         await this.processMasterReport(targetTable, configPeriod);
                         logger.logMessage('  saving file %s.csv', targetTable);
                     }
-                if (this.config.transaction)
-                    await this.processTransactionReport(configPeriod);
+                if (this.config.transaction) {
+                    if (tally.config.batch == 'daily') {
+                        for (let currDate = <Date>configPeriod.get('fromDate'); currDate <= <Date>configPeriod.get('toDate'); currDate.setDate(currDate.getDate() + 1)) {
+                            let _configPeriod = new Map<string, any>();
+                            _configPeriod.set('fromDate', currDate);
+                            _configPeriod.set('toDate', currDate);
+                            await this.processTransactionReport(_configPeriod);
+                        }
+                    }
+                    else
+                        await this.processTransactionReport(configPeriod);
+                }
 
 
                 //perform CSV file based bulk import into database
@@ -113,8 +126,8 @@ class _tally {
         return new Promise<string>((resolve, reject) => {
             try {
                 let req = http.request({
-                    hostname: 'localhost',
-                    port: 9000,
+                    hostname: this.config.server,
+                    port: this.config.port,
                     path: '',
                     method: 'POST',
                     headers: {
@@ -221,17 +234,26 @@ class _tally {
                     else;
                 }
 
-                columnHeader = this.lstTableInfo.find(p => p.tableName == 'trn_voucher')?.columnList + '\r\n';
-                fs.writeFileSync('./csv/trn_voucher.csv', columnHeader + csvVoucher);
-                logger.logMessage('  saving file %s.csv', 'trn_voucher');
+                if (this.flgWriteColumnHeader) {
+                    columnHeader = this.lstTableInfo.find(p => p.tableName == 'trn_voucher')?.columnList + '\r\n';
+                    fs.writeFileSync('./csv/trn_voucher.csv', columnHeader + csvVoucher);
+                    logger.logMessage('  saving file %s.csv', 'trn_voucher');
 
-                columnHeader = this.lstTableInfo.find(p => p.tableName == 'trn_accounting')?.columnList + '\r\n';
-                fs.writeFileSync('./csv/trn_accounting.csv', columnHeader + csvAccounting);
-                logger.logMessage('  saving file %s.csv', 'trn_accounting');
+                    columnHeader = this.lstTableInfo.find(p => p.tableName == 'trn_accounting')?.columnList + '\r\n';
+                    fs.writeFileSync('./csv/trn_accounting.csv', columnHeader + csvAccounting);
+                    logger.logMessage('  saving file %s.csv', 'trn_accounting');
 
-                columnHeader = this.lstTableInfo.find(p => p.tableName == 'trn_inventory')?.columnList + '\r\n';
-                fs.writeFileSync('./csv/trn_inventory.csv', columnHeader + csvInventory);
-                logger.logMessage('  saving file %s.csv', 'trn_inventory');
+                    columnHeader = this.lstTableInfo.find(p => p.tableName == 'trn_inventory')?.columnList + '\r\n';
+                    fs.writeFileSync('./csv/trn_inventory.csv', columnHeader + csvInventory);
+                    logger.logMessage('  saving file %s.csv', 'trn_inventory');
+                }
+                else {
+                    fs.appendFileSync('./csv/trn_voucher.csv', csvVoucher);
+                    fs.appendFileSync('./csv/trn_accounting.csv', csvAccounting);
+                    fs.appendFileSync('./csv/trn_inventory.csv', csvInventory);
+                }
+
+                this.flgWriteColumnHeader = false; //change back the column header write flag, so that header get written only once
 
                 resolve();
             } catch (err) {

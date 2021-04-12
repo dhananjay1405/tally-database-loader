@@ -25,7 +25,7 @@
                         <SCROLLED>Vertical</SCROLLED>
                     </PART>
                     <LINE NAME="MyLine">
-                        <FIELDS>FldGuid,FldSymbol,FldFormalName,FldEOL</FIELDS>
+                        <FIELDS>FldGuid,FldSymbol,FldFormalName,FldIsSimpleUnit,FldBaseUnits,FldAdditionalUnits,FldConversion,FldEOL</FIELDS>
                     </LINE>
                     <FIELD NAME="FldGuid">
                         <SET>$Guid</SET>
@@ -35,6 +35,18 @@
                     </FIELD>
                     <FIELD NAME="FldFormalName">
                         <SET>if $$IsEmpty:$FormalName then $$StrByCharCode:245 else ($$StringFindAndReplace:$FormalName:'"':'""')</SET>
+                    </FIELD>
+                    <FIELD NAME="FldIsSimpleUnit">
+                        <SET>if $IsSimpleUnit then 1 else 0</SET>
+                    </FIELD>
+                    <FIELD NAME="FldBaseUnits">
+                        <SET>if $$IsEmpty:$BaseUnits then $$StrByCharCode:245 else ($$StringFindAndReplace:$BaseUnits:'"':'""')</SET>
+                    </FIELD>
+                    <FIELD NAME="FldAdditionalUnits">
+                        <SET>if $$IsEmpty:$AdditionalUnits then $$StrByCharCode:245 else ($$StringFindAndReplace:$AdditionalUnits:'"':'""')</SET>
+                    </FIELD>
+                    <FIELD NAME="FldConversion">
+                        <SET>if $$IsEmpty:$Conversion then 0 else $Conversion</SET>
                     </FIELD>
                     <FIELD NAME="FldEOL">
                         <SET>†</SET>

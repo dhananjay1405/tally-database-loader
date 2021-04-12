@@ -45,11 +45,11 @@ class _database {
                 }
                 else { //File based loading
                     if (this.config.technology == 'mysql') {
-                        sqlQuery = `load data infile '${csvFile.replace(/\\/g, '\\\\')}' into table ${targetTable} fields terminated by ',' enclosed by '"' escaped by '' lines terminated by '\r\n' ;`;
+                        sqlQuery = `load data infile '${csvFile.replace(/\\/g, '\\\\')}' into table ${targetTable} fields terminated by ',' enclosed by '"' escaped by '' lines terminated by '\r\n' ignore 1 lines ;`;
                         rowCount = await this.execute(sqlQuery);
                     }
                     else if (this.config.technology == 'mssql') {
-                        sqlQuery = `bulk insert ${targetTable} from '${csvFile}' with ( format = 'CSV', codepage = '65001' )`;
+                        sqlQuery = `bulk insert ${targetTable} from '${csvFile}' with ( format = 'CSV', firstrow = 2, codepage = '65001' )`;
                         rowCount = await this.execute(sqlQuery);
                     }
                 }
@@ -129,7 +129,7 @@ class _database {
                     if (connErr)
                         reject(connErr);
                     else
-                        connection.execSql(new mssql.Request(sqlQuery, (queryErr, rowCount) => {
+                        connection.execSql(new mssql.Request('SET QUOTED_IDENTIFIER OFF;\r\n ' + sqlQuery, (queryErr, rowCount) => {
                             if (queryErr)
                                 reject(queryErr);
                             else

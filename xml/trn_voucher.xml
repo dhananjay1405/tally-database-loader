@@ -37,7 +37,7 @@
                         <SCROLLED>Vertical</SCROLLED>
                     </PART>
                     <LINE NAME="MyVoucherLine">
-                        <FIELDS>FldVoucherIdentifier,FldGuid,FldDate,FldType,FldNumber,FldNarration,FldIsInvoice,FldEOL</FIELDS>
+                        <FIELDS>FldVoucherIdentifier,FldGuid,FldDate,FldType,FldNumber,FldNarration,FldIsInvoice,FldIsAccountingVoucher,FldIsInventoryVoucher,FldIsOrderVoucher,FldEOL</FIELDS>
                         <EXPLODE>MyAccountsPart</EXPLODE>
                         <EXPLODE>MyInventoryPart</EXPLODE>
                     </LINE>
@@ -45,7 +45,7 @@
                         <FIELDS>FldAccountsIdentifier,FldGuid,FldLedgerName,FldLedgerAmount,FldEOL</FIELDS>
                     </LINE>
                     <LINE NAME="MyInventoryLine">
-                        <FIELDS>FldInventoryIdentifier,FldGuid,FldItemName,FldItemQuantity,FldItemAmount,FldItemAdditionalAmount,FldItemDiscount,FldItemGodownName,FldEOL</FIELDS>
+                        <FIELDS>FldInventoryIdentifier,FldGuid,FldItemName,FldItemQuantity,FldItemAmount,FldItemAdditionalAmount,FldItemDiscount,FldItemGodownName,FldItemTrackingNumber,FldEOL</FIELDS>
                     </LINE>
                     <FIELD NAME="FldVoucherIdentifier">
                         <SET>"V"</SET>
@@ -74,6 +74,15 @@
                     <FIELD NAME="FldIsInvoice">
                         <SET>if $IsInvoice then 1 else 0</SET>
                     </FIELD>
+                    <FIELD NAME="FldIsAccountingVoucher">
+                        <SET>if $$IsAccountingVch:$VoucherTypeName then 1 else 0</SET>
+                    </FIELD>
+                    <FIELD NAME="FldIsInventoryVoucher">
+                        <SET>if $$IsInventoryVch:$VoucherTypeName then 1 else 0</SET>
+                    </FIELD>
+                    <FIELD NAME="FldIsOrderVoucher">
+                        <SET>if $$IsOrderVch:$VoucherTypeName then 1 else 0</SET>
+                    </FIELD>
                     <FIELD NAME="FldLedgerName">
                         <SET>$$StringFindAndReplace:$LedgerName:'"':'""'</SET>
                     </FIELD>
@@ -97,6 +106,9 @@
                     </FIELD>
                     <FIELD NAME="FldItemGodownName">
                         <SET>if $$IsEmpty:$GodownName then $$StrByCharCode:245 else  ($$StringFindAndReplace:$GodownName:'"':'""')</SET>
+                    </FIELD>
+                    <FIELD NAME="FldItemTrackingNumber">
+                        <SET>if ($$IsEmpty:$TrackingNumber or $$IsNotApplicable:$TrackingNumber) then $$StrByCharCode:245 else  ($$StringFindAndReplace:$TrackingNumber:'"':'""')</SET>
                     </FIELD>
                     <FIELD NAME="FldEOL">
                         <SET>†</SET>

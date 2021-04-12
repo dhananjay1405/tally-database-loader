@@ -22,6 +22,12 @@ database_js_1.database.updateCommandlineConfig(cmdConfig);
 tally_js_1.tally.updateCommandlineConfig(cmdConfig);
 //start import process
 tally_js_1.tally.importData()
-    .then(() => logger_js_1.logger.logMessage('Import completed successfully...'))
-    .catch(() => logger_js_1.logger.logMessage('Error in importing data\r\nPlease check error-log.txt file for detailed errors'));
+    .then(() => {
+    logger_js_1.logger.logMessage('Import completed successfully...');
+    process.exit(0);
+})
+    .catch(() => {
+    logger_js_1.logger.logMessage('Error in importing data\r\nPlease check error-log.txt file for detailed errors');
+    process.exit(1);
+});
 //# sourceMappingURL=index.js.map

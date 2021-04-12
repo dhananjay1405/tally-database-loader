@@ -26,7 +26,7 @@
                         <SCROLLED>Vertical</SCROLLED>
                     </PART>
                     <LINE NAME="MyLine">
-                        <FIELDS>FldGuid,FldName,FldParent,FldUOM,FldOpeningQuantity,FldOpeningValue,FldEOL</FIELDS>
+                        <FIELDS>FldGuid,FldName,FldParent,FldUOM,FldOpeningQuantity,FldOpeningValue,FldGstNatureOfGoods,FldGstHsnCode,FldGstTaxability,FldEOL</FIELDS>
                     </LINE>
                     <FIELD NAME="FldGuid">
                         <SET>$Guid</SET>
@@ -46,11 +46,21 @@
                     <FIELD NAME="FldOpeningValue">
                         <SET>$$StringFindAndReplace:(if $$IsDebit:$OpeningValue then -$$NumValue:$OpeningValue else $$NumValue:$OpeningValue):"(-)":"-"</SET>
                     </FIELD>
+                    <FIELD NAME="FldGstNatureOfGoods">
+                        <SET>if ($$IsEqual:$GstApplicable:($$SysName:Applicable) AND NOT $$IsEmpty:$GstDetails[Last].Natureofgoods) then $GstDetails[Last].Natureofgoods else $$StrByCharCode:245</SET>
+                    </FIELD>
+                    <FIELD NAME="FldGstHsnCode">
+                        <SET>if ($$IsEqual:$GstApplicable:($$SysName:Applicable) AND NOT $$IsEmpty:$GstDetails[Last].Hsncode) then $GstDetails[Last].Hsncode else $$StrByCharCode:245</SET>
+                    </FIELD>
+                    <FIELD NAME="FldGstTaxability">
+                        <SET>if ($$IsEqual:$GstApplicable:($$SysName:Applicable) AND NOT $$IsEmpty:$GstDetails[Last].Taxability) then $GstDetails[Last].Taxability else $$StrByCharCode:245</SET>
+                    </FIELD>
                     <FIELD NAME="FldEOL">
                         <SET>†</SET>
                     </FIELD>
                     <COLLECTION NAME="MyCollection">
                         <TYPE>StockItem</TYPE>
+                        <FETCH>GstDetails</FETCH>
                     </COLLECTION>
                 </TDLMESSAGE>
             </TDL>
