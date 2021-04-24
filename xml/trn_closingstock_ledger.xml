@@ -46,7 +46,7 @@
                         <SET>$$StringFindAndReplace:$Parent:'"':'""'</SET>
                     </FIELD>
                     <FIELD NAME="FldClosingDate">
-                        <SET>(($$YearOfDate:$Date)*10000)+(($$MonthOfDate:$Date)*100)+(($$DayOfDate:$Date)*1)</SET>
+                        <SET>$$PyrlYYYYMMDDFormat:$Date:"-"</SET>
                     </FIELD>
                     <FIELD NAME="FldClosingValue">
                         <SET>if $$IsEmpty:$Amount then 0 else $$NumValue:$Amount</SET>

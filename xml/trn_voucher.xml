@@ -63,7 +63,7 @@
                         <SET>$$StringFindAndReplace:$VoucherTypeName:'"':'""'</SET>
                     </FIELD>
                     <FIELD NAME="FldDate">
-                        <SET>(($$YearOfDate:$Date)*10000)+(($$MonthOfDate:$Date)*100)+(($$DayOfDate:$Date)*1)</SET>
+                        <SET>$$PyrlYYYYMMDDFormat:$Date:"-"</SET>
                     </FIELD>
                     <FIELD NAME="FldNumber">
                         <SET>if $$IsEmpty:$VoucherNumber then $$StrByCharCode:245 else ($$StringFindAndReplace:$VoucherNumber:'"':'""')</SET>
@@ -116,9 +116,10 @@
                     <COLLECTION NAME="MyCollection">
                         <TYPE>Voucher</TYPE>
                         <FETCH>Narration,AllLedgerEntries,AllInventoryEntries</FETCH>
-                        <FILTER>FilterCancelledVouchers</FILTER>
+                        <FILTER>FilterCancelledVouchers,FilterOptionalVouchers</FILTER>
                     </COLLECTION>
                     <SYSTEM TYPE="Formulae" NAME="FilterCancelledVouchers">NOT $IsCancelled</SYSTEM>
+                    <SYSTEM TYPE="Formulae" NAME="FilterOptionalVouchers">NOT $IsOptional</SYSTEM>
                 </TDLMESSAGE>
             </TDL>
         </DESC>

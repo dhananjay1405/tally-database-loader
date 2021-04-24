@@ -29,6 +29,8 @@ Commandline utility to load data into Database Server from Tally software, inten
 * [Steps](#steps)
 * [Commandline Options](#commandline-options)
 * [Logs](#logs)
+* [Reports](#reports)
+* [Google BigQuery Database CSV loading](#google-bigquery-database-csv-loading)
 * [Develop Further](#develop-further)
 * [License](#license)
 * [Contact](#contact)
@@ -38,8 +40,8 @@ Commandline utility to load data into Database Server from Tally software, inten
 <br><br>
 
 ## Version
-Latest Version: **1.0.2**<br>
-Updated on: **12-Apr-2021**
+Latest Version: **1.0.3**<br>
+Updated on: **24-Apr-2021**
 
 *Note: Since many more fields of Tally have been added in current version, user should delete & re-create database*
 
@@ -59,7 +61,7 @@ Utility requires installation of following as a pre-requisite
 ### Utility
 Database Loader Utility is portable, and does not have a setup wizard like we find for software installation. Zip archive of utility can be downloaded from below link
 
-[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.2.zip)
+[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.3.zip)
 
 Also, it is a commandline utility having no window interface (to keep it minimal and faster)
 
@@ -159,7 +161,7 @@ Database Connection credentials needs to be set in the file in **database** sect
 
 | Settings | Value |
 | --- | --- |
-| technology | **mssql**: Microsoft SQL Server<br>**mysql**: MySQL Server or MariaDB Server |
+| technology | **mssql**: Microsoft SQL Server<br>**mysql**: MySQL Server or MariaDB Server<br>**csv**: Generate CSV dump for further import (below parameters of database connection are dummy when CSV setting is applied) |
 | server | Qualified computer name or Database Instance or IP Address of PC where Database Server is hosted |
 | port | Port number on which Database Server is listening<br>**mssql**: Default port is **1433**<br>**mysql**: Default port is **3306** |
 | schema | Database name in which to insert data |
@@ -240,6 +242,18 @@ Utility creates log of import specifying how many rows in each tables were loade
 
 <br><br>
 
+## Reports
+Project hosts library of SQL Queries to generate some popularly used reports, required for preparing Dashboards in Microsoft Power BI and Google Data Studio. Due to minor difference in SQL syntax & functions of SQL Server and MySQL, SQL for same report is provided for both of these Server platforms.
+
+Author actively supports **Google BigQuery** (fully cloud-based solution of Google), and even shared equivalent SQL query for BiQuery. BigQuery acts as a input for Google Data Studio Dashboards and also supports easy export of tabular output to Google Sheets. Interested users can sign-up for a free [Google Cloud account](https://cloud.google.com) and use BigQuery with free daily limits
+
+<br><br>
+
+## Google BigQuery Database CSV loading
+Utility supports pure CSV data dumping by setting *technology* parameter as **csv** in config.json. CSV files are generated and stored in **csv** folder. These files can be imported into BigQuery by creating & uploading these into a **bucket** in **Cloud Storage**. BigQuery can then import & create table from these files. Bash Shell Script file **bigquery-bulk-load.sh** has been provided in the project to automate import of files from Cloud Storage bucket to BigQuery dataset. Video tutorial for the same will be made available shortly
+
+<br><br>
+
 ## Develop Further
 If you intend to develop and modify this utility further to next level for your use-case, then you can clone this project from Git and run the project as below
 1. Clone the project repository
@@ -284,6 +298,15 @@ For any query email to **dhananjay1405@gmail.com** or Whatsapp on **(+91) 90284-
 <br><br>
 
 ## Release History
+
+Version: **1.0.3 [24-Apr-2021]**<br>
+Added:
+* SQL Queries for generating reports in a folder named **reports**. Due to difference in SQL functions names and syntax nomenclature in MySQL and MS-SQL, query for same report is made available for both database technologies
+* Option to simply generate CSV files dump and then exit utility, by setting **technology** as **csv** in **config.json**. This option is introduced with an aim of transferring these CSV dumps to PC when Database Server is not directly accessible via Network (LAN/Internet). Also, these files can be used for **Google BigQuery** schema tables loading for cloud-based reporting
+
+Fixed:
+* CSV file dump, adopted ISO date format of **YYYY-MM-DD** instead of YYYYMMDD for easy detection of dates by Database Server
+* Database table **trn_voucher**  field **date** was erronously assigned *datetime* data type instead of *date* now fixed
 
 Version: **1.0.2 [12-Apr-2021]**<br>
 Added:

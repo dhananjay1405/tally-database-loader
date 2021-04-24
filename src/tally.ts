@@ -53,24 +53,28 @@ class _tally {
         return new Promise<void>(async (resolve, reject) => {
             try {
 
-                //update active company information before starting import
-                logger.logMessage('Updating company information configuration table');
-                await this.saveCompanyInfo();
+                if (/^(mssql|mysql)$/g.test(database.config.technology)) {
+                    //update active company information before starting import
+                    logger.logMessage('Updating company information configuration table');
+                    await this.saveCompanyInfo();
+                }
 
                 //prepare substitution list of runtime values to reflected in TDL XML
                 let configPeriod = new Map<string, any>();
                 configPeriod.set('fromDate', utility.Date.parse(this.config.fromdate, 'yyyy-MM-dd'));
                 configPeriod.set('toDate', utility.Date.parse(this.config.todate, 'yyyy-MM-dd'));
 
-                //truncate master/transaction tables
-                logger.logMessage('Erasing database');
-                for (let i = 0; i < this.lstMasters.length; i++) {
-                    let targetTable = this.lstMasters[i];
-                    await database.execute(`truncate table ${targetTable};`);
-                }
-                for (let i = 0; i < this.lstTransactions.length; i++) {
-                    let targetTable = this.lstTransactions[i];
-                    await database.execute(`truncate table ${targetTable};`);
+                if (/^(mssql|mysql)$/g.test(database.config.technology)) {
+                    //truncate master/transaction tables
+                    logger.logMessage('Erasing database');
+                    for (let i = 0; i < this.lstMasters.length; i++) {
+                        let targetTable = this.lstMasters[i];
+                        await database.execute(`truncate table ${targetTable};`);
+                    }
+                    for (let i = 0; i < this.lstTransactions.length; i++) {
+                        let targetTable = this.lstTransactions[i];
+                        await database.execute(`truncate table ${targetTable};`);
+                    }
                 }
 
                 //delete and re-create CSV folder
@@ -99,21 +103,23 @@ class _tally {
                         await this.processTransactionReport(configPeriod);
                 }
 
+                if (/^(mssql|mysql)$/g.test(database.config.technology)) {
+                    //perform CSV file based bulk import into database
+                    logger.logMessage('Loading CSV files to database tables');
+                    if (this.config.master)
+                        for (let i = 0; i < this.lstMasters.length; i++) {
+                            let targetTable = this.lstMasters[i];
+                            let rowCount = await database.bulkLoad(path.join(process.cwd(), `./csv/${targetTable}.csv`), targetTable);
+                            logger.logMessage('  %s: imported %d rows', targetTable, rowCount);
+                        }
+                    if (this.config.transaction)
+                        for (let i = 0; i < this.lstTransactions.length; i++) {
+                            let targetTable = this.lstTransactions[i];
+                            let rowCount = await database.bulkLoad(path.join(process.cwd(), `./csv/${targetTable}.csv`), targetTable);
+                            logger.logMessage('  %s: imported %d rows', targetTable, rowCount);
+                        }
+                }
 
-                //perform CSV file based bulk import into database
-                logger.logMessage('Loading CSV files to database tables');
-                if (this.config.master)
-                    for (let i = 0; i < this.lstMasters.length; i++) {
-                        let targetTable = this.lstMasters[i];
-                        let rowCount = await database.bulkLoad(path.join(process.cwd(), `./csv/${targetTable}.csv`), targetTable);
-                        logger.logMessage('  %s: imported %d rows', targetTable, rowCount);
-                    }
-                if (this.config.transaction)
-                    for (let i = 0; i < this.lstTransactions.length; i++) {
-                        let targetTable = this.lstTransactions[i];
-                        let rowCount = await database.bulkLoad(path.join(process.cwd(), `./csv/${targetTable}.csv`), targetTable);
-                        logger.logMessage('  %s: imported %d rows', targetTable, rowCount);
-                    }
                 resolve();
             } catch (err) {
                 logger.logError('tally.processMasters()', err);

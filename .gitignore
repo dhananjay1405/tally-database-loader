@@ -1,6 +1,7 @@
 node_modules/
 doc/
 csv/
+ssl/
 dist/*.js.map
 import-log.txt
 error-log.txt

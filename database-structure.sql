@@ -89,7 +89,7 @@ create table mst_stock_item
 create table trn_voucher
 (
  guid char(64) not null primary key,
- date datetime not null,
+ date date not null,
  voucher_type nvarchar(1024) not null,
  voucher_number nvarchar(64) not null default '',
  narration nvarchar(4000) not null default '',

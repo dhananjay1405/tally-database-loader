@@ -4,6 +4,7 @@ exports.tally = void 0;
 const fs = require("fs");
 const path = require("path");
 const process = require("process");
+const zlib = require("zlib");
 const http = require("http");
 const utility_js_1 = require("./utility.js");
 const logger_js_1 = require("./logger.js");
@@ -38,22 +39,26 @@ class _tally {
     importData() {
         return new Promise(async (resolve, reject) => {
             try {
-                //update active company information before starting import
-                logger_js_1.logger.logMessage('Updating company information configuration table');
-                await this.saveCompanyInfo();
+                if (/^(mssql|mysql)$/g.test(database_js_1.database.config.technology)) {
+                    //update active company information before starting import
+                    logger_js_1.logger.logMessage('Updating company information configuration table');
+                    await this.saveCompanyInfo();
+                }
                 //prepare substitution list of runtime values to reflected in TDL XML
                 let configPeriod = new Map();
                 configPeriod.set('fromDate', utility_js_1.utility.Date.parse(this.config.fromdate, 'yyyy-MM-dd'));
                 configPeriod.set('toDate', utility_js_1.utility.Date.parse(this.config.todate, 'yyyy-MM-dd'));
-                //truncate master/transaction tables
-                logger_js_1.logger.logMessage('Erasing database');
-                for (let i = 0; i < this.lstMasters.length; i++) {
-                    let targetTable = this.lstMasters[i];
-                    await database_js_1.database.execute(`truncate table ${targetTable};`);
-                }
-                for (let i = 0; i < this.lstTransactions.length; i++) {
-                    let targetTable = this.lstTransactions[i];
-                    await database_js_1.database.execute(`truncate table ${targetTable};`);
+                if (/^(mssql|mysql)$/g.test(database_js_1.database.config.technology)) {
+                    //truncate master/transaction tables
+                    logger_js_1.logger.logMessage('Erasing database');
+                    for (let i = 0; i < this.lstMasters.length; i++) {
+                        let targetTable = this.lstMasters[i];
+                        await database_js_1.database.execute(`truncate table ${targetTable};`);
+                    }
+                    for (let i = 0; i < this.lstTransactions.length; i++) {
+                        let targetTable = this.lstTransactions[i];
+                        await database_js_1.database.execute(`truncate table ${targetTable};`);
+                    }
                 }
                 //delete and re-create CSV folder
                 if (fs.existsSync('./csv'))
@@ -79,20 +84,30 @@ class _tally {
                     else
                         await this.processTransactionReport(configPeriod);
                 }
-                //perform CSV file based bulk import into database
-                logger_js_1.logger.logMessage('Loading CSV files to database tables');
-                if (this.config.master)
-                    for (let i = 0; i < this.lstMasters.length; i++) {
-                        let targetTable = this.lstMasters[i];
-                        let rowCount = await database_js_1.database.bulkLoad(path.join(process.cwd(), `./csv/${targetTable}.csv`), targetTable);
-                        logger_js_1.logger.logMessage('  %s: imported %d rows', targetTable, rowCount);
+                if (/^(mssql|mysql)$/g.test(database_js_1.database.config.technology)) {
+                    //perform CSV file based bulk import into database
+                    logger_js_1.logger.logMessage('Loading CSV files to database tables');
+                    if (this.config.master)
+                        for (let i = 0; i < this.lstMasters.length; i++) {
+                            let targetTable = this.lstMasters[i];
+                            let rowCount = await database_js_1.database.bulkLoad(path.join(process.cwd(), `./csv/${targetTable}.csv`), targetTable);
+                            logger_js_1.logger.logMessage('  %s: imported %d rows', targetTable, rowCount);
+                        }
+                    if (this.config.transaction)
+                        for (let i = 0; i < this.lstTransactions.length; i++) {
+                            let targetTable = this.lstTransactions[i];
+                            let rowCount = await database_js_1.database.bulkLoad(path.join(process.cwd(), `./csv/${targetTable}.csv`), targetTable);
+                            logger_js_1.logger.logMessage('  %s: imported %d rows', targetTable, rowCount);
+                        }
+                }
+                if (database_js_1.database.config.technology.endsWith('-zip')) {
+                    let lstFiles = fs.readdirSync('./csv');
+                    for (let i = 0; i < lstFiles.length; i++) {
+                        let contentBuff = fs.readFileSync('./csv/' + lstFiles[i]);
+                        let contentZip = zlib.gzipSync(contentBuff, { level: 9 });
+                        fs.writeFileSync('./csv/' + lstFiles[i] + '.gz', contentZip);
                     }
-                if (this.config.transaction)
-                    for (let i = 0; i < this.lstTransactions.length; i++) {
-                        let targetTable = this.lstTransactions[i];
-                        let rowCount = await database_js_1.database.bulkLoad(path.join(process.cwd(), `./csv/${targetTable}.csv`), targetTable);
-                        logger_js_1.logger.logMessage('  %s: imported %d rows', targetTable, rowCount);
-                    }
+                }
                 resolve();
             }
             catch (err) {

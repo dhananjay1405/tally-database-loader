@@ -17,7 +17,7 @@ const maxQuerySize = 50000;
 
 class _database {
 
-    private config: connectionConfig;
+    config: connectionConfig;
 
     constructor() {
         this.config = JSON.parse(fs.readFileSync('./config.json', 'utf8'))['database'];
