@@ -1,10 +1,10 @@
 {
     "database": {
-        "technology": "mysql",
-        "server": "127.0.0.1",
-        "port": 3306,
+        "technology": "mssql",
+        "server": "localhost",
+        "port": 1433,
         "schema": "tallydb",
-        "username": "root",
+        "username": "sa",
         "password": "admin",
         "loadmethod": "insert"
     },

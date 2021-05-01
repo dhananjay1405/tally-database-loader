@@ -4,7 +4,6 @@ exports.tally = void 0;
 const fs = require("fs");
 const path = require("path");
 const process = require("process");
-const zlib = require("zlib");
 const http = require("http");
 const utility_js_1 = require("./utility.js");
 const logger_js_1 = require("./logger.js");
@@ -99,14 +98,6 @@ class _tally {
                             let rowCount = await database_js_1.database.bulkLoad(path.join(process.cwd(), `./csv/${targetTable}.csv`), targetTable);
                             logger_js_1.logger.logMessage('  %s: imported %d rows', targetTable, rowCount);
                         }
-                }
-                if (database_js_1.database.config.technology.endsWith('-zip')) {
-                    let lstFiles = fs.readdirSync('./csv');
-                    for (let i = 0; i < lstFiles.length; i++) {
-                        let contentBuff = fs.readFileSync('./csv/' + lstFiles[i]);
-                        let contentZip = zlib.gzipSync(contentBuff, { level: 9 });
-                        fs.writeFileSync('./csv/' + lstFiles[i] + '.gz', contentZip);
-                    }
                 }
                 resolve();
             }

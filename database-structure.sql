@@ -6,7 +6,7 @@ create table config
 
 create table mst_group
 (
- guid char(64) not null primary key,
+ guid varchar(64) not null primary key,
  name nvarchar(1024) not null default '',
  parent nvarchar(1024) not null default '',
  primary_group nvarchar(1024) not null default '',
@@ -18,7 +18,7 @@ create table mst_group
 
 create table mst_ledger
 (
- guid char(64) not null primary key,
+ guid varchar(64) not null primary key,
  name nvarchar(1024) not null default '',
  parent nvarchar(1024) not null default '',
  is_revenue tinyint,
@@ -40,7 +40,7 @@ create table mst_ledger
 
 create table mst_vouchertype
 (
- guid char(64) not null primary key,
+ guid varchar(64) not null primary key,
  name nvarchar(1024) not null default '',
  parent nvarchar(1024) not null default '',
  is_deemedpositive tinyint,
@@ -49,7 +49,7 @@ create table mst_vouchertype
 
 create table mst_uom
 (
- guid char(64) not null primary key,
+ guid varchar(64) not null primary key,
  name nvarchar(1024) not null default '',
  formalname nvarchar(256) not null default '',
  is_simple_unit tinyint not null,
@@ -60,7 +60,7 @@ create table mst_uom
 
 create table mst_godown
 (
- guid char(64) not null primary key,
+ guid varchar(64) not null primary key,
  name nvarchar(1024) not null default '',
  parent nvarchar(1024) not null default '',
  address nvarchar(1024) not null default ''
@@ -68,14 +68,14 @@ create table mst_godown
 
 create table mst_stock_group
 (
- guid char(64) not null primary key,
+ guid varchar(64) not null primary key,
  name nvarchar(1024) not null default '',
  parent nvarchar(1024) not null default ''
 );
 
 create table mst_stock_item
 (
- guid char(64) not null primary key,
+ guid varchar(64) not null primary key,
  name nvarchar(1024) not null default '',
  parent nvarchar(1024) not null default '',
  uom nvarchar(1024) not null default '',
@@ -88,7 +88,7 @@ create table mst_stock_item
 
 create table trn_voucher
 (
- guid char(64) not null primary key,
+ guid varchar(64) not null primary key,
  date date not null,
  voucher_type nvarchar(1024) not null,
  voucher_number nvarchar(64) not null default '',
@@ -101,14 +101,14 @@ create table trn_voucher
 
 create table trn_accounting
 (
- guid char(64) not null,
+ guid varchar(64) not null,
  ledger nvarchar(1024) not null default '',
  amount decimal(17,2) not null default 0
 );
 
 create table trn_inventory
 (
- guid char(64) not null,
+ guid varchar(64) not null,
  item nvarchar(1024) not null default '',
  quantity decimal(15,4) not null default 0,
  amount decimal(17,2) not null default 0,

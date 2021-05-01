@@ -54,6 +54,12 @@ Utility requires installation of following as a pre-requisite
 * Node JS
 * SQL Server / MySQL Server / MariaDB Server
 
+Compatibility:
+* SQL Server - version 2019
+* MySQL - version 8.x
+
+**Note:** *Utility and SQL Queries for reports are deviced considering latest version of SQL Server / MySQL Server. Running it in lower version might hamper few of the functionalities, as some SQL syntax were introduced in latest version of these Database Server*
+
 <br><br>
 
 ## Download
@@ -113,8 +119,9 @@ Tally has in-built XML Server capability, which can import/export data in/out of
 
 ## Database Creation
 Database first needs to be created and then Tables needs to be created in which data from Tally will be loaded, before running utility. File **database-structure.sql** contains SQL for creating tables of database. Just ensure to create database using any of GUI Database Manager. That database name should be updated in **schema** property of *config.json*. Open-source database editor available freely are
-* [SQL Server: SQL Server Management Studio](https://docs.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms?view=sql-server-ver15)
-* [MySQL Server: MySQL Workbench](https://dev.mysql.com/downloads/workbench/)
+* [SQL Server Management Studio (SQL Server)](https://docs.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms)
+* [MySQL Workbench (MySQL Server)](https://dev.mysql.com/downloads/workbench/)
+* [Azure Data Studio (SQL Server - Lightweight)](https://docs.microsoft.com/en-us/sql/azure-data-studio/download-azure-data-studio)
 
 Utility support import into database server installed and hosted on
 * Same PC where Tally is
@@ -136,7 +143,7 @@ Database Connection credentials needs to be set in the file in **database** sect
 ```json
 "database": {
     "technology": "mssql",
-    "server": "DESKTOP-<computer_name>\SQLEXPRESS",
+    "server": "localhost",
     "port": 1433,
     "schema": "<database_name>",
     "username": "sa",
@@ -152,7 +159,7 @@ Database Connection credentials needs to be set in the file in **database** sect
     "technology": "mysql",
     "server": "localhost",
     "port": 3306,
-    "schema": "<dataname>",
+    "schema": "<database_name>",
     "username": "root",
     "password": "<your_password>",
     "loadmethod": "insert"
@@ -162,7 +169,7 @@ Database Connection credentials needs to be set in the file in **database** sect
 | Settings | Value |
 | --- | --- |
 | technology | **mssql**: Microsoft SQL Server<br>**mysql**: MySQL Server or MariaDB Server<br>**csv**: Generate CSV dump for further import (below parameters of database connection are dummy when CSV setting is applied) |
-| server | Qualified computer name or Database Instance or IP Address of PC where Database Server is hosted |
+| server | IP Address of PC on which Database Server is hosted (**localhost** = same machine) |
 | port | Port number on which Database Server is listening<br>**mssql**: Default port is **1433**<br>**mysql**: Default port is **3306** |
 | schema | Database name in which to insert data |
 | username | Username<br>**mssql**: Default user is **sa** <br>**mysql**: Default user is **root** |
@@ -170,6 +177,9 @@ Database Connection credentials needs to be set in the file in **database** sect
 | loadmethod | **insert**: loads rows in database tables using SQL query with multiple rows. This is most compatible method which works everywhere (Compatibility: **High** / Performance: **Slow** ) <br> **file**: loads rows in database table using file based loading method. This method works only when database server and utility is running on same machine. So this method is not compatible with Cloud databases (Compatibility: **Low** / Performance: **Fast** ) |
 
 Kindly override configurations, as per respective Database Server setup
+
+**Note**: *Utility supports SQL Server connection via TCP/IP port only. This option is disabled by default, which needs to be enabled. Kindly refer FAQ where it has been elaborated in detail along with screenshots*
+ (applicable for Microsoft SQL Server only)
 
 <br>
 
@@ -294,6 +304,22 @@ For any query email to **dhananjay1405@gmail.com** or Whatsapp on **(+91) 90284-
 **Ques:** I got an error **connect ECONNREFUSED 127.0.0.1:3306** in *error-log.txt* file. What is this error about ?
 
 **Ans:** If utility is unable to connnect to database, this error will be generated
+
+**Ques:** How to enable SQL Server connectivity via TCP/IP port for Microsoft SQL Server ?
+
+**Ans:** Utility supports connection to MS SQL Server via TCP/IP port only. It does not support connecting through named instance like *PC-NAME\\SQLEXPRESS*. This setting can be enabled using below steps:
+
+1. Launch **Computer Management** (just type it in Windows Search bar)
+1. Open: Services and Applications > SQL Server Configuration Manager > SQL Server Network Configuration > Protocols for MSSQLSERVER > TCP/IP
+![SQL Server Configuration Manager network settings](https://excelkida.com/image/github/sql-server-configuration-manager-setting.png)
+1. Right Click and **Enable** it
+1. Double Click (or right click and open Properties) to open TCP/IP Properties window
+1. Goto IP Addresses tab > IPAll > and set
+    * TCP Dynamic Ports = (blank) erase value from it
+    * TCP Port = 1433<br>
+![SQL Server Configuration Manager IP Address settings](https://excelkida.com/image/github/sql-server-configuration-manager-ipaddress-port-config.png)
+1. Restart SQL Server: Task Manager > Services > MSSQLSERVER > right click > Restart<br>
+![SQL Server Service restart](https://excelkida.com/image/github/task-manager-sql-server-service-restart.png)
 
 <br><br>
 

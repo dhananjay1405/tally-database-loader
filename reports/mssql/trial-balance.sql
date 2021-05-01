@@ -1,4 +1,6 @@
-declare @fromDate date = '2014-04-01', @toDate date = '2015-03-31';
+declare
+ @fromDate date = '2014-04-01',
+ @toDate date = '2015-03-31';
 with tblop as
 (
  select a.ledger 'ledger', sum(a.amount) 'amount'

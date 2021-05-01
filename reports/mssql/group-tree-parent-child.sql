@@ -1,5 +1,6 @@
 /* groups: PARENT --> CHILD traversal */
-declare @group nvarchar(1024) = 'Loans & Advances (Asset)';
+declare
+ @group nvarchar(1024) = 'Loans & Advances (Asset)';
 with cte as
 (
  select name, parent from mst_group where name = @group

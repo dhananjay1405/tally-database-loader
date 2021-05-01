@@ -2,7 +2,9 @@
   Daily Receipt and Payment (incl Contra)
 */
 
-declare @fromDate date = '2014-04-01', @toDate date = '2015-03-31';
+declare
+ @fromDate date = '2014-04-01',
+ @toDate date = '2015-03-31';
 with tblDateList as
 (
  select @fromDate value
