@@ -27,6 +27,7 @@ Commandline utility to load data into Database Server from Tally software, inten
     * Database Connection
     * Tally Options
 * [Steps](#steps)
+* [Tutorial](#tutorial)
 * [Commandline Options](#commandline-options)
 * [Logs](#logs)
 * [Reports](#reports)
@@ -214,6 +215,24 @@ Few of the options of Tally may need modification, if default settings of Tally 
 1. Run the file **run.bat**
 1. Commandline window will open, attempt to import data and will get closed after import/error
 1. Check for import status in **import-log.txt** file and errors (if any) in **error-log.txt** file
+
+<br><br>
+
+## Tutorial
+
+YouTube tutorial video are availabe (link below)
+
+**SQL Server**
+<br>
+
+[![YouTube tutorial SQL Server](https://img.youtube.com/vi/Am0uspXtTzM/0.jpg)](https://www.youtube.com/watch?v=Am0uspXtTzM)
+
+<br>
+
+**MySQL Server**
+<br>
+
+[![YouTube tutorial MySQL Server](https://img.youtube.com/vi/_bXc54bKTlI/0.jpg)](https://www.youtube.com/watch?v=_bXc54bKTlI)
 
 <br><br>
 
