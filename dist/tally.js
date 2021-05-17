@@ -10,8 +10,8 @@ const logger_js_1 = require("./logger.js");
 const database_js_1 = require("./database.js");
 class _tally {
     constructor() {
-        this.lstMasters = ['mst_group', 'mst_ledger', 'mst_vouchertype', 'mst_uom', 'mst_godown', 'mst_stock_group', 'mst_stock_item', 'trn_closingstock_ledger'];
-        this.lstTransactions = ['trn_voucher', 'trn_accounting', 'trn_inventory'];
+        this.lstMasters = ['mst_group', 'mst_ledger', 'mst_vouchertype', 'mst_uom', 'mst_godown', 'mst_stock_group', 'mst_stock_item', 'mst_cost_category', 'mst_cost_centre', 'trn_closingstock_ledger'];
+        this.lstTransactions = ['trn_voucher', 'trn_accounting', 'trn_inventory', 'trn_cost_centre', 'trn_bill', 'trn_batch'];
         this.lstTableInfo = [];
         this.flgWriteColumnHeader = true; // [ true = write column header to CSV / false = skip it ]
         this.config = JSON.parse(fs.readFileSync('./config.json', 'utf8'))['tally'];
@@ -34,6 +34,8 @@ class _tally {
             this.config.fromdate = /^\d{4}-\d{2}-\d{2}$/g.test(fromDate) ? fromDate : 'auto';
             this.config.todate = /^\d{4}-\d{2}-\d{2}$/g.test(toDate) ? toDate : 'auto';
         }
+        if (lstConfigs.has('tally-company'))
+            this.config.company = lstConfigs.get('tally-company') || '';
     }
     importData() {
         return new Promise(async (resolve, reject) => {
@@ -44,9 +46,10 @@ class _tally {
                     await this.saveCompanyInfo();
                 }
                 //prepare substitution list of runtime values to reflected in TDL XML
-                let configPeriod = new Map();
-                configPeriod.set('fromDate', utility_js_1.utility.Date.parse(this.config.fromdate, 'yyyy-MM-dd'));
-                configPeriod.set('toDate', utility_js_1.utility.Date.parse(this.config.todate, 'yyyy-MM-dd'));
+                let configTallyXML = new Map();
+                configTallyXML.set('fromDate', utility_js_1.utility.Date.parse(this.config.fromdate, 'yyyy-MM-dd'));
+                configTallyXML.set('toDate', utility_js_1.utility.Date.parse(this.config.todate, 'yyyy-MM-dd'));
+                configTallyXML.set('targetCompany', this.config.company ? utility_js_1.utility.String.escapeHTML(this.config.company) : '##SVCurrentCompany');
                 if (/^(mssql|mysql)$/g.test(database_js_1.database.config.technology)) {
                     //truncate master/transaction tables
                     logger_js_1.logger.logMessage('Erasing database');
@@ -68,12 +71,12 @@ class _tally {
                 if (this.config.master)
                     for (let i = 0; i < this.lstMasters.length; i++) {
                         let targetTable = this.lstMasters[i];
-                        await this.processMasterReport(targetTable, configPeriod);
+                        await this.processMasterReport(targetTable, configTallyXML);
                         logger_js_1.logger.logMessage('  saving file %s.csv', targetTable);
                     }
                 if (this.config.transaction) {
                     if (tally.config.batch == 'daily') {
-                        for (let currDate = configPeriod.get('fromDate'); currDate <= configPeriod.get('toDate'); currDate.setDate(currDate.getDate() + 1)) {
+                        for (let currDate = configTallyXML.get('fromDate'); currDate <= configTallyXML.get('toDate'); currDate.setDate(currDate.getDate() + 1)) {
                             let _configPeriod = new Map();
                             _configPeriod.set('fromDate', currDate);
                             _configPeriod.set('toDate', currDate);
@@ -81,7 +84,7 @@ class _tally {
                         }
                     }
                     else
-                        await this.processTransactionReport(configPeriod);
+                        await this.processTransactionReport(configTallyXML);
                 }
                 if (/^(mssql|mysql)$/g.test(database_js_1.database.config.technology)) {
                     //perform CSV file based bulk import into database
@@ -196,7 +199,7 @@ class _tally {
     }
     processTransactionReport(substitutions) {
         return new Promise(async (resolve, reject) => {
-            var _a, _b, _c;
+            var _a, _b, _c, _d, _e, _f;
             try {
                 let columnHeader = '';
                 let xml = fs.readFileSync(`./xml/trn_voucher.xml`, 'utf-8');
@@ -204,16 +207,22 @@ class _tally {
                     xml = this.substituteTDLParameters(xml, substitutions);
                 let output = await this.postTallyXML(xml);
                 output = this.processTdlOutputManipulation(output);
-                let csvVoucher = '', csvAccounting = '', csvInventory = '';
+                let csvVoucher = '', csvAccounting = '', csvInventory = '', csvCostCentre = '', csvBill = '', csvBatch = '';
                 let lstLines = output.split(/\r\n/g);
                 for (let i = 0; i < lstLines.length; i++) {
                     let line = lstLines[i];
-                    if (line.startsWith('"V"'))
-                        csvVoucher += line.substr(4) + '\r\n';
-                    else if (line.startsWith('"A"'))
-                        csvAccounting += line.substr(4) + '\r\n';
-                    else if (line.startsWith('"I"'))
-                        csvInventory += line.substr(4) + '\r\n';
+                    if (line.startsWith('"vchr"'))
+                        csvVoucher += line.substr(7) + '\r\n';
+                    else if (line.startsWith('"acts"'))
+                        csvAccounting += line.substr(7) + '\r\n';
+                    else if (line.startsWith('"invt"'))
+                        csvInventory += line.substr(7) + '\r\n';
+                    else if (line.startsWith('"cost"'))
+                        csvCostCentre += line.substr(7) + '\r\n';
+                    else if (line.startsWith('"bill"'))
+                        csvBill += line.substr(7) + '\r\n';
+                    else if (line.startsWith('"btch"'))
+                        csvBatch += line.substr(7) + '\r\n';
                     else
                         ;
                 }
@@ -227,11 +236,23 @@ class _tally {
                     columnHeader = ((_c = this.lstTableInfo.find(p => p.tableName == 'trn_inventory')) === null || _c === void 0 ? void 0 : _c.columnList) + '\r\n';
                     fs.writeFileSync('./csv/trn_inventory.csv', columnHeader + csvInventory);
                     logger_js_1.logger.logMessage('  saving file %s.csv', 'trn_inventory');
+                    columnHeader = ((_d = this.lstTableInfo.find(p => p.tableName == 'trn_cost_centre')) === null || _d === void 0 ? void 0 : _d.columnList) + '\r\n';
+                    fs.writeFileSync('./csv/trn_cost_centre.csv', columnHeader + csvCostCentre);
+                    logger_js_1.logger.logMessage('  saving file %s.csv', 'trn_cost_centre');
+                    columnHeader = ((_e = this.lstTableInfo.find(p => p.tableName == 'trn_bill')) === null || _e === void 0 ? void 0 : _e.columnList) + '\r\n';
+                    fs.writeFileSync('./csv/trn_bill.csv', columnHeader + csvBill);
+                    logger_js_1.logger.logMessage('  saving file %s.csv', 'trn_bill');
+                    columnHeader = ((_f = this.lstTableInfo.find(p => p.tableName == 'trn_batch')) === null || _f === void 0 ? void 0 : _f.columnList) + '\r\n';
+                    fs.writeFileSync('./csv/trn_batch.csv', columnHeader + csvBatch);
+                    logger_js_1.logger.logMessage('  saving file %s.csv', 'trn_batch');
                 }
                 else {
                     fs.appendFileSync('./csv/trn_voucher.csv', csvVoucher);
                     fs.appendFileSync('./csv/trn_accounting.csv', csvAccounting);
                     fs.appendFileSync('./csv/trn_inventory.csv', csvInventory);
+                    fs.appendFileSync('./csv/trn_cost_centre.csv', csvCostCentre);
+                    fs.appendFileSync('./csv/trn_bill.csv', csvCostCentre);
+                    fs.appendFileSync('./csv/trn_batch.csv', csvCostCentre);
                 }
                 this.flgWriteColumnHeader = false; //change back the column header write flag, so that header get written only once
                 resolve();
@@ -246,6 +267,7 @@ class _tally {
         return new Promise(async (resolve, reject) => {
             try {
                 let xmlCompany = fs.readFileSync('./xml/mst_company.xml', 'utf-8');
+                xmlCompany = this.substituteTDLParameters(xmlCompany, new Map([['targetCompany', this.config.company ? '"' + utility_js_1.utility.String.escapeHTML(this.config.company) + '"' : '##SVCurrentCompany']]));
                 let strCompanyInfo = await this.postTallyXML(xmlCompany); //extract active company information
                 if (strCompanyInfo.endsWith(',"†",\r\n')) {
                     strCompanyInfo = strCompanyInfo.replace(/\",\"†\",\r\n/g, '').substr(1);

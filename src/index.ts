@@ -1,5 +1,4 @@
 import * as process from 'process';
-import * as fs from 'fs';
 import { tally } from './tally.js';
 import { database } from './database.js';
 import { logger } from './logger.js'

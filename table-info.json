@@ -35,9 +35,19 @@
         "datatypeList": "string,string,string,string,number,number,string,string,string"
     },
     {
+        "tableName": "mst_cost_category",
+        "columnList": "guid,name,allocate_revenue,allocate_non_revenue",
+        "datatypeList": "string,string,number,number"
+    },
+    {
+        "tableName": "mst_cost_centre",
+        "columnList": "guid,name,parent,category",
+        "datatypeList": "string,string,string,string"
+    },
+    {
         "tableName": "trn_voucher",
-        "columnList": "guid,date,voucher_type,voucher_number,narration,is_invoice,is_accounting_voucher,is_inventory_voucher,is_order_voucher",
-        "datatypeList": "string,date,string,string,string,number,number,number,number"
+        "columnList": "guid,date,voucher_type,voucher_number,reference_number,narration,is_invoice,is_accounting_voucher,is_inventory_voucher,is_order_voucher",
+        "datatypeList": "string,date,string,string,string,string,number,number,number,number"
     },
     {
         "tableName": "trn_accounting",
@@ -48,6 +58,21 @@
         "tableName": "trn_inventory",
         "columnList": "guid,item,quantity,amount,additional_amount,discount_amount,godown,tracking_number",
         "datatypeList": "string,string,number,number,number,number,string,string"
+    },
+    {
+        "tableName": "trn_cost_centre",
+        "columnList": "guid,ledger,name,amount",
+        "datatypeList": "string,string,string,number"
+    },
+    {
+        "tableName": "trn_bill",
+        "columnList": "guid,ledger,name,amount,billtype",
+        "datatypeList": "string,string,string,number,string"
+    },
+    {
+        "tableName": "trn_batch",
+        "columnList": "guid,item,name,quantity,amount,godown,destination_godown,tracking_number",
+        "datatypeList": "string,string,string,number,number,string,string,string"
     },
     {
         "tableName": "trn_closingstock_ledger",

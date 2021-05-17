@@ -86,12 +86,29 @@ create table mst_stock_item
  gst_taxability nvarchar(1024) default ''
 );
 
+create table mst_cost_category
+(
+ guid varchar(64) not null primary key,
+ name nvarchar(1024) not null default '',
+ allocate_revenue tinyint,
+ allocate_non_revenue tinyint
+);
+
+create table mst_cost_centre
+(
+ guid varchar(64) not null primary key,
+ name nvarchar(1024) not null default '',
+ parent nvarchar(1024) not null default '',
+ category nvarchar(1024) not null default ''
+);
+
 create table trn_voucher
 (
  guid varchar(64) not null primary key,
  date date not null,
  voucher_type nvarchar(1024) not null,
  voucher_number nvarchar(64) not null default '',
+ reference_number nvarchar(64) not null default '',
  narration nvarchar(4000) not null default '',
  is_invoice tinyint,
  is_accounting_voucher tinyint,
@@ -115,6 +132,35 @@ create table trn_inventory
  additional_amount decimal(17,2) not null default 0,
  discount_amount decimal(17,2) not null default 0,
  godown nvarchar(1024),
+ tracking_number nvarchar(1024)
+);
+
+create table trn_cost_centre
+(
+ guid varchar(64) not null,
+ ledger nvarchar(1024) not null default '',
+ name nvarchar(1024) not null default '',
+ amount decimal(17,2) not null default 0
+);
+
+create table trn_bill
+(
+ guid varchar(64) not null,
+ ledger nvarchar(1024) not null default '',
+ name nvarchar(1024) not null default '',
+ amount decimal(17,2) not null default 0,
+ billtype nvarchar(256) not null default ''
+);
+
+create table trn_batch
+(
+ guid varchar(64) not null,
+ item nvarchar(1024) not null default '',
+ name nvarchar(1024) not null default '',
+ quantity decimal(15,4) not null default 0,
+ amount decimal(17,2) not null default 0,
+ godown nvarchar(1024),
+ destination_godown nvarchar(1024),
  tracking_number nvarchar(1024)
 );
 

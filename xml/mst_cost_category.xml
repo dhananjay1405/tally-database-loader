@@ -10,6 +10,7 @@
         <DESC>
             <STATICVARIABLES>
                 <SVEXPORTFORMAT>$$SysName:ASCII</SVEXPORTFORMAT>
+                <SVCURRENTCOMPANY>{targetCompany}</SVCURRENTCOMPANY>
             </STATICVARIABLES>
             <TDL>
                 <TDLMESSAGE>
@@ -25,7 +26,7 @@
                         <SCROLLED>Vertical</SCROLLED>
                     </PART>
                     <LINE NAME="MyLine">
-                        <FIELDS>FldGuid,FldName,FldBooksFrom,FldLastVoucherDate,FldEOL</FIELDS>
+                        <FIELDS>FldGuid,FldName,FldAllocateRevenue,FldAllocateNonRevenue,FldEOL</FIELDS>
                     </LINE>
                     <FIELD NAME="FldGuid">
                         <SET>$Guid</SET>
@@ -33,20 +34,18 @@
                     <FIELD NAME="FldName">
                         <SET>$$StringFindAndReplace:$Name:'"':'""'</SET>
                     </FIELD>
-                    <FIELD NAME="FldBooksFrom">
-                        <SET>(($$YearOfDate:$BooksFrom)*10000)+(($$MonthOfDate:$BooksFrom)*100)+(($$DayOfDate:$BooksFrom)*1)</SET>
+                    <FIELD NAME="FldAllocateRevenue">
+                        <SET>if $AllocateRevenue then 1 else 0</SET>
                     </FIELD>
-                    <FIELD NAME="FldLastVoucherDate">
-                        <SET>(($$YearOfDate:$LastVoucherDate)*10000)+(($$MonthOfDate:$LastVoucherDate)*100)+(($$DayOfDate:$LastVoucherDate)*1)</SET>
+                    <FIELD NAME="FldAllocateNonRevenue">
+                        <SET>if $AllocateNonRevenue then 1 else 0</SET>
                     </FIELD>
                     <FIELD NAME="FldEOL">
                         <SET>†</SET>
                     </FIELD>
                     <COLLECTION NAME="MyCollection">
-                        <TYPE>Company</TYPE>
-                        <FILTER>FilterActiveCompany</FILTER>
+                        <TYPE>CostCategory</TYPE>
                     </COLLECTION>
-                    <SYSTEM TYPE="Formulae" NAME="FilterActiveCompany">$$IsEqual:{targetCompany}:$Name</SYSTEM>
                 </TDLMESSAGE>
             </TDL>
         </DESC>

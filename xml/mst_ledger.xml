@@ -11,6 +11,7 @@
             <STATICVARIABLES>
                 <SVEXPORTFORMAT>$$SysName:ASCII</SVEXPORTFORMAT>
                 <SVFROMDATE>{fromDate}</SVFROMDATE>
+                <SVCURRENTCOMPANY>{targetCompany}</SVCURRENTCOMPANY>
             </STATICVARIABLES>
             <TDL>
                 <TDLMESSAGE>

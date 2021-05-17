@@ -41,8 +41,8 @@ Commandline utility to load data into Database Server from Tally software, inten
 <br><br>
 
 ## Version
-Latest Version: **1.0.3**<br>
-Updated on: **24-Apr-2021**
+Latest Version: **1.0.4**<br>
+Updated on: **17-May-2021**
 
 *Note: Since many more fields of Tally have been added in current version, user should delete & re-create database*
 
@@ -68,7 +68,7 @@ Compatibility:
 ### Utility
 Database Loader Utility is portable, and does not have a setup wizard like we find for software installation. Zip archive of utility can be downloaded from below link
 
-[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.3.zip)
+[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.4.zip)
 
 Also, it is a commandline utility having no window interface (to keep it minimal and faster)
 
@@ -194,7 +194,8 @@ Few of the options of Tally may need modification, if default settings of Tally 
      "master": true,
      "transaction": true,
      "fromdate" : "20190401",
-     "todate" : "20200331"
+     "todate" : "20200331",
+     "company": ""
 }
 ```
 
@@ -205,6 +206,7 @@ Few of the options of Tally may need modification, if default settings of Tally 
 | master / transaction | **true** = Export master/transaction data from Tally (*default*) <br> **false** = Skip master/transaction data |
 | fromdate / todate | **YYYYMMDD** = Period from/to for export of transaction and opening balance (in 8 digit format) <br> **auto** = This will export complete transactions (irrespective of selected Financial Year) from Tally by auto-detection of First & Last date of transaction |
 | batch | **daily** = Export vouchers day-by-day from Tally to CSV file & then push to database (Speed: **Slow** / RAM Usage: **Low** )<br> **full** = Export all vouchers in one shot from Tally & then push to database (Speed: **Fast** / Ram Usage: **High**) |
+| company | Name of the company from which to export data or leave it blank to export from Active company of Tally (this parameter is intended for use when user needs to export data from specific company irrespective of it is active or not. Setup a powershell script to run a loop when multiple companies needs to be targeted one-by-one) |
 
 <br><br>
 
@@ -259,7 +261,13 @@ node ./dist/index.js --database-schema airtel
 node ./dist/index.js --tally-fromdate 20191001 --tally-todate 20191231
 ```
 
-**Scenario 03:** You are using Amazon Web Services (AWS) as database server, and have multiple servers for each client group of companies with multiple separate database for each subsidiary company. You intend to sync data for **FY 2020-21** from Tally into **Jio** company database residing in **Reliance** server hosted at Mumbai region data centre of AWS. Command will be
+**Scenario 03:** You have a tally company named *Reliance Industries*, created database of it by name *client_reliance* and want to export **FY 2019-20**  Then below is the command for that
+```bat
+node ./dist/index.js --tally-fromdate 20191001 --tally-todate 20191231 --tally-company "Reliance Industries" --database-schema client_reliance
+```
+
+
+**Scenario 04:** You are using Amazon Web Services (AWS) as database server, and have multiple servers for each client group of companies with multiple separate database for each subsidiary company. You intend to sync data for **FY 2020-21** from Tally into **Jio** company database residing in **Reliance** server hosted at Mumbai region data centre of AWS. Command will be
 ```bat
 node ./dist/index.js --tally-fromdate 20200401 --tally-todate 20210331 --database-server database-1.reliance.in-mumbai-1.rds.amazonaws.com --database-schema jio
 ```
@@ -343,6 +351,12 @@ For any query email to **dhananjay1405@gmail.com** or Whatsapp on **(+91) 90284-
 <br><br>
 
 ## Release History
+
+Version: **1.0.4 [17-May-2021]**<br>
+Added:
+* Support for selecting specific company from which to export data (using Powershell script loop can be setup to automate this for multiple companies)
+* Voucher Reference number field added
+* 5 more tables added related to cost centre, bill reference, batch allocation
 
 Version: **1.0.3 [24-Apr-2021]**<br>
 Added:

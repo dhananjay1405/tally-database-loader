@@ -12,6 +12,7 @@
                 <SVEXPORTFORMAT>$$SysName:ASCII</SVEXPORTFORMAT>
                 <SVFROMDATE>{fromDate}</SVFROMDATE>
                 <SVTODATE>{toDate}</SVTODATE>
+                <SVCURRENTCOMPANY>{targetCompany}</SVCURRENTCOMPANY>
             </STATICVARIABLES>
             <TDL>
                 <TDLMESSAGE>
@@ -36,28 +37,70 @@
                         <REPEAT>MyInventoryLine : AllInventoryEntries</REPEAT>
                         <SCROLLED>Vertical</SCROLLED>
                     </PART>
+                    <PART NAME="MyCostCentrePart">
+                        <LINE>MyCostCentreLine</LINE>
+                        <REPEAT>MyCostCentreLine : CostCentreAllocations</REPEAT>
+                        <SCROLLED>Vertical</SCROLLED>
+                    </PART>
+                    <PART NAME="MyBillPart">
+                        <LINE>MyBillLine</LINE>
+                        <REPEAT>MyBillLine : BillAllocations</REPEAT>
+                        <SCROLLED>Vertical</SCROLLED>
+                    </PART>
+                    <PART NAME="MyBatchPart">
+                        <LINE>MyBatchLine</LINE>
+                        <REPEAT>MyBatchLine : BatchAllocations</REPEAT>
+                        <SCROLLED>Vertical</SCROLLED>
+                    </PART>
                     <LINE NAME="MyVoucherLine">
-                        <FIELDS>FldVoucherIdentifier,FldGuid,FldDate,FldType,FldNumber,FldNarration,FldIsInvoice,FldIsAccountingVoucher,FldIsInventoryVoucher,FldIsOrderVoucher,FldEOL</FIELDS>
+                        <FIELDS>FldVoucherIdentifier,FldGuid,FldDate,FldType,FldVoucherNumber,FldReferenceNumber,FldNarration,FldIsInvoice,FldIsAccountingVoucher,FldIsInventoryVoucher,FldIsOrderVoucher,FldEOL</FIELDS>
                         <EXPLODE>MyAccountsPart</EXPLODE>
                         <EXPLODE>MyInventoryPart</EXPLODE>
                     </LINE>
                     <LINE NAME="MyAccountsLine">
-                        <FIELDS>FldAccountsIdentifier,FldGuid,FldLedgerName,FldLedgerAmount,FldEOL</FIELDS>
+                        <FIELDS>FldAccountsIdentifier,FldGuid,FldLedgerName,FldAmount,FldEOL</FIELDS>
+                        <EXPLODE>MyCostCentrePart</EXPLODE>
+                        <EXPLODE>MyBillPart</EXPLODE>
                     </LINE>
                     <LINE NAME="MyInventoryLine">
-                        <FIELDS>FldInventoryIdentifier,FldGuid,FldItemName,FldItemQuantity,FldItemAmount,FldItemAdditionalAmount,FldItemDiscount,FldItemGodownName,FldItemTrackingNumber,FldEOL</FIELDS>
+                        <FIELDS>FldInventoryIdentifier,FldGuid,FldItemName,FldItemQuantity,FldAmount,FldItemAdditionalAmount,FldItemDiscount,FldItemGodownName,FldItemTrackingNumber,FldEOL</FIELDS>
+                        <EXPLODE>MyBatchPart</EXPLODE>
+                    </LINE>
+                    <LINE NAME="MyCostCentreLine">
+                        <FIELDS>FldCostCentreIdentifier,FldGuid,FldLedgerName,FldName,FldAmount,FldEOL</FIELDS>
+                    </LINE>
+                    <LINE NAME="MyBillLine">
+                        <FIELDS>FldBillIdentifier,FldGuid,FldLedgerName,FldName,FldAmount,FldBillType,FldEOL</FIELDS>
+                    </LINE>
+                    <LINE NAME="MyBatchLine">
+                        <FIELDS>FldBatchIdentifier,FldGuid,FldItemName,FldName,FldItemQuantity,FldAmount,FldItemGodownName,FldItemDestinationGodownName,FldItemTrackingNumber,FldEOL</FIELDS>
                     </LINE>
                     <FIELD NAME="FldVoucherIdentifier">
-                        <SET>"V"</SET>
+                        <SET>"vchr"</SET>
                     </FIELD>
                     <FIELD NAME="FldAccountsIdentifier">
-                        <SET>"A"</SET>
+                        <SET>"acts"</SET>
                     </FIELD>
                     <FIELD NAME="FldInventoryIdentifier">
-                        <SET>"I"</SET>
+                        <SET>"invt"</SET>
+                    </FIELD>
+                    <FIELD NAME="FldCostCentreIdentifier">
+                        <SET>"cost"</SET>
+                    </FIELD>
+                    <FIELD NAME="FldBillIdentifier">
+                        <SET>"bill"</SET>
+                    </FIELD>
+                    <FIELD NAME="FldBatchIdentifier">
+                        <SET>"btch"</SET>
                     </FIELD>
                     <FIELD NAME="FldGuid">
                         <SET>$Guid</SET>
+                    </FIELD>
+                    <FIELD NAME="FldName">
+                        <SET>if $$IsEmpty:$Name then $$StrByCharCode:245 else ($$StringFindAndReplace:$Name:'"':'""')</SET>
+                    </FIELD>
+                    <FIELD NAME="FldAmount">
+                        <SET>$$StringFindAndReplace:(if $$IsDebit:$Amount then -$$NumValue:$Amount else $$NumValue:$Amount):"(-)":"-"</SET>
                     </FIELD>
                     <FIELD NAME="FldType">
                         <SET>$$StringFindAndReplace:$VoucherTypeName:'"':'""'</SET>
@@ -65,8 +108,11 @@
                     <FIELD NAME="FldDate">
                         <SET>$$PyrlYYYYMMDDFormat:$Date:"-"</SET>
                     </FIELD>
-                    <FIELD NAME="FldNumber">
+                    <FIELD NAME="FldVoucherNumber">
                         <SET>if $$IsEmpty:$VoucherNumber then $$StrByCharCode:245 else ($$StringFindAndReplace:$VoucherNumber:'"':'""')</SET>
+                    </FIELD>
+                    <FIELD NAME="FldReferenceNumber">
+                        <SET>if $$IsEmpty:$Reference then $$StrByCharCode:245 else ($$StringFindAndReplace:$Reference:'"':'""')</SET>
                     </FIELD>
                     <FIELD NAME="FldNarration">
                         <SET>if $$IsEmpty:$Narration then $$StrByCharCode:245 else ($$StringFindAndReplace:$Narration:'"':'""')</SET>
@@ -86,17 +132,11 @@
                     <FIELD NAME="FldLedgerName">
                         <SET>$$StringFindAndReplace:$LedgerName:'"':'""'</SET>
                     </FIELD>
-                    <FIELD NAME="FldLedgerAmount">
-                        <SET>$$StringFindAndReplace:(if $$IsDebit:$Amount then -$$NumValue:$Amount else $$NumValue:$Amount):"(-)":"-"</SET>
-                    </FIELD>
                     <FIELD NAME="FldItemName">
                         <SET>if $$IsEmpty:$StockItemName then $$StrByCharCode:245 else ($$StringFindAndReplace:$StockItemName:'"':'""')</SET>
                     </FIELD>
                     <FIELD NAME="FldItemQuantity">
                         <SET>$$StringFindAndReplace:(if $$IsInwards:$ActualQty then $$NumValue:$ActualQty else -$$NumValue:$ActualQty):"(-)":"-"</SET>
-                    </FIELD>
-                    <FIELD NAME="FldItemAmount">
-                        <SET>$$StringFindAndReplace:(if $$IsDebit:$Amount then -$$NumValue:$Amount else $$NumValue:$Amount):"(-)":"-"</SET>
                     </FIELD>
                     <FIELD NAME="FldItemAdditionalAmount">
                         <SET>$$StringFindAndReplace:(if $$IsDebit:$AddlAmount then -$$NumValue:$AddlAmount else $$NumValue:$AddlAmount):"(-)":"-"</SET>
@@ -105,10 +145,16 @@
                         <SET>$$StringFindAndReplace:(if $$IsNegative:$Discount then -$$NumValue:$Discount else $$NumValue:$Discount):"(-)":"-"</SET>
                     </FIELD>
                     <FIELD NAME="FldItemGodownName">
-                        <SET>if $$IsEmpty:$GodownName then $$StrByCharCode:245 else  ($$StringFindAndReplace:$GodownName:'"':'""')</SET>
+                        <SET>if $$IsEmpty:$GodownName then $$StrByCharCode:245 else ($$StringFindAndReplace:$GodownName:'"':'""')</SET>
                     </FIELD>
                     <FIELD NAME="FldItemTrackingNumber">
                         <SET>if ($$IsEmpty:$TrackingNumber or $$IsNotApplicable:$TrackingNumber) then $$StrByCharCode:245 else  ($$StringFindAndReplace:$TrackingNumber:'"':'""')</SET>
+                    </FIELD>
+                    <FIELD NAME="FldItemDestinationGodownName">
+                        <SET>if $$IsEmpty:$DestinationGodownName then $$StrByCharCode:245 else ($$StringFindAndReplace:$DestinationGodownName:'"':'""')</SET>
+                    </FIELD>
+                    <FIELD NAME="FldBillType">
+                        <SET>if $$IsEmpty:$BillType then $$StrByCharCode:245 else ($$StringFindAndReplace:$BillType:'"':'""')</SET>
                     </FIELD>
                     <FIELD NAME="FldEOL">
                         <SET>†</SET>

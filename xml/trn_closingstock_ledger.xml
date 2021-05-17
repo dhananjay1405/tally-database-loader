@@ -10,6 +10,7 @@
         <DESC>
             <STATICVARIABLES>
                 <SVEXPORTFORMAT>$$SysName:ASCII</SVEXPORTFORMAT>
+                <SVCURRENTCOMPANY>{targetCompany}</SVCURRENTCOMPANY>
             </STATICVARIABLES>
             <TDL>
                 <TDLMESSAGE>
