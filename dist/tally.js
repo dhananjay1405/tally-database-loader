@@ -5,17 +5,18 @@ const fs = require("fs");
 const path = require("path");
 const process = require("process");
 const http = require("http");
+const yaml = require("js-yaml");
 const utility_js_1 = require("./utility.js");
 const logger_js_1 = require("./logger.js");
 const database_js_1 = require("./database.js");
 class _tally {
     constructor() {
-        this.lstMasters = ['mst_group', 'mst_ledger', 'mst_vouchertype', 'mst_uom', 'mst_godown', 'mst_stock_group', 'mst_stock_item', 'mst_cost_category', 'mst_cost_centre', 'trn_closingstock_ledger'];
-        this.lstTransactions = ['trn_voucher', 'trn_accounting', 'trn_inventory', 'trn_cost_centre', 'trn_bill', 'trn_batch'];
-        this.lstTableInfo = [];
-        this.flgWriteColumnHeader = true; // [ true = write column header to CSV / false = skip it ]
+        this.lstTableMaster = [];
+        this.lstTableTransaction = [];
         this.config = JSON.parse(fs.readFileSync('./config.json', 'utf8'))['tally'];
-        this.lstTableInfo = JSON.parse(fs.readFileSync('./table-info.json', 'utf-8'));
+        let objYAML = yaml.load(fs.readFileSync('./tally-export-config.yaml', 'utf-8'));
+        this.lstTableMaster = objYAML['master'];
+        this.lstTableTransaction = objYAML['transaction'];
     }
     updateCommandlineConfig(lstConfigs) {
         if (lstConfigs.has('tally-server'))
@@ -26,8 +27,6 @@ class _tally {
             this.config.master = lstConfigs.get('tally-master') == 'true';
         if (lstConfigs.has('tally-transaction'))
             this.config.transaction = lstConfigs.get('tally-transaction') == 'true';
-        if (lstConfigs.has('tally-batch'))
-            this.config.batch = lstConfigs.get('tally-batch') || '';
         if (lstConfigs.has('tally-fromdate') && lstConfigs.has('tally-todate')) {
             let fromDate = lstConfigs.get('tally-fromdate') || '';
             let toDate = lstConfigs.get('tally-todate') || '';
@@ -42,7 +41,7 @@ class _tally {
             try {
                 if (/^(mssql|mysql)$/g.test(database_js_1.database.config.technology)) {
                     //update active company information before starting import
-                    logger_js_1.logger.logMessage('Updating company information configuration table');
+                    logger_js_1.logger.logMessage('Updating company information configuration table [%s]', new Date().toLocaleDateString());
                     await this.saveCompanyInfo();
                 }
                 //prepare substitution list of runtime values to reflected in TDL XML
@@ -53,12 +52,12 @@ class _tally {
                 if (/^(mssql|mysql)$/g.test(database_js_1.database.config.technology)) {
                     //truncate master/transaction tables
                     logger_js_1.logger.logMessage('Erasing database');
-                    for (let i = 0; i < this.lstMasters.length; i++) {
-                        let targetTable = this.lstMasters[i];
+                    for (let i = 0; i < this.lstTableMaster.length; i++) {
+                        let targetTable = this.lstTableMaster[i].name;
                         await database_js_1.database.execute(`truncate table ${targetTable};`);
                     }
-                    for (let i = 0; i < this.lstTransactions.length; i++) {
-                        let targetTable = this.lstTransactions[i];
+                    for (let i = 0; i < this.lstTableTransaction.length; i++) {
+                        let targetTable = this.lstTableTransaction[i].name;
                         await database_js_1.database.execute(`truncate table ${targetTable};`);
                     }
                 }
@@ -67,37 +66,37 @@ class _tally {
                     fs.rmSync('./csv', { recursive: true });
                 fs.mkdirSync('./csv');
                 //dump data exported from Tally to CSV file required for bulk import
-                logger_js_1.logger.logMessage('Generating CSV files from Tally');
+                logger_js_1.logger.logMessage('Generating CSV files from Tally [%s]', new Date().toLocaleString());
                 if (this.config.master)
-                    for (let i = 0; i < this.lstMasters.length; i++) {
-                        let targetTable = this.lstMasters[i];
-                        await this.processMasterReport(targetTable, configTallyXML);
-                        logger_js_1.logger.logMessage('  saving file %s.csv', targetTable);
+                    for (let i = 0; i < this.lstTableMaster.length; i++) {
+                        let timestampBegin = Date.now();
+                        let targetTable = this.lstTableMaster[i].name;
+                        await this.processReport(targetTable, this.lstTableMaster[i], configTallyXML);
+                        let timestampEnd = Date.now();
+                        let elapsedSecond = utility_js_1.utility.Number.round((timestampEnd - timestampBegin) / 1000, 3);
+                        logger_js_1.logger.logMessage('  saving file %s.csv [%f sec]', targetTable, elapsedSecond);
                     }
-                if (this.config.transaction) {
-                    if (tally.config.batch == 'daily') {
-                        for (let currDate = configTallyXML.get('fromDate'); currDate <= configTallyXML.get('toDate'); currDate.setDate(currDate.getDate() + 1)) {
-                            let _configPeriod = new Map();
-                            _configPeriod.set('fromDate', currDate);
-                            _configPeriod.set('toDate', currDate);
-                            await this.processTransactionReport(_configPeriod);
-                        }
+                if (this.config.transaction)
+                    for (let i = 0; i < this.lstTableTransaction.length; i++) {
+                        let timestampBegin = Date.now();
+                        let targetTable = this.lstTableTransaction[i].name;
+                        await this.processReport(targetTable, this.lstTableTransaction[i], configTallyXML);
+                        let timestampEnd = Date.now();
+                        let elapsedSecond = utility_js_1.utility.Number.round((timestampEnd - timestampBegin) / 1000, 3);
+                        logger_js_1.logger.logMessage('  saving file %s.csv [%f sec]', targetTable, elapsedSecond);
                     }
-                    else
-                        await this.processTransactionReport(configTallyXML);
-                }
                 if (/^(mssql|mysql)$/g.test(database_js_1.database.config.technology)) {
                     //perform CSV file based bulk import into database
-                    logger_js_1.logger.logMessage('Loading CSV files to database tables');
+                    logger_js_1.logger.logMessage('Loading CSV files to database tables [%s]', new Date().toLocaleString());
                     if (this.config.master)
-                        for (let i = 0; i < this.lstMasters.length; i++) {
-                            let targetTable = this.lstMasters[i];
+                        for (let i = 0; i < this.lstTableMaster.length; i++) {
+                            let targetTable = this.lstTableMaster[i].name;
                             let rowCount = await database_js_1.database.bulkLoad(path.join(process.cwd(), `./csv/${targetTable}.csv`), targetTable);
                             logger_js_1.logger.logMessage('  %s: imported %d rows', targetTable, rowCount);
                         }
                     if (this.config.transaction)
-                        for (let i = 0; i < this.lstTransactions.length; i++) {
-                            let targetTable = this.lstTransactions[i];
+                        for (let i = 0; i < this.lstTableTransaction.length; i++) {
+                            let targetTable = this.lstTableTransaction[i].name;
                             let rowCount = await database_js_1.database.bulkLoad(path.join(process.cwd(), `./csv/${targetTable}.csv`), targetTable);
                             logger_js_1.logger.logMessage('  %s: imported %d rows', targetTable, rowCount);
                         }
@@ -178,16 +177,15 @@ class _tally {
         retval = retval.replace(/,\"†\",/g, '\r\n'); //substitute end of field terminators indicator (as defined in TDL) with proper line terminators
         return retval;
     }
-    processMasterReport(targetTable, substitutions) {
+    processReport(targetTable, tableConfig, substitutions) {
         return new Promise(async (resolve, reject) => {
-            var _a;
             try {
-                let xml = fs.readFileSync(`./xml/${targetTable}.xml`, 'utf-8');
+                let xml = this.generateXMLfromYAML(tableConfig);
                 if (substitutions && substitutions.size)
                     xml = this.substituteTDLParameters(xml, substitutions);
                 let output = await this.postTallyXML(xml);
                 output = this.processTdlOutputManipulation(output);
-                let columnHeaders = ((_a = this.lstTableInfo.find(p => p.tableName == targetTable)) === null || _a === void 0 ? void 0 : _a.columnList) + '\r\n';
+                let columnHeaders = tableConfig.fields.map(p => p.name).join(',') + '\r\n';
                 fs.writeFileSync(`./csv/${targetTable}.csv`, columnHeaders + output);
                 resolve();
             }
@@ -197,76 +195,10 @@ class _tally {
             }
         });
     }
-    processTransactionReport(substitutions) {
-        return new Promise(async (resolve, reject) => {
-            var _a, _b, _c, _d, _e, _f;
-            try {
-                let columnHeader = '';
-                let xml = fs.readFileSync(`./xml/trn_voucher.xml`, 'utf-8');
-                if (substitutions && substitutions.size)
-                    xml = this.substituteTDLParameters(xml, substitutions);
-                let output = await this.postTallyXML(xml);
-                output = this.processTdlOutputManipulation(output);
-                let csvVoucher = '', csvAccounting = '', csvInventory = '', csvCostCentre = '', csvBill = '', csvBatch = '';
-                let lstLines = output.split(/\r\n/g);
-                for (let i = 0; i < lstLines.length; i++) {
-                    let line = lstLines[i];
-                    if (line.startsWith('"vchr"'))
-                        csvVoucher += line.substr(7) + '\r\n';
-                    else if (line.startsWith('"acts"'))
-                        csvAccounting += line.substr(7) + '\r\n';
-                    else if (line.startsWith('"invt"'))
-                        csvInventory += line.substr(7) + '\r\n';
-                    else if (line.startsWith('"cost"'))
-                        csvCostCentre += line.substr(7) + '\r\n';
-                    else if (line.startsWith('"bill"'))
-                        csvBill += line.substr(7) + '\r\n';
-                    else if (line.startsWith('"btch"'))
-                        csvBatch += line.substr(7) + '\r\n';
-                    else
-                        ;
-                }
-                if (this.flgWriteColumnHeader) {
-                    columnHeader = ((_a = this.lstTableInfo.find(p => p.tableName == 'trn_voucher')) === null || _a === void 0 ? void 0 : _a.columnList) + '\r\n';
-                    fs.writeFileSync('./csv/trn_voucher.csv', columnHeader + csvVoucher);
-                    logger_js_1.logger.logMessage('  saving file %s.csv', 'trn_voucher');
-                    columnHeader = ((_b = this.lstTableInfo.find(p => p.tableName == 'trn_accounting')) === null || _b === void 0 ? void 0 : _b.columnList) + '\r\n';
-                    fs.writeFileSync('./csv/trn_accounting.csv', columnHeader + csvAccounting);
-                    logger_js_1.logger.logMessage('  saving file %s.csv', 'trn_accounting');
-                    columnHeader = ((_c = this.lstTableInfo.find(p => p.tableName == 'trn_inventory')) === null || _c === void 0 ? void 0 : _c.columnList) + '\r\n';
-                    fs.writeFileSync('./csv/trn_inventory.csv', columnHeader + csvInventory);
-                    logger_js_1.logger.logMessage('  saving file %s.csv', 'trn_inventory');
-                    columnHeader = ((_d = this.lstTableInfo.find(p => p.tableName == 'trn_cost_centre')) === null || _d === void 0 ? void 0 : _d.columnList) + '\r\n';
-                    fs.writeFileSync('./csv/trn_cost_centre.csv', columnHeader + csvCostCentre);
-                    logger_js_1.logger.logMessage('  saving file %s.csv', 'trn_cost_centre');
-                    columnHeader = ((_e = this.lstTableInfo.find(p => p.tableName == 'trn_bill')) === null || _e === void 0 ? void 0 : _e.columnList) + '\r\n';
-                    fs.writeFileSync('./csv/trn_bill.csv', columnHeader + csvBill);
-                    logger_js_1.logger.logMessage('  saving file %s.csv', 'trn_bill');
-                    columnHeader = ((_f = this.lstTableInfo.find(p => p.tableName == 'trn_batch')) === null || _f === void 0 ? void 0 : _f.columnList) + '\r\n';
-                    fs.writeFileSync('./csv/trn_batch.csv', columnHeader + csvBatch);
-                    logger_js_1.logger.logMessage('  saving file %s.csv', 'trn_batch');
-                }
-                else {
-                    fs.appendFileSync('./csv/trn_voucher.csv', csvVoucher);
-                    fs.appendFileSync('./csv/trn_accounting.csv', csvAccounting);
-                    fs.appendFileSync('./csv/trn_inventory.csv', csvInventory);
-                    fs.appendFileSync('./csv/trn_cost_centre.csv', csvCostCentre);
-                    fs.appendFileSync('./csv/trn_bill.csv', csvCostCentre);
-                    fs.appendFileSync('./csv/trn_batch.csv', csvCostCentre);
-                }
-                this.flgWriteColumnHeader = false; //change back the column header write flag, so that header get written only once
-                resolve();
-            }
-            catch (err) {
-                logger_js_1.logger.logError(`tally.processTransactionReport()`, err);
-                reject(err);
-            }
-        });
-    }
     saveCompanyInfo() {
         return new Promise(async (resolve, reject) => {
             try {
-                let xmlCompany = fs.readFileSync('./xml/mst_company.xml', 'utf-8');
+                let xmlCompany = `<?xml version="1.0" encoding="utf-8"?><ENVELOPE><HEADER><VERSION>1</VERSION><TALLYREQUEST>Export</TALLYREQUEST><TYPE>Data</TYPE><ID>MyReport</ID></HEADER><BODY><DESC><STATICVARIABLES><SVEXPORTFORMAT>$$SysName:ASCII</SVEXPORTFORMAT></STATICVARIABLES><TDL><TDLMESSAGE><REPORT NAME="MyReport"><FORMS>MyForm</FORMS></REPORT><FORM NAME="MyForm"><PARTS>MyPart</PARTS></FORM><PART NAME="MyPart"><LINES>MyLine</LINES><REPEAT>MyLine : MyCollection</REPEAT><SCROLLED>Vertical</SCROLLED></PART><LINE NAME="MyLine"><FIELDS>FldGuid,FldName,FldBooksFrom,FldLastVoucherDate,FldEOL</FIELDS></LINE><FIELD NAME="FldGuid"><SET>$Guid</SET></FIELD><FIELD NAME="FldName"><SET>$$StringFindAndReplace:$Name:'"':'""'</SET></FIELD><FIELD NAME="FldBooksFrom"><SET>(($$YearOfDate:$BooksFrom)*10000)+(($$MonthOfDate:$BooksFrom)*100)+(($$DayOfDate:$BooksFrom)*1)</SET></FIELD><FIELD NAME="FldLastVoucherDate"><SET>(($$YearOfDate:$LastVoucherDate)*10000)+(($$MonthOfDate:$LastVoucherDate)*100)+(($$DayOfDate:$LastVoucherDate)*1)</SET></FIELD><FIELD NAME="FldEOL"><SET>†</SET></FIELD><COLLECTION NAME="MyCollection"><TYPE>Company</TYPE><FILTER>FilterActiveCompany</FILTER></COLLECTION><SYSTEM TYPE="Formulae" NAME="FilterActiveCompany">$$IsEqual:{targetCompany}:$Name</SYSTEM></TDLMESSAGE></TDL></DESC></BODY></ENVELOPE>`;
                 xmlCompany = this.substituteTDLParameters(xmlCompany, new Map([['targetCompany', this.config.company ? '"' + utility_js_1.utility.String.escapeHTML(this.config.company) + '"' : '##SVCurrentCompany']]));
                 let strCompanyInfo = await this.postTallyXML(xmlCompany); //extract active company information
                 if (strCompanyInfo.endsWith(',"†",\r\n')) {
@@ -280,7 +212,7 @@ class _tally {
                     }
                     //clear config table of database and insert active company info to config table
                     await database_js_1.database.execute('truncate table config;');
-                    await database_js_1.database.execute(`insert into config(name,value) values("Update Timestamp","${new Date().toISOString()}"),("Company Name","${companyName}"),("Period From","${this.config.fromdate}"),("Period To","${this.config.todate}");`);
+                    await database_js_1.database.execute(`insert into config(name,value) values("Update Timestamp","${new Date().toLocaleString()}"),("Company Name","${companyName}"),("Period From","${this.config.fromdate}"),("Period To","${this.config.todate}");`);
                 }
                 else {
                     reject('Cannot detect First/Last voucher date from company');
@@ -292,6 +224,78 @@ class _tally {
                 reject(err);
             }
         });
+    }
+    generateXMLfromYAML(tblConfig) {
+        //XML header
+        let retval = `<?xml version="1.0" encoding="utf-8"?><ENVELOPE><HEADER><VERSION>1</VERSION><TALLYREQUEST>Export</TALLYREQUEST><TYPE>Data</TYPE><ID>MyReportLedgerTable</ID></HEADER><BODY><DESC><STATICVARIABLES><SVEXPORTFORMAT>$$SysName:ASCII</SVEXPORTFORMAT><SVFROMDATE>{fromDate}</SVFROMDATE><SVTODATE>{toDate}</SVTODATE><SVCURRENTCOMPANY>{targetCompany}</SVCURRENTCOMPANY></STATICVARIABLES><TDL><TDLMESSAGE><REPORT NAME="MyReportLedgerTable"><FORMS>MyForm</FORMS></REPORT><FORM NAME="MyForm"><PARTS>MyPart01</PARTS></FORM>`;
+        //Push routes list
+        let lstRoutes = tblConfig.collection.split(/\./g);
+        let targetCollection = lstRoutes.splice(0, 1);
+        lstRoutes.unshift('MyCollection'); //add basic collection level route
+        //loop through and append PART XML
+        for (let i = 0; i < lstRoutes.length; i++) {
+            let xmlPart = utility_js_1.utility.Number.format(i + 1, 'MyPart00');
+            let xmlLine = utility_js_1.utility.Number.format(i + 1, 'MyLine00');
+            retval += `<PART NAME="${xmlPart}"><LINES>${xmlLine}</LINES><REPEAT>${xmlLine} : ${lstRoutes[i]}</REPEAT><SCROLLED>Vertical</SCROLLED></PART>`;
+        }
+        //loop through and append LINE XML (except last line which contains field data)
+        for (let i = 0; i < lstRoutes.length - 1; i++) {
+            let xmlLine = utility_js_1.utility.Number.format(i + 1, 'MyLine00');
+            let xmlPart = utility_js_1.utility.Number.format(i + 2, 'MyPart00');
+            retval += `<LINE NAME="${xmlLine}"><FIELDS>FldBlank</FIELDS><EXPLODE>${xmlPart}</EXPLODE></LINE>`;
+        }
+        retval += `<LINE NAME="${utility_js_1.utility.Number.format(lstRoutes.length, 'MyLine00')}">`;
+        retval += `<FIELDS>`; //field end
+        //Append field declaration list
+        for (let i = 0; i < tblConfig.fields.length; i++)
+            retval += utility_js_1.utility.Number.format(i + 1, 'Fld00') + ',';
+        retval += `FldEOL</FIELDS></LINE>`; //End of Field declaration
+        //loop through each field
+        for (let i = 0; i < tblConfig.fields.length; i++) {
+            let fieldXML = `<FIELD NAME="${utility_js_1.utility.Number.format(i + 1, 'Fld00')}">`;
+            let iField = tblConfig.fields[i];
+            //set field TDL XML expression based on type of data
+            if (iField.type == 'text')
+                fieldXML += `<SET>if $$IsEmpty:$${iField.field} then $$StrByCharCode:245 else $$StringFindAndReplace:$${iField.field}:'"':'""'</SET>`;
+            else if (iField.type == 'logical')
+                fieldXML += `<SET>if $${iField.field} then 1 else 0</SET>`;
+            else if (iField.type == 'date')
+                fieldXML += `<SET>if $$IsEmpty:$${iField.field} then $$StrByCharCode:245 else $$PyrlYYYYMMDDFormat:$${iField.field}:"-"</SET>`;
+            else if (iField.type == 'number')
+                fieldXML += `<SET>if $$IsEmpty:$${iField.field} then 0 else $${iField.field}</SET>`;
+            else if (iField.type == 'amount')
+                fieldXML += `<SET>$$StringFindAndReplace:(if $$IsDebit:$${iField.field} then -$$NumValue:$${iField.field} else $$NumValue:$${iField.field}):"(-)":"-"</SET>`;
+            else if (iField.type == 'quantity')
+                fieldXML += `<SET>$$StringFindAndReplace:(if $$IsInwards:$${iField.field} then $$NumValue:$${iField.field} else -$$NumValue:$${iField.field}):"(-)":"-"</SET>`;
+            else
+                fieldXML += `<SET>${iField.field}</SET>`;
+            ;
+            fieldXML += `</FIELD>`;
+            retval += fieldXML;
+        }
+        retval += `<FIELD NAME="FldEOL"><SET>†</SET></FIELD>`; //End of Field specification
+        retval += `<FIELD NAME="FldBlank"><SET>""</SET></FIELD>`; //Blank Field specification
+        //collection
+        retval += `<COLLECTION NAME="MyCollection"><TYPE>${targetCollection}</TYPE>`;
+        //fetch list
+        if (tblConfig.fetch && tblConfig.fetch.length)
+            retval += `<FETCH>${tblConfig.fetch.join(',')}</FETCH>`;
+        //filter
+        if (tblConfig.filters && tblConfig.filters.length) {
+            retval += `<FILTER>`;
+            for (let j = 0; j < tblConfig.filters.length; j++)
+                retval += utility_js_1.utility.Number.format(j + 1, 'Fltr00') + ',';
+            retval = utility_js_1.utility.String.strip(retval); //remove last comma
+            retval += `</FILTER>`;
+        }
+        retval += `</COLLECTION>`;
+        //filter
+        if (tblConfig.filters && tblConfig.filters.length)
+            for (let j = 0; j < tblConfig.filters.length; j++)
+                retval += `<SYSTEM TYPE="Formulae" NAME="${utility_js_1.utility.Number.format(j + 1, 'Fltr00')}">${tblConfig.filters[j]}</SYSTEM>`;
+        //XML footer
+        retval += `</TDLMESSAGE></TDL></DESC></BODY></ENVELOPE>`;
+        return retval;
     }
 }
 let tally = new _tally();

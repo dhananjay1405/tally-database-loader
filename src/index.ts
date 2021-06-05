@@ -27,10 +27,11 @@ tally.updateCommandlineConfig(cmdConfig);
 //start import process
 tally.importData()
     .then(() => {
-        logger.logMessage('Import completed successfully...');
-        process.exit(0);
+        logger.logMessage('Import completed successfully [%s]', new Date().toLocaleString());
+        setTimeout(() => process.exit(0), 100); //exit process success code
+
     })
     .catch(() => {
-        logger.logMessage('Error in importing data\r\nPlease check error-log.txt file for detailed errors');
-        process.exit(1);
+        logger.logMessage('Error in importing data\r\nPlease check error-log.txt file for detailed errors [%s]', new Date().toLocaleString());
+        setTimeout(() => process.exit(1), 100); //exit process with error code
     });

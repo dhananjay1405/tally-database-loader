@@ -1,0 +1,398 @@
+master:
+    - name: mst_group
+      collection: Group
+      fields:
+        - name: guid
+          field: Guid
+          type: text
+        - name: name
+          field: Name
+          type: text
+        - name: parent
+          field: if $$IsEqual:$Parent:$$SysName:Primary then $$StrByCharCode:245 else $$StringFindAndReplace:$Parent:'"':'""'
+          type: custom
+        - name: primary_group
+          field: _PrimaryGroup
+          type: text
+        - name: is_revenue
+          field: IsRevenue
+          type: logical
+        - name: is_deemedpositive
+          field: IsDeemedPositive
+          type: logical
+        - name: is_reserved
+          field: IsReserved
+          type: logical
+        - name: sort_position
+          field: SortPosition
+          type: number
+    - name: mst_ledger
+      collection: Ledger
+      fields:
+        - name: guid
+          field: Guid
+          type: text
+        - name: name
+          field: Name
+          type: text
+        - name: parent
+          field: Parent
+          type: text
+        - name: is_revenue
+          field: IsRevenue
+          type: logical
+        - name: is_deemedpositive
+          field: IsDeemedPositive
+          type: logical
+        - name: opening_balance
+          field: OpeningBalance
+          type: amount
+        - name: description
+          field: Description
+          type: text
+        - name: mailing_name
+          field: MailingName
+          type: text
+        - name: mailing_address
+          field: if $$IsEmpty:$Address then $$StrByCharCode:245 else $$StringFindAndReplace:($$FullList:Address:$Address):'"':'""'
+          type: custom
+        - name: mailing_state
+          field: LedStateName
+          type: text
+        - name: mailing_country
+          field: CountryName
+          type: text
+        - name: mailing_pincode
+          field: PinCode
+          type: text
+        - name: it_pan
+          field: IncomeTaxNumber
+          type: text
+        - name: gstn
+          field: Partygstin
+          type: text
+        - name: gst_registration_type
+          field: Gstregistrationtype
+          type: text
+        - name: gst_supply_type
+          field: Gsttypeofsupply
+          type: text
+        - name: gst_duty_head
+          field: Gstdutyhead
+          type: text
+        - name: tax_rate
+          field: RateOfTaxCalculation
+          type: number
+    - name: mst_vouchertype
+      collection: VoucherType
+      fields:
+        - name: guid
+          field: Guid
+          type: text
+        - name: name
+          field: Name
+          type: text
+        - name: parent
+          field: Parent
+          type: text
+        - name: is_deemedpositive
+          field: IsDeemedPositive
+          type: logical
+        - name: affects_stock
+          field: AffectsStock
+          type: logical
+    - name: mst_uom
+      collection: Unit
+      fields:
+        - name: guid
+          field: Guid
+          type: text
+        - name: name
+          field: Symbol
+          type: text
+        - name: formalname
+          field: FormalName
+          type: text
+        - name: is_simple_unit
+          field: IsSimpleUnit
+          type: logical
+        - name: base_units
+          field: BaseUnits
+          type: text
+        - name: additional_units
+          field: AdditionalUnits
+          type: text
+        - name: conversion
+          field: Conversion
+          type: number
+    - name: mst_godown
+      collection: Godown
+      fields:
+        - name: guid
+          field: Guid
+          type: text
+        - name: name
+          field: Name
+          type: text
+        - name: parent
+          field: Parent
+          type: text
+        - name: address
+          field: if $$IsEmpty:$Address then $$StrByCharCode:245 else $$StringFindAndReplace:($$FullList:Address:$Address):'"':'""'
+          type: custom
+    - name: mst_stock_group
+      collection: StockGroup
+      fields:
+        - name: guid
+          field: Guid
+          type: text
+        - name: name
+          field: Name
+          type: text
+        - name: parent
+          field: if $$IsEqual:$Parent:$$SysName:Primary then $$StrByCharCode:245 else $$StringFindAndReplace:$Parent:'"':'""'
+          type: custom
+    - name: mst_stock_item
+      collection: StockItem
+      fetch:
+        - GstDetails
+      fields:
+        - name: guid
+          field: Guid
+          type: text
+        - name: name
+          field: Name
+          type: text
+        - name: parent
+          field: Parent
+          type: text
+        - name: uom
+          field: BaseUnits
+          type: text
+        - name: opening_balance
+          field: OpeningBalance
+          type: quantity
+        - name: opening_value
+          field: OpeningValue
+          type: amount
+        - name: gst_nature_of_goods
+          field: if ($$IsEqual:$GstApplicable:($$SysName:Applicable) AND NOT $$IsEmpty:$GstDetails[Last].Natureofgoods) then $GstDetails[Last].Natureofgoods else $$StrByCharCode:245
+          type: custom
+        - name: gst_hsn_code
+          field: if ($$IsEqual:$GstApplicable:($$SysName:Applicable) AND NOT $$IsEmpty:$GstDetails[Last].Hsncode) then $GstDetails[Last].Hsncode else $$StrByCharCode:245
+          type: custom
+        - name: gst_taxability
+          field: if ($$IsEqual:$GstApplicable:($$SysName:Applicable) AND NOT $$IsEmpty:$GstDetails[Last].Taxability) then $GstDetails[Last].Taxability else $$StrByCharCode:245
+          type: custom
+    - name: mst_cost_category
+      collection: CostCategory
+      fields:
+        - name: guid
+          field: Guid
+          type: text
+        - name: name
+          field: Name
+          type: text
+        - name: allocate_revenue
+          field: AllocateRevenue
+          type: logical
+        - name: allocate_non_revenue
+          field: AllocateNonRevenue
+          type: logical
+    - name: mst_cost_centre
+      collection: CostCentre
+      fields:
+        - name: guid
+          field: Guid
+          type: text
+        - name: name
+          field: Name
+          type: text
+        - name: parent
+          field: if $$IsEqual:$Parent:$$SysName:Primary then $$StrByCharCode:245 else $$StringFindAndReplace:$Parent:'"':'""'
+          type: custom
+        - name: category
+          field: Category
+          type: text
+    - name: trn_closingstock_ledger
+      collection: Ledger.LedgerClosingValues
+      fetch:
+        - LedgerClosingValues
+      filters:
+        - $$IsLedOfGrp:$Name:$$GroupStock
+      fields:
+        - name: ledger
+          field: Name
+          type: text
+        - name: parent
+          field: Parent
+          type: text
+        - name: stock_date
+          field: Date
+          type: date
+        - name: stock_value
+          field: Amount
+          type: amount
+transaction:
+    - name: trn_voucher
+      collection: Voucher
+      fetch:
+        - Narration
+      filters:
+        - NOT $IsCancelled
+        - NOT $IsOptional
+      fields:
+        - name: guid
+          field: Guid
+          type: text
+        - name: date
+          field: Date
+          type: date
+        - name: voucher_type
+          field: VoucherTypeName
+          type: text
+        - name: voucher_number
+          field: VoucherNumber
+          type: text
+        - name: reference_number
+          field: Reference
+          type: text
+        - name: narration
+          field: Narration
+          type: text
+        - name: is_invoice
+          field: IsInvoice
+          type: logical
+        - name: is_accounting_voucher
+          field: if $$IsAccountingVch:$VoucherTypeName then 1 else 0
+          type: custom
+        - name: is_inventory_voucher
+          field: if $$IsInventoryVch:$VoucherTypeName then 1 else 0
+          type: custom
+        - name: is_order_voucher
+          field: if $$IsOrderVch:$VoucherTypeName then 1 else 0
+          type: custom
+    - name: trn_accounting
+      collection: Voucher.AllLedgerEntries
+      fetch:
+        - AllLedgerEntries
+      filters:
+        - NOT $IsCancelled
+        - NOT $IsOptional
+      fields:
+        - name: guid
+          field: Guid
+          type: text
+        - name: ledger
+          field: LedgerName
+          type: text
+        - name: amount
+          field: Amount
+          type: amount
+    - name: trn_inventory
+      collection: Voucher.AllInventoryEntries
+      fetch:
+        - AllInventoryEntries
+      filters:
+        - NOT $IsCancelled
+        - NOT $IsOptional
+      fields:
+        - name: guid
+          field: Guid
+          type: text
+        - name: item
+          field: StockItemName
+          type: text
+        - name: quantity
+          field: ActualQty
+          type: quantity
+        - name: amount
+          field: Amount
+          type: amount
+        - name: additional_amount
+          field: AddlAmount
+          type: amount
+        - name: discount_amount
+          field: Discount
+          type: number
+        - name: godown
+          field: GodownName
+          type: text
+        - name: tracking_number
+          field: if ($$IsEmpty:$TrackingNumber or $$IsNotApplicable:$TrackingNumber) then $$StrByCharCode:245 else ($$StringFindAndReplace:$TrackingNumber:'"':'""')
+          type: custom
+    - name: trn_cost_centre
+      collection: Voucher.AllLedgerEntries.CostCentreAllocations
+      fetch:
+        - AllLedgerEntries
+      filters:
+        - NOT $IsCancelled
+        - NOT $IsOptional
+      fields:
+        - name: guid
+          field: Guid
+          type: text
+        - name: ledger
+          field: LedgerName
+          type: text
+        - name: name
+          field: Name
+          type: text
+        - name: amount
+          field: Amount
+          type: amount
+    - name: trn_bill
+      collection: Voucher.AllLedgerEntries.BillAllocations
+      fetch:
+        - AllLedgerEntries
+      filters:
+        - NOT $IsCancelled
+        - NOT $IsOptional
+      fields:
+        - name: guid
+          field: Guid
+          type: text
+        - name: ledger
+          field: LedgerName
+          type: text
+        - name: name
+          field: Name
+          type: text
+        - name: amount
+          field: Amount
+          type: amount
+        - name: billtype
+          field: BillType
+          type: text
+    - name: trn_batch
+      collection: Voucher.AllInventoryEntries.BatchAllocations
+      fetch:
+        - AllInventoryEntries
+      filters:
+        - NOT $IsCancelled
+        - NOT $IsOptional
+      fields:
+        - name: guid
+          field: Guid
+          type: text
+        - name: item
+          field: StockItemName
+          type: text
+        - name: name
+          field: Name
+          type: text
+        - name: quantity
+          field: ActualQty
+          type: quantity
+        - name: amount
+          field: Amount
+          type: amount
+        - name: godown
+          field: GodownName
+          type: text
+        - name: destination_godown
+          field: DestinationGodownName
+          type: text
+        - name: tracking_number
+          field: if ($$IsEmpty:$TrackingNumber or $$IsNotApplicable:$TrackingNumber) then $$StrByCharCode:245 else ($$StringFindAndReplace:$TrackingNumber:'"':'""')
+          type: custom

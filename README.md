@@ -28,6 +28,7 @@ Commandline utility to load data into Database Server from Tally software, inten
     * Tally Options
 * [Steps](#steps)
 * [Tutorial](#tutorial)
+* [Tally Export Config](#tally-export-config)
 * [Commandline Options](#commandline-options)
 * [Logs](#logs)
 * [Reports](#reports)
@@ -41,10 +42,10 @@ Commandline utility to load data into Database Server from Tally software, inten
 <br><br>
 
 ## Version
-Latest Version: **1.0.4**<br>
-Updated on: **17-May-2021**
+Latest Version: **1.0.5**<br>
+Updated on: **05-Jun-2021**
 
-*Note: Since many more fields of Tally have been added in current version, user should delete & re-create database*
+*Note: We have revamped utility. So, kindly delete existing utility installation. Configuration file has changed, so it needs to be revised*
 
 <br><br>
 
@@ -68,7 +69,7 @@ Compatibility:
 ### Utility
 Database Loader Utility is portable, and does not have a setup wizard like we find for software installation. Zip archive of utility can be downloaded from below link
 
-[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.4.zip)
+[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.5.zip)
 
 Also, it is a commandline utility having no window interface (to keep it minimal and faster)
 
@@ -205,7 +206,6 @@ Few of the options of Tally may need modification, if default settings of Tally 
 | port | By default Tally runs XML Server on port number **9000**. Modify this if you have assigned different port number in Tally XML Server settings (typically done when you want run Tally.ERP 9 and Tally Prime both at a same time parallely, where you will be changing this port number) |
 | master / transaction | **true** = Export master/transaction data from Tally (*default*) <br> **false** = Skip master/transaction data |
 | fromdate / todate | **YYYYMMDD** = Period from/to for export of transaction and opening balance (in 8 digit format) <br> **auto** = This will export complete transactions (irrespective of selected Financial Year) from Tally by auto-detection of First & Last date of transaction |
-| batch | **daily** = Export vouchers day-by-day from Tally to CSV file & then push to database (Speed: **Slow** / RAM Usage: **Low** )<br> **full** = Export all vouchers in one shot from Tally & then push to database (Speed: **Fast** / Ram Usage: **High**) |
 | company | Name of the company from which to export data or leave it blank to export from Active company of Tally (this parameter is intended for use when user needs to export data from specific company irrespective of it is active or not. Setup a powershell script to run a loop when multiple companies needs to be targeted one-by-one) |
 
 <br><br>
@@ -235,6 +235,31 @@ YouTube tutorial video are availabe (link below)
 <br>
 
 [![YouTube tutorial MySQL Server](https://img.youtube.com/vi/_bXc54bKTlI/0.jpg)](https://www.youtube.com/watch?v=_bXc54bKTlI)
+
+<br><br>
+
+## Tally Export Config
+Certain times we may require to add or remove any of the fields from export (to add user defined fields created by TDL Developer in Tally customisations). So this export specification is defined in **tally-export-config.yaml** file in YAML format. This file is divided into Master and Transaction, containing multiple tables in it. To understand structure and nomenclature, an example of this is given below
+
+```yaml
+master:
+    - name: mst_group
+      collection: Group
+      fields:
+        - name: guid
+          field: Guid
+          type: text
+```
+
+name: mst_group (**Database Table name**)<br>
+collection: Group (**Tally Collection name**)<br>
+name: guid (**Database Column name**)<br>
+field: Guid (**Tally field name**)<br>
+type: **text / logical / date / number / amount / quantity / custom**
+
+**amount:** Credit = positive / Debit = negative<br>
+**quantity:** In Quantity = positive / Out Quantity = negative<br>
+**custom:** Any custom expression in TDL format
 
 <br><br>
 
@@ -351,6 +376,16 @@ For any query email to **dhananjay1405@gmail.com** or Whatsapp on **(+91) 90284-
 <br><br>
 
 ## Release History
+
+**Version: 1.0.5 [05-Jun-2021]**<br>
+Added:
+* YAML format tally tables & fields definition specification file **tally-export-config.yaml**, for easy expansion of User Defined Fields as utility now aims for easy export of fields created by TDL Developers customising Tally. TDL XML is created on-the-fly by reading this specification file.
+* Timestamps in **import-log.txt** file, to know exactly when utility was run
+* No of seconds it took for each table of Tally to export. This information might be helpful when user wants to skip any heavy tables of Tally from export, by removing it from **tally-export-config.yaml** specification file for quick export
+
+Removed:
+* XML folder containing specification of Tally tables and fields, as this XML is now automatically created on-the-fly. Also *table-info.json* file was removed, as **tally-export-config.yaml** already contains equivalent name of fields in database for corresponding Tally fields.
+* In **config.json** file, **batch** mode of transaction export where we could specify it full or daily is removed, as whole logic is now revamped. Revamping of logic resulted in longer time to export data from Tally, but significant lower usage of RAM while export (as high RAM usage by Tally Prime was hindering other process in few cases)
 
 Version: **1.0.4 [17-May-2021]**<br>
 Added:
