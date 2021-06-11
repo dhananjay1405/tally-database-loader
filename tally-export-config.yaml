@@ -36,8 +36,8 @@ master:
           field: Name
           type: text
         - name: parent
-          field: Parent
-          type: text
+          field: if $$IsEqual:$Parent:$$SysName:Primary then $$StrByCharCode:245 else $$StringFindAndReplace:$Parent:'"':'""'
+          type: custom
         - name: is_revenue
           field: IsRevenue
           type: logical
@@ -135,8 +135,8 @@ master:
           field: Name
           type: text
         - name: parent
-          field: Parent
-          type: text
+          field: if $$IsEmpty:$Address then $$StrByCharCode:245 else $$StringFindAndReplace:($$FullList:Address:$Address):'"':'""'
+          type: custom
         - name: address
           field: if $$IsEmpty:$Address then $$StrByCharCode:245 else $$StringFindAndReplace:($$FullList:Address:$Address):'"':'""'
           type: custom
@@ -164,8 +164,8 @@ master:
           field: Name
           type: text
         - name: parent
-          field: Parent
-          type: text
+          field: if $$IsEqual:$Parent:$$SysName:Primary then $$StrByCharCode:245 else $$StringFindAndReplace:$Parent:'"':'""'
+          type: custom
         - name: uom
           field: BaseUnits
           type: text

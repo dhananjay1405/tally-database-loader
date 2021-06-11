@@ -42,8 +42,8 @@ Commandline utility to load data into Database Server from Tally software, inten
 <br><br>
 
 ## Version
-Latest Version: **1.0.5**<br>
-Updated on: **05-Jun-2021**
+Latest Version: **1.0.6**<br>
+Updated on: **11-Jun-2021**
 
 *Note: We have revamped utility. So, kindly delete existing utility installation. Configuration file has changed, so it needs to be revised*
 
@@ -376,6 +376,10 @@ For any query email to **dhananjay1405@gmail.com** or Whatsapp on **(+91) 90284-
 <br><br>
 
 ## Release History
+
+**Version: 1.0.6 [11-Jun-2021]**<br>
+Fixed:
+* Parent nature field of Tally containing value Primary, is converted to value as blank string, by custom TDL expression in YAML. In few tables this expression was missing, which is now fixed
 
 **Version: 1.0.5 [05-Jun-2021]**<br>
 Added:
