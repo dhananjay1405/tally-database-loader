@@ -30,12 +30,19 @@ create table mst_ledger
  mailing_state nvarchar(256) not null default '',
  mailing_country nvarchar(256) not null default '',
  mailing_pincode nvarchar(64) not null default '',
+ email nvarchar(64) not null default '',
  it_pan nvarchar(64) not null default '',
  gstn nvarchar(64) not null default '',
  gst_registration_type nvarchar(64) not null default '',
  gst_supply_type nvarchar(64) not null default '',
  gst_duty_head nvarchar(16) not null default '',
- tax_rate decimal(9,4) default 0
+ tax_rate decimal(9,4) default 0,
+ bank_account_holder nvarchar(256) not null default '',
+ bank_account_number nvarchar(64) not null default '',
+ bank_ifsc nvarchar(64) not null default '',
+ bank_swift nvarchar(64) not null default '',
+ bank_name nvarchar(64) not null default '',
+ bank_branch nvarchar(64) not null default ''
 );
 
 create table mst_vouchertype
@@ -100,6 +107,20 @@ create table mst_cost_centre
  name nvarchar(1024) not null default '',
  parent nvarchar(1024) not null default '',
  category nvarchar(1024) not null default ''
+);
+
+create table mst_gst_effective_rate
+(
+ item nvarchar(1024) not null default '',
+ applicable_from date,
+ hsn_description nvarchar(256) not null default '',
+ hsn_code nvarchar(64) not null default '',
+ rate decimal(17,2) not null default 0,
+ is_rcm_applicable tinyint,
+ nature_of_transaction nvarchar(64) not null default '',
+ nature_of_goods nvarchar(64) not null default '',
+ supply_type nvarchar(64) not null default '',
+ taxability nvarchar(64) not null default ''
 );
 
 create table trn_voucher
@@ -168,6 +189,6 @@ create table trn_closingstock_ledger
 (
  ledger nvarchar(1024) not null default '',
  parent nvarchar(1024) not null default '',
- stock_date datetime,
+ stock_date date,
  stock_value decimal(17,2) not null default 0
 );

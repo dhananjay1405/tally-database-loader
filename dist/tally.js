@@ -101,6 +101,23 @@ class _tally {
                             logger_js_1.logger.logMessage('  %s: imported %d rows', targetTable, rowCount);
                         }
                 }
+                else {
+                    //remove special character of date from CSV files, which was inserted for null dates
+                    if (this.config.master)
+                        for (let i = 0; i < this.lstTableMaster.length; i++) {
+                            let targetTable = this.lstTableMaster[i].name;
+                            let content = fs.readFileSync(`./csv/${targetTable}.csv`, 'utf-8');
+                            content = content.replace(/\"ñ\"/g, '\"\"');
+                            fs.writeFileSync(`./csv/${targetTable}.csv`, '\ufeff' + content);
+                        }
+                    if (this.config.transaction)
+                        for (let i = 0; i < this.lstTableTransaction.length; i++) {
+                            let targetTable = this.lstTableTransaction[i].name;
+                            let content = fs.readFileSync(`./csv/${targetTable}.csv`, 'utf-8');
+                            content = content.replace(/\"ñ\"/g, '\"\"');
+                            fs.writeFileSync(`./csv/${targetTable}.csv`, '\ufeff' + content);
+                        }
+                }
                 resolve();
             }
             catch (err) {
@@ -260,7 +277,7 @@ class _tally {
             else if (iField.type == 'logical')
                 fieldXML += `<SET>if $${iField.field} then 1 else 0</SET>`;
             else if (iField.type == 'date')
-                fieldXML += `<SET>if $$IsEmpty:$${iField.field} then $$StrByCharCode:245 else $$PyrlYYYYMMDDFormat:$${iField.field}:"-"</SET>`;
+                fieldXML += `<SET>if $$IsEmpty:$${iField.field} then $$StrByCharCode:241 else $$PyrlYYYYMMDDFormat:$${iField.field}:"-"</SET>`;
             else if (iField.type == 'number')
                 fieldXML += `<SET>if $$IsEmpty:$${iField.field} then 0 else $${iField.field}</SET>`;
             else if (iField.type == 'amount')

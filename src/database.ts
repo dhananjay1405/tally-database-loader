@@ -40,6 +40,7 @@ class _database {
 
                 if (this.config.loadmethod == 'insert') { //INSERT query based loading
                     let txtCSV = fs.readFileSync(csvFile, 'utf-8');
+                    txtCSV = txtCSV.replace(/\"ñ\"/g, 'NULL'); //replace special character for null dates with NULL for insert
                     let lstLines = txtCSV.split(/\r\n/g);
                     lstLines.pop(); //remove last empty item
                     let fieldList = lstLines.shift() || '';
@@ -56,6 +57,16 @@ class _database {
                     }
                 }
                 else { //File based loading
+
+                    //modify file to handle null values for date field
+                    let fileContent = fs.readFileSync(csvFile, 'utf-8');
+                    if (this.config.technology == 'mysql')
+                        fileContent = fileContent.replace(/\"ñ\"/g, 'NULL')
+                    else if (this.config.technology == 'mssql')
+                        fileContent = fileContent.replace(/\"ñ\"/g, '');
+                    fs.writeFileSync(csvFile, fileContent); //write desired changes to file
+                    fileContent = ''; //reset string to erase memory
+
                     if (this.config.technology == 'mysql') {
                         sqlQuery = `load data infile '${csvFile.replace(/\\/g, '\\\\')}' into table ${targetTable} fields terminated by ',' enclosed by '"' escaped by '' lines terminated by '\r\n' ignore 1 lines ;`;
                         rowCount = await this.execute(sqlQuery);

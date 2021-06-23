@@ -65,6 +65,9 @@ master:
         - name: mailing_pincode
           field: PinCode
           type: text
+        - name: email
+          field: Email
+          type: text
         - name: it_pan
           field: IncomeTaxNumber
           type: text
@@ -83,6 +86,24 @@ master:
         - name: tax_rate
           field: RateOfTaxCalculation
           type: number
+        - name: bank_account_holder
+          field: Bankaccholdername
+          type: text
+        - name: bank_account_number
+          field: BankDetails
+          type: text
+        - name: bank_ifsc
+          field: Ifscode
+          type: text
+        - name: bank_swift
+          field: Swiftcode
+          type: text
+        - name: bank_name
+          field: Bankingconfigbank
+          type: text
+        - name: bank_branch
+          field: BankBranchname
+          type: text
     - name: mst_vouchertype
       collection: VoucherType
       fields:
@@ -213,6 +234,41 @@ master:
           type: custom
         - name: category
           field: Category
+          type: text
+    - name: mst_gst_effective_rate
+      collection: StockItem.GstDetails
+      filters:
+        - NOT $$IsEmpty:$GstApplicable
+      fields:
+        - name: item
+          field: Name
+          type: text
+        - name: applicable_from
+          field: Applicablefrom
+          type: date
+        - name: hsn_description
+          field: Hsn
+          type: text
+        - name: hsn_code
+          field: HsnCode
+          type: text
+        - name: rate
+          field: $StateWiseDetails[First].RateDetails[3].GstRate
+          type: custom
+        - name: is_rcm_applicable
+          field: IsReverseChargeApplicable
+          type: logical
+        - name: nature_of_transaction
+          field: GstNatureOfTransaction
+          type: text
+        - name: nature_of_goods
+          field: NatureOfGoods
+          type: text
+        - name: supply_type
+          field: SupplyType
+          type: text
+        - name: taxability
+          field: Taxability
           type: text
     - name: trn_closingstock_ledger
       collection: Ledger.LedgerClosingValues
