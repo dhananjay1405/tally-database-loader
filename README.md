@@ -43,10 +43,10 @@ Commandline utility to load data into Database Server from Tally software, inten
 <br><br>
 
 ## Version
-Latest Version: **1.0.7**<br>
-Updated on: **23-Jun-2021**
+Latest Version: **1.0.8**<br>
+Updated on: **01-Jul-2021**
 
-*Note: We have revamped utility. So, kindly delete existing utility installation. Configuration file has changed, so it needs to be revised*
+*Note: We have revamped utility & adding new fields. So, kindly delete existing utility installation & re-create databases*
 
 <br><br>
 
@@ -256,10 +256,11 @@ name: mst_group (**Database Table name**)<br>
 collection: Group (**Tally Collection name**)<br>
 name: guid (**Database Column name**)<br>
 field: Guid (**Tally field name**)<br>
-type: **text / logical / date / number / amount / quantity / custom**
+type: **text / logical / date / number / amount / quantity / rate / custom**
 
 **amount:** Credit = positive / Debit = negative<br>
 **quantity:** In Quantity = positive / Out Quantity = negative<br>
+**rate:** Rate type of data (is always positive)<br>
 **custom:** Any custom expression in TDL format
 
 <br><br>
@@ -395,6 +396,12 @@ For any query email to **dhananjay1405@gmail.com** or Whatsapp on **(+91) 90284-
 <br><br>
 
 ## Release History
+
+**Version: 1.0.8 [01-Jul-2021]**<br>
+Added:
+* Rate column in stock item and inventory transaction table
+* Added 2 new tables for opening batch & bill allocation (useful when company is split and there are pending bills as on split date)
+* Introduced compatibility for field containing **rate** type of data in Tally. YAML export configuration now supports type *rate*
 
 **Version: 1.0.7 [23-Jun-2021]**<br>
 Added:

@@ -193,6 +193,9 @@ master:
         - name: opening_balance
           field: OpeningBalance
           type: quantity
+        - name: opening_rate
+          field: OpeningRate
+          type: rate
         - name: opening_value
           field: OpeningValue
           type: amount
@@ -270,6 +273,39 @@ master:
         - name: taxability
           field: Taxability
           type: text
+    - name: mst_opening_batch_allocation
+      collection: StockItem.BatchAllocations
+      fields:
+        - name: item
+          field: ..Name
+          type: text
+        - name: opening_balance
+          field: OpeningBalance
+          type: quantity
+        - name: opening_rate
+          field: OpeningRate
+          type: rate
+        - name: opening_value
+          field: OpeningValue
+          type: amount
+        - name: godown
+          field: GodownName
+          type: text
+        - name: manufactured_on
+          field: MfdOn
+          type: date
+    - name: mst_opening_bill_allocation
+      collection: Ledger.BillAllocations
+      fields:
+        - name: ledger
+          field: ..Name
+          type: text
+        - name: opening_balance
+          field: OpeningBalance
+          type: amount
+        - name: bill_date
+          field: BillDate
+          type: date
     - name: trn_closingstock_ledger
       collection: Ledger.LedgerClosingValues
       fetch:
@@ -362,6 +398,9 @@ transaction:
         - name: quantity
           field: ActualQty
           type: quantity
+        - name: rate
+          field: Rate
+          type: rate
         - name: amount
           field: Amount
           type: amount

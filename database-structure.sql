@@ -87,6 +87,7 @@ create table mst_stock_item
  parent nvarchar(1024) not null default '',
  uom nvarchar(1024) not null default '',
  opening_balance decimal(15,4) default 0,
+ opening_rate decimal(15,4) default 0,
  opening_value decimal(17,2) default 0,
  gst_nature_of_goods nvarchar(1024) default '',
  gst_hsn_code nvarchar(64) default '',
@@ -123,6 +124,23 @@ create table mst_gst_effective_rate
  taxability nvarchar(64) not null default ''
 );
 
+create table mst_opening_batch_allocation
+(
+ item nvarchar(1024) not null default '',
+ opening_balance decimal(15,4) default 0,
+ opening_rate decimal(15,4) default 0,
+ opening_value decimal(17,2) default 0,
+ godown nvarchar(1024) not null default '',
+ manufactured_on date
+);
+
+create table mst_opening_bill_allocation
+(
+ ledger nvarchar(1024) not null default '',
+ opening_balance decimal(17,4) default 0,
+ bill_date date
+);
+
 create table trn_voucher
 (
  guid varchar(64) not null primary key,
@@ -149,6 +167,7 @@ create table trn_inventory
  guid varchar(64) not null,
  item nvarchar(1024) not null default '',
  quantity decimal(15,4) not null default 0,
+ rate decimal(15,4) not null default 0,
  amount decimal(17,2) not null default 0,
  additional_amount decimal(17,2) not null default 0,
  discount_amount decimal(17,2) not null default 0,

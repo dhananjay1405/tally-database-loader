@@ -284,9 +284,10 @@ class _tally {
                 fieldXML += `<SET>$$StringFindAndReplace:(if $$IsDebit:$${iField.field} then -$$NumValue:$${iField.field} else $$NumValue:$${iField.field}):"(-)":"-"</SET>`;
             else if (iField.type == 'quantity')
                 fieldXML += `<SET>$$StringFindAndReplace:(if $$IsInwards:$${iField.field} then $$NumValue:$${iField.field} else -$$NumValue:$${iField.field}):"(-)":"-"</SET>`;
+            else if (iField.type == 'rate')
+                fieldXML += `<SET>if $$IsEmpty:$${iField.field} then 0 else $$Number:$${iField.field}</SET>`;
             else
                 fieldXML += `<SET>${iField.field}</SET>`;
-            ;
             fieldXML += `</FIELD>`;
             retval += fieldXML;
         }
