@@ -70,7 +70,7 @@ Compatibility:
 ### Utility
 Database Loader Utility is portable, and does not have a setup wizard like we find for software installation. Zip archive of utility can be downloaded from below link
 
-[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.7.zip)
+[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.8.zip)
 
 Also, it is a commandline utility having no window interface (to keep it minimal and faster)
 
