@@ -2,7 +2,7 @@
 set
  @ledger = 'Cash',
  @fromDate = '2014-04-01',
- @toDate = '2015-03-31' ;
+ @toDate = '2015-03-31';
 with tblLedger as
 (
  select v.guid, v.date, v.voucher_number, v.voucher_type, v.narration,

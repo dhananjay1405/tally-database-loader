@@ -256,7 +256,7 @@ master:
           field: HsnCode
           type: text
         - name: rate
-          field: $StateWiseDetails[First].RateDetails[3].GstRate
+          field: if NOT $$IsEmpty:$StateWiseDetails then $StateWiseDetails[First].RateDetails[3].GstRate else 0
           type: custom
         - name: is_rcm_applicable
           field: IsReverseChargeApplicable
