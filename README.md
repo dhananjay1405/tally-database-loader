@@ -43,10 +43,10 @@ Commandline utility to load data into Database Server from Tally software, inten
 <br><br>
 
 ## Version
-Latest Version: **1.0.8**<br>
-Updated on: **01-Jul-2021**
+Latest Version: **1.0.9**<br>
+Updated on: **08-Aug-2021**
 
-*Note: We have revamped utility & adding new fields. So, kindly delete existing utility installation & re-create databases*
+*Note: We keep on fixing utility and adding fields into database. So you are requested to re-create existing databases and re-download utility folder *
 
 <br><br>
 
@@ -396,6 +396,15 @@ For any query email to **dhananjay1405@gmail.com** or Whatsapp on **(+91) 90284-
 <br><br>
 
 ## Release History
+
+**Version: 1.0.9 [08-Aug-2021]**<br>
+Added:
+* 2 new fields of amount in forex and currency in **trn_accounting** table. For Indian currency transaction, this field amount will be same as amount field.
+
+Fixed:
+* Crashing of Tally in the case when compound unit of measurement was used. TDL extraction expression is fixed.
+* Failure in fetching data from specific company, when target company name was specified in **config.json** . Mechanism was failing when company had special characters like dash, brackets in its name.
+* Default date in SQL queries in demo report section, changed to FY 2020-21.
 
 **Version: 1.0.8 [01-Jul-2021]**<br>
 Added:

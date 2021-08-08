@@ -2,8 +2,8 @@
   Daily Receipt and Payment (incl Contra)
 */
 set
- @fromDate = '2014-04-01',
- @toDate = '2015-03-31';
+ @fromDate = '2020-04-01',
+ @toDate = '2021-03-31';
 with recursive tblDateList as
 (
  select date(@fromDate) value

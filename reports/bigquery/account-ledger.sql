@@ -6,7 +6,7 @@ with tblLedger as
  (case when a.amount > 0 then a.amount else 0 end) credit
  from tallydb.trn_accounting a
  join tallydb.trn_voucher v on v.guid = a.guid
- where (a.ledger = 'Cash') and (v.is_accounting_voucher is true) and (v.date between parse_date('%d-%m-%Y', '01-04-2014') and parse_date('%d-%m-%Y', '31-03-2015'))
+ where (a.ledger = 'Cash') and (v.is_accounting_voucher is true) and (v.date between parse_date('%d-%m-%Y', '01-04-2020') and parse_date('%d-%m-%Y', '31-03-2021'))
  order by v.date
 ),
 tblEntry as

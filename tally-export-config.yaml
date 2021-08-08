@@ -381,6 +381,12 @@ transaction:
         - name: amount
           field: Amount
           type: amount
+        - name: amount_forex
+          field: $$StringFindAndReplace:(if $$IsDebit:$Amount then -$$ForexValue:$Amount else $$ForexValue:$Amount):"(-)":"-"
+          type: custom
+        - name: currency
+          field: $$Currency:$Amount
+          type: custom
     - name: trn_inventory
       collection: Voucher.AllInventoryEntries
       fetch:

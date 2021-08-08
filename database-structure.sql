@@ -159,7 +159,9 @@ create table trn_accounting
 (
  guid varchar(64) not null,
  ledger nvarchar(1024) not null default '',
- amount decimal(17,2) not null default 0
+ amount decimal(17,2) not null default 0,
+ amount_forex decimal(17,2) not null default 0,
+ currency nvarchar(16) not null default ''
 );
 
 create table trn_inventory
