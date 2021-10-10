@@ -149,6 +149,8 @@ create table trn_voucher
  voucher_number nvarchar(64) not null default '',
  reference_number nvarchar(64) not null default '',
  narration nvarchar(4000) not null default '',
+ party_name nvarchar(256) not null,
+ place_of_supply nvarchar(256) not null,
  is_invoice tinyint,
  is_accounting_voucher tinyint,
  is_inventory_voucher tinyint,

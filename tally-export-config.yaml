@@ -329,7 +329,7 @@ transaction:
     - name: trn_voucher
       collection: Voucher
       fetch:
-        - Narration
+        - Narration,PartyLedgerName,PlaceOfSupply
       filters:
         - NOT $IsCancelled
         - NOT $IsOptional
@@ -351,6 +351,12 @@ transaction:
           type: text
         - name: narration
           field: Narration
+          type: text
+        - name: party_name
+          field: PartyLedgerName
+          type: text
+        - name: place_of_supply
+          field: PlaceOfSupply
           type: text
         - name: is_invoice
           field: IsInvoice

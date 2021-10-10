@@ -43,8 +43,8 @@ Commandline utility to load data into Database Server from Tally software, inten
 <br><br>
 
 ## Version
-Latest Version: **1.0.9**<br>
-Updated on: **08-Aug-2021**
+Latest Version: **1.0.10**<br>
+Updated on: **10-Oct-2021**
 
 *Note: We keep on fixing utility and adding fields into database. So you are requested to re-create existing databases and re-download utility folder *
 
@@ -396,6 +396,10 @@ For any query email to **dhananjay1405@gmail.com** or Whatsapp on **(+91) 90284-
 <br><br>
 
 ## Release History
+
+**Version: 1.0.10 [10-Oct-2021]**<br>
+Added:
+* 2 new fields in **trn_voucher** table. Party field was added for easy determination of Sundry Debtor / Creditor in any transaction and optimized aggregation.
 
 **Version: 1.0.9 [08-Aug-2021]**<br>
 Added:
