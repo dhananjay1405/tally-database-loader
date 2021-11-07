@@ -8,21 +8,42 @@ const logger_js_1 = require("./logger.js");
 const maxQuerySize = 50000;
 class _database {
     constructor() {
-        this.config = JSON.parse(fs.readFileSync('./config.json', 'utf8'))['database'];
+        try {
+            this.config = JSON.parse(fs.readFileSync('./config.json', 'utf8'))['database'];
+        }
+        catch (err) {
+            this.config = {
+                technology: 'mysql',
+                server: 'localhost',
+                schema: 'tallydb',
+                username: 'root',
+                password: 'admin',
+                port: 3306,
+                loadmethod: 'insert'
+            };
+            logger_js_1.logger.logError('database()', err);
+            throw err;
+        }
     }
     updateCommandlineConfig(lstConfigs) {
-        if (lstConfigs.has('database-technology'))
-            this.config.technology = lstConfigs.get('database-technology') || '';
-        if (lstConfigs.has('database-server'))
-            this.config.server = lstConfigs.get('database-server') || '';
-        if (lstConfigs.has('database-port'))
-            this.config.port = parseInt(lstConfigs.get('database-port') || '0');
-        if (lstConfigs.has('database-schema'))
-            this.config.schema = lstConfigs.get('database-schema') || '';
-        if (lstConfigs.has('database-username'))
-            this.config.username = lstConfigs.get('database-username') || '';
-        if (lstConfigs.has('database-password'))
-            this.config.password = lstConfigs.get('database-password') || '';
+        try {
+            if (lstConfigs.has('database-technology'))
+                this.config.technology = lstConfigs.get('database-technology') || '';
+            if (lstConfigs.has('database-server'))
+                this.config.server = lstConfigs.get('database-server') || '';
+            if (lstConfigs.has('database-port'))
+                this.config.port = parseInt(lstConfigs.get('database-port') || '0');
+            if (lstConfigs.has('database-schema'))
+                this.config.schema = lstConfigs.get('database-schema') || '';
+            if (lstConfigs.has('database-username'))
+                this.config.username = lstConfigs.get('database-username') || '';
+            if (lstConfigs.has('database-password'))
+                this.config.password = lstConfigs.get('database-password') || '';
+        }
+        catch (err) {
+            logger_js_1.logger.logError('database.updateCommandlineConfig()', err);
+            throw err;
+        }
     }
     bulkLoad(csvFile, targetTable) {
         return new Promise(async (resolve, reject) => {
@@ -98,13 +119,29 @@ class _database {
                     password: this.config.password
                 });
                 connection.connect((connErr) => {
-                    if (connErr)
-                        reject(connErr);
+                    if (connErr) {
+                        let errorMessage = '';
+                        if (connErr.code == 'ECONNREFUSED')
+                            errorMessage = 'Unable to make MySQL connection on specified port';
+                        else if (connErr.code == 'ENOTFOUND')
+                            errorMessage = 'Unable to make MySQL connection to servername or IP address';
+                        else if (connErr.code == 'ER_BAD_DB_ERROR')
+                            errorMessage = 'Invalid MySQL database name';
+                        else if (connErr.code == 'ER_ACCESS_DENIED_ERROR')
+                            errorMessage = 'Invalid MySQL password';
+                        else if (connErr.code == 'ER_NOT_SUPPORTED_AUTH_MODE')
+                            errorMessage = 'Invalid MySQL username/password/Authentication';
+                        else
+                            ;
+                        logger_js_1.logger.logError('database.executeMysql()', errorMessage || connErr);
+                        reject('');
+                    }
                     else
                         connection.query(sqlQuery, (queryErr, results) => {
                             connection.end();
-                            if (queryErr)
+                            if (queryErr) {
                                 reject(queryErr);
+                            }
                             else
                                 resolve(results['affectedRows']);
                         });
@@ -112,7 +149,7 @@ class _database {
             }
             catch (err) {
                 reject(err);
-                logger_js_1.logger.logError('database.execute()', err);
+                logger_js_1.logger.logError('database.executeMysql()', err);
             }
         });
     }
@@ -135,8 +172,19 @@ class _database {
                     }
                 });
                 connection.on('connect', (connErr) => {
-                    if (connErr)
+                    if (connErr) {
+                        let errorMessage = '';
+                        if (connErr.message.includes('getaddrinfo ENOTFOUND'))
+                            errorMessage = 'Unable to make SQL Server connection to specified servername or IP address';
+                        else if (connErr.message.includes('Could not connect (sequence)'))
+                            errorMessage = 'Unable to make SQL Server connection to specified port';
+                        else if (connErr.message.includes('Login failed for user'))
+                            errorMessage = 'Invalid Database / Username / Password';
+                        else
+                            ;
+                        logger_js_1.logger.logError('database.executeMssql()', errorMessage || connErr);
                         reject(connErr);
+                    }
                     else
                         connection.execSql(new mssql.Request('SET QUOTED_IDENTIFIER OFF;\r\n ' + sqlQuery, (queryErr, rowCount) => {
                             if (queryErr)
@@ -149,7 +197,7 @@ class _database {
             }
             catch (err) {
                 reject(err);
-                logger_js_1.logger.logError('database.execute()', err);
+                logger_js_1.logger.logError('database.executeMssql()', err);
             }
         });
     }

@@ -10,6 +10,7 @@ Commandline utility to load data into Database Server from Tally software, inten
 
 ## Index
 * [Version](version)
+* [Upcoming Features](#upcoming-features)
 * [Requirements](#requirements)
 * [Download](#download)
     * Utility
@@ -43,10 +44,18 @@ Commandline utility to load data into Database Server from Tally software, inten
 <br><br>
 
 ## Version
-Latest Version: **1.0.10**<br>
-Updated on: **10-Oct-2021**
+Latest Version: **1.0.11**<br>
+Updated on: **07-Nov-2021**
 
 *Note: We keep on fixing utility and adding fields into database. So you are requested to re-create existing databases and re-download utility folder *
+
+<br><br>
+
+## Upcoming Features
+*Stagnant water is hazardous.* Same applies to human brain. Improvement / Exploration is a one of key aspect of this project. Below are the some feature in-progress:
+
+* Support for PostgreSQL (a good light-weight RDBMS server which can be easily floated on Azure / AWS / GCP)
+* Direct data push to Google BigQuery (a robust offering by Google Cloud with plently of opportunity to explore in Always Free plan)
 
 <br><br>
 
@@ -70,7 +79,7 @@ Compatibility:
 ### Utility
 Database Loader Utility is portable, and does not have a setup wizard like we find for software installation. Zip archive of utility can be downloaded from below link
 
-[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.10.zip)
+[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.11.zip)
 
 Also, it is a commandline utility having no window interface (to keep it minimal and faster)
 
@@ -360,23 +369,6 @@ For any query email to **dhananjay1405@gmail.com** or Whatsapp on **(+91) 90284-
 
 ## Frequently Asked Question
 
-**Ques:** I got an error **connect ECONNREFUSED 127.0.0.1:9000** in *error-log.txt* file. What is this error about ?
-
-**Ans:** This error comes if Node.JS compiler is unable to communicate with Tally on that port. Possible resolutions
-* Ensure that Tally is running
-* Check if Tally XML Server is enabled
-* Ensure if port number specified in *config.json* is actually configured in Tally XML Settings
-
-**Ques:** I got an error **Cannot detect First/Last voucher date from company** in *error-log.txt* file. What is this error ?
-
-**Ans:** This error is self-descriptive. Possible resolutions
-* No company is selected (or active) in Tally
-* Company has no voucher in it
-
-**Ques:** I got an error **connect ECONNREFUSED 127.0.0.1:3306** in *error-log.txt* file. What is this error about ?
-
-**Ans:** If utility is unable to connnect to database, this error will be generated
-
 **Ques:** How to enable SQL Server connectivity via TCP/IP port for Microsoft SQL Server ?
 
 **Ans:** Utility supports connection to MS SQL Server via TCP/IP port only. It does not support connecting through named instance like *PC-NAME\\SQLEXPRESS*. This setting can be enabled using below steps:
@@ -393,9 +385,22 @@ For any query email to **dhananjay1405@gmail.com** or Whatsapp on **(+91) 90284-
 1. Restart SQL Server: Task Manager > Services > MSSQLSERVER > right click > Restart<br>
 ![SQL Server Service restart](https://excelkida.com/image/github/task-manager-sql-server-service-restart.png)
 
+**Ques:** How to enable MySQL Server invalid authentication mode error ?
+
+**Ans:** In MySQL 8.x new authentication method was introduce. Currently project's MySQL client driver does not support that method. So you will have to modify your MySQL Server settings to **Legacy Authentication Method**. For windows PC follow steps as below:
+1. Run *MySQL Installer Community* and choose re-configure option
+![MySQL Server Window reconfigure server](https://excelkida.com/image/github/mysql-installer-packages-screen.png)
+1. Change method to *Legacy Authentication*
+![MySQL Server Window authentication method](https://excelkida.com/image/github/mysql-installer-authentication-mode-screen.png)
+
 <br><br>
 
 ## Release History
+
+**Version: 1.0.11 [07-Nov-2021]**<br>
+Fixed:
+* Introduced specific error message related to database and connectvity.
+* Reduced repetation of call stack in error messages to once for improved error diagnostic.
 
 **Version: 1.0.10 [10-Oct-2021]**<br>
 Added:

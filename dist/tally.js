@@ -13,28 +13,49 @@ class _tally {
     constructor() {
         this.lstTableMaster = [];
         this.lstTableTransaction = [];
-        this.config = JSON.parse(fs.readFileSync('./config.json', 'utf8'))['tally'];
-        let objYAML = yaml.load(fs.readFileSync('./tally-export-config.yaml', 'utf-8'));
-        this.lstTableMaster = objYAML['master'];
-        this.lstTableTransaction = objYAML['transaction'];
+        try {
+            this.config = JSON.parse(fs.readFileSync('./config.json', 'utf8'))['tally'];
+            let objYAML = yaml.load(fs.readFileSync('./tally-export-config.yaml', 'utf-8'));
+            this.lstTableMaster = objYAML['master'];
+            this.lstTableTransaction = objYAML['transaction'];
+        }
+        catch (err) {
+            this.config = {
+                server: 'localhost',
+                port: 9000,
+                company: '',
+                fromdate: 'auto',
+                todate: 'auto',
+                master: true,
+                transaction: true
+            };
+            logger_js_1.logger.logError('tally()', err);
+            throw err;
+        }
     }
     updateCommandlineConfig(lstConfigs) {
-        if (lstConfigs.has('tally-server'))
-            this.config.server = lstConfigs.get('tally-server') || '';
-        if (lstConfigs.has('tally-port'))
-            this.config.port = parseInt(lstConfigs.get('tally-port') || '9000');
-        if (lstConfigs.has('tally-master'))
-            this.config.master = lstConfigs.get('tally-master') == 'true';
-        if (lstConfigs.has('tally-transaction'))
-            this.config.transaction = lstConfigs.get('tally-transaction') == 'true';
-        if (lstConfigs.has('tally-fromdate') && lstConfigs.has('tally-todate')) {
-            let fromDate = lstConfigs.get('tally-fromdate') || '';
-            let toDate = lstConfigs.get('tally-todate') || '';
-            this.config.fromdate = /^\d{4}-\d{2}-\d{2}$/g.test(fromDate) ? fromDate : 'auto';
-            this.config.todate = /^\d{4}-\d{2}-\d{2}$/g.test(toDate) ? toDate : 'auto';
+        try {
+            if (lstConfigs.has('tally-server'))
+                this.config.server = lstConfigs.get('tally-server') || '';
+            if (lstConfigs.has('tally-port'))
+                this.config.port = parseInt(lstConfigs.get('tally-port') || '9000');
+            if (lstConfigs.has('tally-master'))
+                this.config.master = lstConfigs.get('tally-master') == 'true';
+            if (lstConfigs.has('tally-transaction'))
+                this.config.transaction = lstConfigs.get('tally-transaction') == 'true';
+            if (lstConfigs.has('tally-fromdate') && lstConfigs.has('tally-todate')) {
+                let fromDate = lstConfigs.get('tally-fromdate') || '';
+                let toDate = lstConfigs.get('tally-todate') || '';
+                this.config.fromdate = /^\d{4}-\d{2}-\d{2}$/g.test(fromDate) ? fromDate : 'auto';
+                this.config.todate = /^\d{4}-\d{2}-\d{2}$/g.test(toDate) ? toDate : 'auto';
+            }
+            if (lstConfigs.has('tally-company'))
+                this.config.company = lstConfigs.get('tally-company') || '';
         }
-        if (lstConfigs.has('tally-company'))
-            this.config.company = lstConfigs.get('tally-company') || '';
+        catch (err) {
+            logger_js_1.logger.logError('tally.updateCommandlineConfig()', err);
+            throw err;
+        }
     }
     importData() {
         return new Promise(async (resolve, reject) => {
@@ -122,7 +143,7 @@ class _tally {
             }
             catch (err) {
                 logger_js_1.logger.logError('tally.processMasters()', err);
-                reject();
+                reject(err);
             }
         });
     }
@@ -171,27 +192,37 @@ class _tally {
     ;
     substituteTDLParameters(msg, substitutions) {
         let retval = msg;
-        substitutions.forEach((v, k) => {
-            let regPtrn = new RegExp(`\\{${k}\\}`);
-            if (typeof v === 'string')
-                retval = retval.replace(regPtrn, utility_js_1.utility.String.escapeHTML(v));
-            else if (typeof v === 'number')
-                retval = retval.replace(regPtrn, v.toString());
-            else if (v instanceof Date)
-                retval = retval.replace(regPtrn, utility_js_1.utility.Date.format(v, 'd-MMM-yyyy'));
-            else if (typeof v === 'boolean')
-                retval = retval.replace(regPtrn, v ? 'Yes' : 'No');
-            else
-                ;
-        });
+        try {
+            substitutions.forEach((v, k) => {
+                let regPtrn = new RegExp(`\\{${k}\\}`);
+                if (typeof v === 'string')
+                    retval = retval.replace(regPtrn, utility_js_1.utility.String.escapeHTML(v));
+                else if (typeof v === 'number')
+                    retval = retval.replace(regPtrn, v.toString());
+                else if (v instanceof Date)
+                    retval = retval.replace(regPtrn, utility_js_1.utility.Date.format(v, 'd-MMM-yyyy'));
+                else if (typeof v === 'boolean')
+                    retval = retval.replace(regPtrn, v ? 'Yes' : 'No');
+                else
+                    ;
+            });
+        }
+        catch (err) {
+            logger_js_1.logger.logError('tally.substituteTDLParameters()', err);
+        }
         return retval;
     }
     processTdlOutputManipulation(txt) {
         let retval = txt;
-        retval = retval.replace(/[\r\n\t]/g, ''); //remove line terminators and tabs
-        retval = retval.replace(/õ/g, ''); //remove empty character indicator (as defined in TDL)
-        retval = retval.replace(/\\/g, '\\\\'); //escape single backslash with double
-        retval = retval.replace(/,\"†\",/g, '\r\n'); //substitute end of field terminators indicator (as defined in TDL) with proper line terminators
+        try {
+            retval = retval.replace(/[\r\n\t]/g, ''); //remove line terminators and tabs
+            retval = retval.replace(/õ/g, ''); //remove empty character indicator (as defined in TDL)
+            retval = retval.replace(/\\/g, '\\\\'); //escape single backslash with double
+            retval = retval.replace(/,\"†\",/g, '\r\n'); //substitute end of field terminators indicator (as defined in TDL) with proper line terminators
+        }
+        catch (err) {
+            logger_js_1.logger.logError('tally.processTdlOutputManipulation()', err);
+        }
         return retval;
     }
     processReport(targetTable, tableConfig, substitutions) {
@@ -237,82 +268,91 @@ class _tally {
                 resolve();
             }
             catch (err) {
-                logger_js_1.logger.logError(`tally.saveCompanyInfo()`, err);
-                reject(err);
+                let errorMessage = '';
+                if (err['code'] == 'ECONNREFUSED')
+                    errorMessage = 'Unable to communicate with Tally of specified port';
+                logger_js_1.logger.logError(`tally.saveCompanyInfo()`, errorMessage || err);
+                reject('');
             }
         });
     }
     generateXMLfromYAML(tblConfig) {
-        //XML header
-        let retval = `<?xml version="1.0" encoding="utf-8"?><ENVELOPE><HEADER><VERSION>1</VERSION><TALLYREQUEST>Export</TALLYREQUEST><TYPE>Data</TYPE><ID>MyReportLedgerTable</ID></HEADER><BODY><DESC><STATICVARIABLES><SVEXPORTFORMAT>$$SysName:ASCII</SVEXPORTFORMAT><SVFROMDATE>{fromDate}</SVFROMDATE><SVTODATE>{toDate}</SVTODATE><SVCURRENTCOMPANY>{targetCompany}</SVCURRENTCOMPANY></STATICVARIABLES><TDL><TDLMESSAGE><REPORT NAME="MyReportLedgerTable"><FORMS>MyForm</FORMS></REPORT><FORM NAME="MyForm"><PARTS>MyPart01</PARTS></FORM>`;
-        //Push routes list
-        let lstRoutes = tblConfig.collection.split(/\./g);
-        let targetCollection = lstRoutes.splice(0, 1);
-        lstRoutes.unshift('MyCollection'); //add basic collection level route
-        //loop through and append PART XML
-        for (let i = 0; i < lstRoutes.length; i++) {
-            let xmlPart = utility_js_1.utility.Number.format(i + 1, 'MyPart00');
-            let xmlLine = utility_js_1.utility.Number.format(i + 1, 'MyLine00');
-            retval += `<PART NAME="${xmlPart}"><LINES>${xmlLine}</LINES><REPEAT>${xmlLine} : ${lstRoutes[i]}</REPEAT><SCROLLED>Vertical</SCROLLED></PART>`;
+        let retval = '';
+        try {
+            //XML header
+            retval = `<?xml version="1.0" encoding="utf-8"?><ENVELOPE><HEADER><VERSION>1</VERSION><TALLYREQUEST>Export</TALLYREQUEST><TYPE>Data</TYPE><ID>MyReportLedgerTable</ID></HEADER><BODY><DESC><STATICVARIABLES><SVEXPORTFORMAT>$$SysName:ASCII</SVEXPORTFORMAT><SVFROMDATE>{fromDate}</SVFROMDATE><SVTODATE>{toDate}</SVTODATE><SVCURRENTCOMPANY>{targetCompany}</SVCURRENTCOMPANY></STATICVARIABLES><TDL><TDLMESSAGE><REPORT NAME="MyReportLedgerTable"><FORMS>MyForm</FORMS></REPORT><FORM NAME="MyForm"><PARTS>MyPart01</PARTS></FORM>`;
+            //Push routes list
+            let lstRoutes = tblConfig.collection.split(/\./g);
+            let targetCollection = lstRoutes.splice(0, 1);
+            lstRoutes.unshift('MyCollection'); //add basic collection level route
+            //loop through and append PART XML
+            for (let i = 0; i < lstRoutes.length; i++) {
+                let xmlPart = utility_js_1.utility.Number.format(i + 1, 'MyPart00');
+                let xmlLine = utility_js_1.utility.Number.format(i + 1, 'MyLine00');
+                retval += `<PART NAME="${xmlPart}"><LINES>${xmlLine}</LINES><REPEAT>${xmlLine} : ${lstRoutes[i]}</REPEAT><SCROLLED>Vertical</SCROLLED></PART>`;
+            }
+            //loop through and append LINE XML (except last line which contains field data)
+            for (let i = 0; i < lstRoutes.length - 1; i++) {
+                let xmlLine = utility_js_1.utility.Number.format(i + 1, 'MyLine00');
+                let xmlPart = utility_js_1.utility.Number.format(i + 2, 'MyPart00');
+                retval += `<LINE NAME="${xmlLine}"><FIELDS>FldBlank</FIELDS><EXPLODE>${xmlPart}</EXPLODE></LINE>`;
+            }
+            retval += `<LINE NAME="${utility_js_1.utility.Number.format(lstRoutes.length, 'MyLine00')}">`;
+            retval += `<FIELDS>`; //field end
+            //Append field declaration list
+            for (let i = 0; i < tblConfig.fields.length; i++)
+                retval += utility_js_1.utility.Number.format(i + 1, 'Fld00') + ',';
+            retval += `FldEOL</FIELDS></LINE>`; //End of Field declaration
+            //loop through each field
+            for (let i = 0; i < tblConfig.fields.length; i++) {
+                let fieldXML = `<FIELD NAME="${utility_js_1.utility.Number.format(i + 1, 'Fld00')}">`;
+                let iField = tblConfig.fields[i];
+                //set field TDL XML expression based on type of data
+                if (iField.type == 'text')
+                    fieldXML += `<SET>if $$IsEmpty:$${iField.field} then $$StrByCharCode:245 else $$StringFindAndReplace:$${iField.field}:'"':'""'</SET>`;
+                else if (iField.type == 'logical')
+                    fieldXML += `<SET>if $${iField.field} then 1 else 0</SET>`;
+                else if (iField.type == 'date')
+                    fieldXML += `<SET>if $$IsEmpty:$${iField.field} then $$StrByCharCode:241 else $$PyrlYYYYMMDDFormat:$${iField.field}:"-"</SET>`;
+                else if (iField.type == 'number')
+                    fieldXML += `<SET>if $$IsEmpty:$${iField.field} then 0 else $${iField.field}</SET>`;
+                else if (iField.type == 'amount')
+                    fieldXML += `<SET>$$StringFindAndReplace:(if $$IsDebit:$${iField.field} then -$$NumValue:$${iField.field} else $$NumValue:$${iField.field}):"(-)":"-"</SET>`;
+                else if (iField.type == 'quantity')
+                    fieldXML += `<SET>$$StringFindAndReplace:(if $$IsInwards:$${iField.field} then $$Number:$$String:$${iField.field}:"TailUnits" else -$$Number:$$String:$${iField.field}:"TailUnits"):"(-)":"-"</SET>`;
+                else if (iField.type == 'rate')
+                    fieldXML += `<SET>if $$IsEmpty:$${iField.field} then 0 else $$Number:$${iField.field}</SET>`;
+                else
+                    fieldXML += `<SET>${iField.field}</SET>`;
+                fieldXML += `</FIELD>`;
+                retval += fieldXML;
+            }
+            retval += `<FIELD NAME="FldEOL"><SET>†</SET></FIELD>`; //End of Field specification
+            retval += `<FIELD NAME="FldBlank"><SET>""</SET></FIELD>`; //Blank Field specification
+            //collection
+            retval += `<COLLECTION NAME="MyCollection"><TYPE>${targetCollection}</TYPE>`;
+            //fetch list
+            if (tblConfig.fetch && tblConfig.fetch.length)
+                retval += `<FETCH>${tblConfig.fetch.join(',')}</FETCH>`;
+            //filter
+            if (tblConfig.filters && tblConfig.filters.length) {
+                retval += `<FILTER>`;
+                for (let j = 0; j < tblConfig.filters.length; j++)
+                    retval += utility_js_1.utility.Number.format(j + 1, 'Fltr00') + ',';
+                retval = utility_js_1.utility.String.strip(retval); //remove last comma
+                retval += `</FILTER>`;
+            }
+            retval += `</COLLECTION>`;
+            //filter
+            if (tblConfig.filters && tblConfig.filters.length)
+                for (let j = 0; j < tblConfig.filters.length; j++)
+                    retval += `<SYSTEM TYPE="Formulae" NAME="${utility_js_1.utility.Number.format(j + 1, 'Fltr00')}">${tblConfig.filters[j]}</SYSTEM>`;
+            //XML footer
+            retval += `</TDLMESSAGE></TDL></DESC></BODY></ENVELOPE>`;
         }
-        //loop through and append LINE XML (except last line which contains field data)
-        for (let i = 0; i < lstRoutes.length - 1; i++) {
-            let xmlLine = utility_js_1.utility.Number.format(i + 1, 'MyLine00');
-            let xmlPart = utility_js_1.utility.Number.format(i + 2, 'MyPart00');
-            retval += `<LINE NAME="${xmlLine}"><FIELDS>FldBlank</FIELDS><EXPLODE>${xmlPart}</EXPLODE></LINE>`;
+        catch (err) {
+            logger_js_1.logger.logError(`tally.generateXMLfromYAML()`, err);
         }
-        retval += `<LINE NAME="${utility_js_1.utility.Number.format(lstRoutes.length, 'MyLine00')}">`;
-        retval += `<FIELDS>`; //field end
-        //Append field declaration list
-        for (let i = 0; i < tblConfig.fields.length; i++)
-            retval += utility_js_1.utility.Number.format(i + 1, 'Fld00') + ',';
-        retval += `FldEOL</FIELDS></LINE>`; //End of Field declaration
-        //loop through each field
-        for (let i = 0; i < tblConfig.fields.length; i++) {
-            let fieldXML = `<FIELD NAME="${utility_js_1.utility.Number.format(i + 1, 'Fld00')}">`;
-            let iField = tblConfig.fields[i];
-            //set field TDL XML expression based on type of data
-            if (iField.type == 'text')
-                fieldXML += `<SET>if $$IsEmpty:$${iField.field} then $$StrByCharCode:245 else $$StringFindAndReplace:$${iField.field}:'"':'""'</SET>`;
-            else if (iField.type == 'logical')
-                fieldXML += `<SET>if $${iField.field} then 1 else 0</SET>`;
-            else if (iField.type == 'date')
-                fieldXML += `<SET>if $$IsEmpty:$${iField.field} then $$StrByCharCode:241 else $$PyrlYYYYMMDDFormat:$${iField.field}:"-"</SET>`;
-            else if (iField.type == 'number')
-                fieldXML += `<SET>if $$IsEmpty:$${iField.field} then 0 else $${iField.field}</SET>`;
-            else if (iField.type == 'amount')
-                fieldXML += `<SET>$$StringFindAndReplace:(if $$IsDebit:$${iField.field} then -$$NumValue:$${iField.field} else $$NumValue:$${iField.field}):"(-)":"-"</SET>`;
-            else if (iField.type == 'quantity')
-                fieldXML += `<SET>$$StringFindAndReplace:(if $$IsInwards:$${iField.field} then $$Number:$$String:$${iField.field}:"TailUnits" else -$$Number:$$String:$${iField.field}:"TailUnits"):"(-)":"-"</SET>`;
-            else if (iField.type == 'rate')
-                fieldXML += `<SET>if $$IsEmpty:$${iField.field} then 0 else $$Number:$${iField.field}</SET>`;
-            else
-                fieldXML += `<SET>${iField.field}</SET>`;
-            fieldXML += `</FIELD>`;
-            retval += fieldXML;
-        }
-        retval += `<FIELD NAME="FldEOL"><SET>†</SET></FIELD>`; //End of Field specification
-        retval += `<FIELD NAME="FldBlank"><SET>""</SET></FIELD>`; //Blank Field specification
-        //collection
-        retval += `<COLLECTION NAME="MyCollection"><TYPE>${targetCollection}</TYPE>`;
-        //fetch list
-        if (tblConfig.fetch && tblConfig.fetch.length)
-            retval += `<FETCH>${tblConfig.fetch.join(',')}</FETCH>`;
-        //filter
-        if (tblConfig.filters && tblConfig.filters.length) {
-            retval += `<FILTER>`;
-            for (let j = 0; j < tblConfig.filters.length; j++)
-                retval += utility_js_1.utility.Number.format(j + 1, 'Fltr00') + ',';
-            retval = utility_js_1.utility.String.strip(retval); //remove last comma
-            retval += `</FILTER>`;
-        }
-        retval += `</COLLECTION>`;
-        //filter
-        if (tblConfig.filters && tblConfig.filters.length)
-            for (let j = 0; j < tblConfig.filters.length; j++)
-                retval += `<SYSTEM TYPE="Formulae" NAME="${utility_js_1.utility.Number.format(j + 1, 'Fltr00')}">${tblConfig.filters[j]}</SYSTEM>`;
-        //XML footer
-        retval += `</TDLMESSAGE></TDL></DESC></BODY></ENVELOPE>`;
         return retval;
     }
 }

@@ -7,6 +7,7 @@ class _logger {
     private streamMessage: fs.WriteStream;
     private streamError: fs.WriteStream;
     private _console: Console;
+    private flgErrorLogged = false;
 
     constructor() {
         if (fs.existsSync('./import-log.txt'))
@@ -20,27 +21,32 @@ class _logger {
     }
 
     logMessage(message: string, ...params: any[]): void {
-        this._console.log(message, ...params);
+        console.log(message, ...params); //graphical console
+        this._console.log(message, ...params); //file console
     }
 
     logError(fnInfo: string, err: any): void {
-        let errorLog = '';
-        if (!fnInfo.endsWith(')'))
-            fnInfo += '()';
-        errorLog += `Error from ${fnInfo} at ${utility.Date.format(new Date(), 'yyyy-MM-dd HH:mm:ss')}\r\n`;
-        if (typeof err == 'string')
-            errorLog += err + '\r\n';
-        else {
-            let props = Object.getOwnPropertyNames(err);
-            for (let i = 0; i < props.length; i++) {
-                let propName = props[i];
-                let propValue = err[propName];
-                if (typeof propValue == 'string')
-                    errorLog += propValue + '\r\n';
+        if (!this.flgErrorLogged) {
+            this.flgErrorLogged = true;
+            let errorLog = '';
+            if (!fnInfo.endsWith(')'))
+                fnInfo += '()';
+            errorLog += `Error from ${fnInfo} at ${utility.Date.format(new Date(), 'yyyy-MM-dd HH:mm:ss')}\r\n`;
+            if (typeof err == 'string')
+                errorLog += err + '\r\n';
+            else {
+                let props = Object.getOwnPropertyNames(err);
+                for (let i = 0; i < props.length; i++) {
+                    let propName = props[i];
+                    let propValue = err[propName];
+                    if (typeof propValue == 'string')
+                        errorLog += propValue + '\r\n';
+                }
             }
+            errorLog += '-'.repeat(80) + '\r\n\r\n\r\n';
+            console.error(errorLog); //graphical console
+            this._console.error(errorLog); //file console
         }
-        errorLog += '-'.repeat(80) + '\r\n\r\n\r\n';
-        this._console.error(errorLog);
     }
 }
 let logger = new _logger();

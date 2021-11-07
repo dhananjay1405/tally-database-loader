@@ -6,16 +6,19 @@ import { logger } from './logger.js'
 
 function parseCommandlineOptions(): Map<string, string> {
     let retval = new Map<string, string>();
-    let lstArgs = process.argv;
+    try {
+        let lstArgs = process.argv;
 
-    if (lstArgs.length > 2 && lstArgs.length % 2 == 0)
-        for (let i = 2; i < lstArgs.length; i += 2) {
-            let argName = lstArgs[i];
-            let argValue = lstArgs[i + 2];
-            if (/^--\w+-\w+$/g.test(argName))
-                retval.set(argName.substr(2), argValue);
-        }
-
+        if (lstArgs.length > 2 && lstArgs.length % 2 == 0)
+            for (let i = 2; i < lstArgs.length; i += 2) {
+                let argName = lstArgs[i];
+                let argValue = lstArgs[i + 2];
+                if (/^--\w+-\w+$/g.test(argName))
+                    retval.set(argName.substr(2), argValue);
+            }
+    } catch (err) {
+        logger.logError('index.substituteTDLParameters()', err);
+    }
     return retval;
 }
 

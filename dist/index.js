@@ -6,14 +6,19 @@ const database_js_1 = require("./database.js");
 const logger_js_1 = require("./logger.js");
 function parseCommandlineOptions() {
     let retval = new Map();
-    let lstArgs = process.argv;
-    if (lstArgs.length > 2 && lstArgs.length % 2 == 0)
-        for (let i = 2; i < lstArgs.length; i += 2) {
-            let argName = lstArgs[i];
-            let argValue = lstArgs[i + 2];
-            if (/^--\w+-\w+$/g.test(argName))
-                retval.set(argName.substr(2), argValue);
-        }
+    try {
+        let lstArgs = process.argv;
+        if (lstArgs.length > 2 && lstArgs.length % 2 == 0)
+            for (let i = 2; i < lstArgs.length; i += 2) {
+                let argName = lstArgs[i];
+                let argValue = lstArgs[i + 2];
+                if (/^--\w+-\w+$/g.test(argName))
+                    retval.set(argName.substr(2), argValue);
+            }
+    }
+    catch (err) {
+        logger_js_1.logger.logError('index.substituteTDLParameters()', err);
+    }
     return retval;
 }
 //Update commandline overrides to configuration options
