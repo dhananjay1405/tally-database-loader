@@ -3,6 +3,7 @@
         "technology": "mysql",
         "server": "localhost",
         "port": 3306,
+        "ssl": false,
         "schema": "tallydb",
         "username": "root",
         "password": "admin",

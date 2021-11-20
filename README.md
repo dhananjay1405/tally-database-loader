@@ -38,78 +38,62 @@ Commandline utility to load data into Database Server from Tally software, inten
 * [Develop Further](#develop-further)
 * [License](#license)
 * [Contact](#contact)
+* [Known Issues](#known-issues)
 * [Frequently Asked Questions](#frequently-asked-questions)
 * [Release History](#release-history)
 
 <br><br>
 
 ## Version
-Latest Version: **1.0.11**<br>
-Updated on: **07-Nov-2021**
+Latest Version: **1.0.12**<br>
+Updated on: **20-Nov-2021**
 
-*Note: We keep on fixing utility and adding fields into database. So you are requested to re-create existing databases and re-download utility folder *
+*Note: I keep on fixing utility and adding fields into database. So you are requested to re-create existing databases and re-download utility folder *
 
 <br><br>
 
 ## Upcoming Features
-*Stagnant water is hazardous.* Same applies to human brain. Improvement / Exploration is a one of key aspect of this project. Below are the some feature in-progress:
+*Stagnant water is hazardous.* Same applies to human brain. Improvement / Exploration is a one of key aspect of this project.
 
-* Support for PostgreSQL (a good light-weight RDBMS server which can be easily floated on Azure / AWS / GCP)
+In-progress features:
 * Direct data push to Google BigQuery (a robust offering by Google Cloud with plently of opportunity to explore in Always Free plan)
+* Support for IBM DB2 database (they offer a free plan with a DB2 database &amp; access to analytical tool)
+
+Tentative Features:
+* Graphical Interface for the utility (Electron JS powered App)
+* Export to Excel (cannot promise, is a bit difficult to implement in Node.JS)
 
 <br><br>
 
 ## Requirements
-Utility requires installation of following as a pre-requisite
+Utility requires installation of following as a pre-requisite (along with download link)
 * Windows 10
-* Tally.ERP 9 / Tally Prime
-* Node JS
-* SQL Server / MySQL Server / MariaDB Server
+* [Tally.ERP 9 / Tally Prime](https://tallysolutions.com/download/)
+* [Node JS](https://nodejs.org/en/)
+* Database Server (supports any of below)
+    * [Microsoft SQL Server](https://www.microsoft.com/en-ie/sql-server/sql-server-downloads/)
+    * [PostgreSQL](https://www.postgresql.org/download/)
+    * [MySQL](https://dev.mysql.com/downloads/mysql/)
+    * [MariaDB](https://mariadb.org/download/)
 
-Compatibility:
+Free version of all the above Database Servers are available for download. Also all of them are available on popular cloud like Microsoft Azure / Google Cloud Platform / Amazon Web Services
+
+Preferred versions:
 * SQL Server - version 2019
 * MySQL - version 8.x
+* PostgreSQL - 11.x or above
 
-**Note:** *Utility and SQL Queries for reports are deviced considering latest version of SQL Server / MySQL Server. Running it in lower version might hamper few of the functionalities, as some SQL syntax were introduced in latest version of these Database Server*
+**Note:** *Utility and SQL Queries for reports are deviced considering latest version of the above Database Server. Running it in lower version might hamper few of the functionalities, as some SQL syntax were introduced in latest version*
 
 <br><br>
 
 ## Download
 
-### Utility
-Database Loader Utility is portable, and does not have a setup wizard like we find for software installation. Zip archive of utility can be downloaded from below link
+Database Loader Utility is portable, and does not have a setup wizard like we find for software installation. Zip archive of utility can be downloaded from below link. Kindly use open-source &amp; free software [7-zip file archiver](https://www.7-zip.org/download.html) to un-compress utility archive.
 
-[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.11.zip)
+[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.12.7z)
 
 Also, it is a commandline utility having no window interface (to keep it minimal and faster)
-
-### Tally
-Utility is currently compatible for both Tally.ERP 9 and Tally Prime. Future releases of utility will be tested and updated for Tally Prime only (as ERP 9 will not receive feature updates). Also, database structure of Utility will be updated aligned to Tally Prime.
-
-[Download Tally Prime](https://tallysolutions.com/download/)
-
-### Node JS
-Node.JS is an open-source javascript compiler running on cross platform V8 engine (used by Google Chrome & Microsoft Edge browser). This utility require latest (or stable) version of Node.JS installed in system. It can be downloaded from official website of Node.JS
-
-[Download Node.JS](https://nodejs.org/en/)
-
-### SQL Server
-Microsoft SQL Server is the prefered Database Server solution, when it comes to Windows OS.
-Microsoft offers **Express (free)** version of SQL Server which can be used for personal use (with certain limitations on database size).
-
-[Download Micrsoft SQL Server 2019 - Express Edition](https://www.microsoft.com/en-ie/sql-server/sql-server-downloads)
-
-### MySQL Server
-Oracle MySQL Server is an open-source Database Server compatible on both Windows and Linux OS. It has best performance in Linux-based Operating Systems.
-Oracle offers **Community (free)** version of MySQL Server, which can be used for personal use.
-
-[Download MySQL Server 8.x - Community Edition](https://dev.mysql.com/downloads/mysql/)
-
-
-### MariaDB Server
-MariaDB is a complete open-source Database Server available freely which is a drop-in replacement to MySQL Server, and is an emerging option among database community.
-
-[Download Maria DB Server](https://mariadb.org/download/)
 
 <br><br>
 
@@ -132,8 +116,12 @@ Tally has in-built XML Server capability, which can import/export data in/out of
 ## Database Creation
 Database first needs to be created and then Tables needs to be created in which data from Tally will be loaded, before running utility. File **database-structure.sql** contains SQL for creating tables of database. Just ensure to create database using any of GUI Database Manager. That database name should be updated in **schema** property of *config.json*. Open-source database editor available freely are
 * [SQL Server Management Studio (SQL Server)](https://docs.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms)
+* [Azure Data Studio (SQL Server)](https://docs.microsoft.com/en-us/sql/azure-data-studio/download-azure-data-studio)
+* [pgAdmin (PostgreSQL Server)](https://www.pgadmin.org/download/)
 * [MySQL Workbench (MySQL Server)](https://dev.mysql.com/downloads/workbench/)
-* [Azure Data Studio (SQL Server - Lightweight)](https://docs.microsoft.com/en-us/sql/azure-data-studio/download-azure-data-studio)
+* [Heidi SQL (SQL Server / MySQL / MariaDB / PostgreSQL)](https://www.heidisql.com/download.php/)
+
+Note: Database structure creation SQL script for PostgreSQL is avilable inside **platform/postgresql** folder of project. In future, database technology-wise separate SQL Script will be available for individual technologies.
 
 Utility support import into database server installed and hosted on
 * Same PC where Tally is
@@ -157,6 +145,7 @@ Database Connection credentials needs to be set in the file in **database** sect
     "technology": "mssql",
     "server": "localhost",
     "port": 1433,
+    "ssl": false,
     "schema": "<database_name>",
     "username": "sa",
     "password": "<your_password>",
@@ -171,6 +160,7 @@ Database Connection credentials needs to be set in the file in **database** sect
     "technology": "mysql",
     "server": "localhost",
     "port": 3306,
+    "ssl": false,
     "schema": "<database_name>",
     "username": "root",
     "password": "<your_password>",
@@ -178,13 +168,29 @@ Database Connection credentials needs to be set in the file in **database** sect
 }
 ```
 
+**PostgreSQL Server**
+```json
+"database": {
+    "technology": "postgres",
+    "server": "localhost",
+    "port": 5432,
+    "ssl": false,
+    "schema": "<database_name>",
+    "username": "postgres",
+    "password": "<your_password>",
+    "loadmethod": "insert"
+}
+```
+<br/>
+
 | Settings | Value |
 | --- | --- |
-| technology | **mssql**: Microsoft SQL Server<br>**mysql**: MySQL Server or MariaDB Server<br>**csv**: Generate CSV dump for further import (below parameters of database connection are dummy when CSV setting is applied) |
+| technology | **mssql**: Microsoft SQL Server<br>**mysql**: MySQL Server or MariaDB Server<br>**postgres**: PostgreSQL Server<br>**csv**: Generate CSV dump for further import (below parameters of database connection are dummy when CSV setting is applied) |
 | server | IP Address of PC on which Database Server is hosted (**localhost** = same machine) |
-| port | Port number on which Database Server is listening<br>**mssql**: Default port is **1433**<br>**mysql**: Default port is **3306** |
+| port | Port number on which Database Server is listening<br>**mssql**: Default port is **1433**<br>**mysql**: Default port is **3306**<br>**postgres**: Default port is **5432** |
+| ssl | **true**: Secured (to be used only if Database Server is on Cloud)<br>**false**: Unsecured [*default*] (to be used when Database Server is on same machine / within LAN / within VPN)<br>Supported for mssql / postgres only |
 | schema | Database name in which to insert data |
-| username | Username<br>**mssql**: Default user is **sa** <br>**mysql**: Default user is **root** |
+| username | Username<br>**mssql**: Default user is **sa** <br>**mysql**: Default user is **root**<br>**postgres**: Default user is **postgres** |
 | password | Password for corresponding user. It is set during installation of Database Server.<br>*Note: Trusted Login (password-less) of SQL Server not supported by this utility* |
 | loadmethod | **insert**: loads rows in database tables using SQL query with multiple rows. This is most compatible method which works everywhere (Compatibility: **High** / Performance: **Slow** ) <br> **file**: loads rows in database table using file based loading method. This method works only when database server and utility is running on same machine. So this method is not compatible with Cloud databases (Compatibility: **Low** / Performance: **Fast** ) |
 
@@ -367,6 +373,14 @@ For any query email to **dhananjay1405@gmail.com** or Whatsapp on **(+91) 90284-
 
 <br><br>
 
+## Known Issues
+* Data loading in Microsoft SQL Server (technology: **mssql**) via loadmethod as **insert** does not support pushing of **unicode** characters (i.e. Indian language characters &amp; extended characters beyond ASCII table). Kindly use **file** method for this if at all required. You will notice question marks instead of these unicode characters in database. For rest of the technology, this limitation does not apply.
+* When multiple companies are selected in Tally &amp; specific company name is specified in config.json, it has been observed that in a rare case (especially on Windows Server), Tally fails to fetch data from that target company &amp; internally produces an error that specified company is not loaded.
+* It has been observed that sometimes when Tally remain running for several days on PC then in a rare case Tally fails to return back updated / latest data (especially on Windows Server) &amp; you may have to restart Tally.
+* If you have configured automatic sync of data via Windows Task Schedular, then make sure you don't log-off, but just disconnect as Tally is graphical based software.
+
+<br><br>
+
 ## Frequently Asked Question
 
 **Ques:** How to enable SQL Server connectivity via TCP/IP port for Microsoft SQL Server ?
@@ -396,6 +410,15 @@ For any query email to **dhananjay1405@gmail.com** or Whatsapp on **(+91) 90284-
 <br><br>
 
 ## Release History
+
+**Version: 1.0.12 [20-Nov-2021]**<br>
+Added:
+* Support of Postgre SQL Database Server Server.
+* SSL (Secured Socket Layer) database connections for secure exchange of data especially for cloud database (PostgreSQL / SQL Server).
+
+Fixed:
+* Use of single quotes in INSERT statement, string type values, instead of double quotes, to bring uniformity of SQL Statements across multiple RDBMS platforms.
+* CSV folder was used as parking space for intermediate process in database import method. Now the folder is deleted once data is imported successfully into database.
 
 **Version: 1.0.11 [07-Nov-2021]**<br>
 Fixed:

@@ -60,7 +60,7 @@ class _tally {
     importData() {
         return new Promise(async (resolve, reject) => {
             try {
-                if (/^(mssql|mysql)$/g.test(database_js_1.database.config.technology)) {
+                if (/^(mssql|mysql|postgres)$/g.test(database_js_1.database.config.technology)) {
                     //update active company information before starting import
                     logger_js_1.logger.logMessage('Updating company information configuration table [%s]', new Date().toLocaleDateString());
                     await this.saveCompanyInfo();
@@ -70,7 +70,7 @@ class _tally {
                 configTallyXML.set('fromDate', utility_js_1.utility.Date.parse(this.config.fromdate, 'yyyy-MM-dd'));
                 configTallyXML.set('toDate', utility_js_1.utility.Date.parse(this.config.todate, 'yyyy-MM-dd'));
                 configTallyXML.set('targetCompany', this.config.company ? utility_js_1.utility.String.escapeHTML(this.config.company) : '##SVCurrentCompany');
-                if (/^(mssql|mysql)$/g.test(database_js_1.database.config.technology)) {
+                if (/^(mssql|mysql|postgres)$/g.test(database_js_1.database.config.technology)) {
                     //truncate master/transaction tables
                     logger_js_1.logger.logMessage('Erasing database');
                     for (let i = 0; i < this.lstTableMaster.length; i++) {
@@ -106,39 +106,46 @@ class _tally {
                         let elapsedSecond = utility_js_1.utility.Number.round((timestampEnd - timestampBegin) / 1000, 3);
                         logger_js_1.logger.logMessage('  saving file %s.csv [%f sec]', targetTable, elapsedSecond);
                     }
-                if (/^(mssql|mysql)$/g.test(database_js_1.database.config.technology)) {
+                if (/^(mssql|mysql|postgres)$/g.test(database_js_1.database.config.technology)) {
                     //perform CSV file based bulk import into database
                     logger_js_1.logger.logMessage('Loading CSV files to database tables [%s]', new Date().toLocaleString());
                     if (this.config.master)
                         for (let i = 0; i < this.lstTableMaster.length; i++) {
                             let targetTable = this.lstTableMaster[i].name;
-                            let rowCount = await database_js_1.database.bulkLoad(path.join(process.cwd(), `./csv/${targetTable}.csv`), targetTable);
+                            let rowCount = await database_js_1.database.bulkLoad(path.join(process.cwd(), `./csv/${targetTable}.data`), targetTable);
+                            fs.unlinkSync(path.join(process.cwd(), `./csv/${targetTable}.data`)); //delete raw file
                             logger_js_1.logger.logMessage('  %s: imported %d rows', targetTable, rowCount);
                         }
                     if (this.config.transaction)
                         for (let i = 0; i < this.lstTableTransaction.length; i++) {
                             let targetTable = this.lstTableTransaction[i].name;
-                            let rowCount = await database_js_1.database.bulkLoad(path.join(process.cwd(), `./csv/${targetTable}.csv`), targetTable);
+                            let rowCount = await database_js_1.database.bulkLoad(path.join(process.cwd(), `./csv/${targetTable}.data`), targetTable);
+                            fs.unlinkSync(path.join(process.cwd(), `./csv/${targetTable}.data`)); //delete raw file
                             logger_js_1.logger.logMessage('  %s: imported %d rows', targetTable, rowCount);
                         }
+                    fs.rmdirSync('./csv'); //remove directory
                 }
-                else {
+                else if (database_js_1.database.config.technology == 'csv') {
                     //remove special character of date from CSV files, which was inserted for null dates
                     if (this.config.master)
                         for (let i = 0; i < this.lstTableMaster.length; i++) {
                             let targetTable = this.lstTableMaster[i].name;
-                            let content = fs.readFileSync(`./csv/${targetTable}.csv`, 'utf-8');
-                            content = content.replace(/\"ñ\"/g, '\"\"');
+                            let content = fs.readFileSync(`./csv/${targetTable}.data`, 'utf-8');
+                            content = this.substituteCSV(content);
                             fs.writeFileSync(`./csv/${targetTable}.csv`, '\ufeff' + content);
+                            fs.unlinkSync(`./csv/${targetTable}.data`); //delete raw file
                         }
                     if (this.config.transaction)
                         for (let i = 0; i < this.lstTableTransaction.length; i++) {
                             let targetTable = this.lstTableTransaction[i].name;
-                            let content = fs.readFileSync(`./csv/${targetTable}.csv`, 'utf-8');
-                            content = content.replace(/\"ñ\"/g, '\"\"');
+                            let content = fs.readFileSync(`./csv/${targetTable}.data`, 'utf-8');
+                            content = this.substituteCSV(content);
                             fs.writeFileSync(`./csv/${targetTable}.csv`, '\ufeff' + content);
+                            fs.unlinkSync(`./csv/${targetTable}.data`); //delete raw file
                         }
                 }
+                else
+                    ;
                 resolve();
             }
             catch (err) {
@@ -212,13 +219,21 @@ class _tally {
         }
         return retval;
     }
+    substituteCSV(content) {
+        content = content.replace(/ñ/g, ''); //replace blank date with empty text
+        content = content.replace(/\"/g, '""'); //escape double quotes with 2 instance of double quotes (as per ISO)
+        content = content.replace(/æ/g, '"'); //replace field quote with double quote
+        return content;
+    }
     processTdlOutputManipulation(txt) {
         let retval = txt;
         try {
             retval = retval.replace(/[\r\n\t]/g, ''); //remove line terminators and tabs
+            retval = retval.replace(/\x04\s/g, ''); //remove system reserved symbols
             retval = retval.replace(/õ/g, ''); //remove empty character indicator (as defined in TDL)
-            retval = retval.replace(/\\/g, '\\\\'); //escape single backslash with double
             retval = retval.replace(/,\"†\",/g, '\r\n'); //substitute end of field terminators indicator (as defined in TDL) with proper line terminators
+            retval = retval.replace(/\"/g, 'æ'); //get rid of double quotes used as field quotes
+            retval = retval.replace(/ø/g, '"'); //restore back the double quotes inside field value
         }
         catch (err) {
             logger_js_1.logger.logError('tally.processTdlOutputManipulation()', err);
@@ -234,7 +249,7 @@ class _tally {
                 let output = await this.postTallyXML(xml);
                 output = this.processTdlOutputManipulation(output);
                 let columnHeaders = tableConfig.fields.map(p => p.name).join(',') + '\r\n';
-                fs.writeFileSync(`./csv/${targetTable}.csv`, columnHeaders + output);
+                fs.writeFileSync(`./csv/${targetTable}.data`, columnHeaders + output);
                 resolve();
             }
             catch (err) {
@@ -260,7 +275,7 @@ class _tally {
                     }
                     //clear config table of database and insert active company info to config table
                     await database_js_1.database.execute('truncate table config;');
-                    await database_js_1.database.execute(`insert into config(name,value) values("Update Timestamp","${new Date().toLocaleString()}"),("Company Name","${companyName}"),("Period From","${this.config.fromdate}"),("Period To","${this.config.todate}");`);
+                    await database_js_1.database.execute(`insert into config(name,value) values('Update Timestamp','${new Date().toLocaleString()}'),('Company Name','${companyName}'),('Period From','${this.config.fromdate}'),('Period To','${this.config.todate}');`);
                 }
                 else {
                     reject('Cannot detect First/Last voucher date from company');
@@ -308,20 +323,24 @@ class _tally {
                 let fieldXML = `<FIELD NAME="${utility_js_1.utility.Number.format(i + 1, 'Fld00')}">`;
                 let iField = tblConfig.fields[i];
                 //set field TDL XML expression based on type of data
-                if (iField.type == 'text')
-                    fieldXML += `<SET>if $$IsEmpty:$${iField.field} then $$StrByCharCode:245 else $$StringFindAndReplace:$${iField.field}:'"':'""'</SET>`;
-                else if (iField.type == 'logical')
-                    fieldXML += `<SET>if $${iField.field} then 1 else 0</SET>`;
-                else if (iField.type == 'date')
-                    fieldXML += `<SET>if $$IsEmpty:$${iField.field} then $$StrByCharCode:241 else $$PyrlYYYYMMDDFormat:$${iField.field}:"-"</SET>`;
-                else if (iField.type == 'number')
-                    fieldXML += `<SET>if $$IsEmpty:$${iField.field} then 0 else $${iField.field}</SET>`;
-                else if (iField.type == 'amount')
-                    fieldXML += `<SET>$$StringFindAndReplace:(if $$IsDebit:$${iField.field} then -$$NumValue:$${iField.field} else $$NumValue:$${iField.field}):"(-)":"-"</SET>`;
-                else if (iField.type == 'quantity')
-                    fieldXML += `<SET>$$StringFindAndReplace:(if $$IsInwards:$${iField.field} then $$Number:$$String:$${iField.field}:"TailUnits" else -$$Number:$$String:$${iField.field}:"TailUnits"):"(-)":"-"</SET>`;
-                else if (iField.type == 'rate')
-                    fieldXML += `<SET>if $$IsEmpty:$${iField.field} then 0 else $$Number:$${iField.field}</SET>`;
+                if (/^(\.\.)?[a-zA-Z0-9_]+$/g.test(iField.field)) {
+                    if (iField.type == 'text')
+                        fieldXML += `<SET>if $$IsEmpty:$${iField.field} then "õ" else $$StringFindAndReplace:$${iField.field}:'"':"ø"</SET>`;
+                    else if (iField.type == 'logical')
+                        fieldXML += `<SET>if $${iField.field} then 1 else 0</SET>`;
+                    else if (iField.type == 'date')
+                        fieldXML += `<SET>if $$IsEmpty:$${iField.field} then $$StrByCharCode:241 else $$PyrlYYYYMMDDFormat:$${iField.field}:"-"</SET>`;
+                    else if (iField.type == 'number')
+                        fieldXML += `<SET>if $$IsEmpty:$${iField.field} then "0" else $$String:$${iField.field}</SET>`;
+                    else if (iField.type == 'amount')
+                        fieldXML += `<SET>$$StringFindAndReplace:(if $$IsDebit:$${iField.field} then -$$NumValue:$${iField.field} else $$NumValue:$${iField.field}):"(-)":"-"</SET>`;
+                    else if (iField.type == 'quantity')
+                        fieldXML += `<SET>$$StringFindAndReplace:(if $$IsInwards:$${iField.field} then $$Number:$$String:$${iField.field}:"TailUnits" else -$$Number:$$String:$${iField.field}:"TailUnits"):"(-)":"-"</SET>`;
+                    else if (iField.type == 'rate')
+                        fieldXML += `<SET>if $$IsEmpty:$${iField.field} then 0 else $$Number:$${iField.field}</SET>`;
+                    else
+                        fieldXML += `<SET>${iField.field}</SET>`;
+                }
                 else
                     fieldXML += `<SET>${iField.field}</SET>`;
                 fieldXML += `</FIELD>`;
@@ -358,4 +377,11 @@ class _tally {
 }
 let tally = new _tally();
 exports.tally = tally;
+/*
+    Escape characters used
+    ø 248 0xF8 = Substitution for double quote contained in text in Tally
+    õ 245 0xF5 = Substitution of blank text in text field of Tally
+    ñ 241 0xF1 = Substitution of blank date in Tally
+    æ 230 0xE6 = Field quotes replacement for double quotes
+*/ 
 //# sourceMappingURL=tally.js.map

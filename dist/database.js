@@ -4,6 +4,7 @@ exports.database = void 0;
 const fs = require("fs");
 const mysql = require("mysql");
 const mssql = require("tedious");
+const postgres = require("pg");
 const logger_js_1 = require("./logger.js");
 const maxQuerySize = 50000;
 class _database {
@@ -19,6 +20,7 @@ class _database {
                 username: 'root',
                 password: 'admin',
                 port: 3306,
+                ssl: false,
                 loadmethod: 'insert'
             };
             logger_js_1.logger.logError('database()', err);
@@ -39,6 +41,8 @@ class _database {
                 this.config.username = lstConfigs.get('database-username') || '';
             if (lstConfigs.has('database-password'))
                 this.config.password = lstConfigs.get('database-password') || '';
+            if (lstConfigs.has('database-ssl'))
+                this.config.ssl = lstConfigs.get('database-ssl') == 'true';
         }
         catch (err) {
             logger_js_1.logger.logError('database.updateCommandlineConfig()', err);
@@ -52,7 +56,11 @@ class _database {
                 let rowCount = 0;
                 if (this.config.loadmethod == 'insert') { //INSERT query based loading
                     let txtCSV = fs.readFileSync(csvFile, 'utf-8');
-                    txtCSV = txtCSV.replace(/\"ñ\"/g, 'NULL'); //replace special character for null dates with NULL for insert
+                    txtCSV = txtCSV.replace(/'/g, '\'\''); //escape single quote
+                    txtCSV = txtCSV.replace(/æ/g, '\''); //set field quote as single quote
+                    txtCSV = txtCSV.replace(/\'ñ\'/g, 'NULL'); //replace special character for null dates with NULL for insert
+                    if (this.config.technology == 'mysql')
+                        txtCSV = txtCSV.replace(/\\/g, '\\\\'); //MySQL requires escaping of backslash
                     let lstLines = txtCSV.split(/\r\n/g);
                     lstLines.pop(); //remove last empty item
                     let fieldList = lstLines.shift() || '';
@@ -68,10 +76,9 @@ class _database {
                 else { //File based loading
                     //modify file to handle null values for date field
                     let fileContent = fs.readFileSync(csvFile, 'utf-8');
-                    if (this.config.technology == 'mysql')
-                        fileContent = fileContent.replace(/\"ñ\"/g, 'NULL');
-                    else if (this.config.technology == 'mssql')
-                        fileContent = fileContent.replace(/\"ñ\"/g, '');
+                    fileContent = fileContent.replace(/\"/g, '""'); //escape double quotes
+                    fileContent = fileContent.replace(/æ/g, '"'); //replace field quotes with double quotes
+                    fileContent = fileContent.replace(/\"ñ\"/g, this.config.technology == 'mysql' ? 'NULL' : ''); //replace empty dates with NULL
                     fs.writeFileSync(csvFile, fileContent); //write desired changes to file
                     fileContent = ''; //reset string to erase memory
                     if (this.config.technology == 'mysql') {
@@ -82,6 +89,12 @@ class _database {
                         sqlQuery = `bulk insert ${targetTable} from '${csvFile}' with ( format = 'CSV', firstrow = 2, codepage = '65001' )`;
                         rowCount = await this.execute(sqlQuery);
                     }
+                    else if (this.config.technology == 'postgres') {
+                        sqlQuery = `copy ${targetTable} from '${csvFile}' csv header;`;
+                        rowCount = await this.executePostgres(sqlQuery);
+                    }
+                    else
+                        ;
                 }
                 resolve(rowCount);
             }
@@ -99,6 +112,8 @@ class _database {
                     rowCount = await this.executeMysql(sqlQuery);
                 else if (this.config.technology.toLowerCase() == 'mssql')
                     rowCount = await this.executeMssql(sqlQuery);
+                else if (this.config.technology.toLowerCase() == 'postgres')
+                    rowCount = await this.executePostgres(sqlQuery);
                 else
                     ;
                 resolve(rowCount);
@@ -168,7 +183,8 @@ class _database {
                     options: {
                         database: this.config.schema,
                         port: this.config.port,
-                        trustServerCertificate: true
+                        trustServerCertificate: true,
+                        encrypt: this.config.ssl
                     }
                 });
                 connection.on('connect', (connErr) => {
@@ -186,7 +202,7 @@ class _database {
                         reject(connErr);
                     }
                     else
-                        connection.execSql(new mssql.Request('SET QUOTED_IDENTIFIER OFF;\r\n ' + sqlQuery, (queryErr, rowCount) => {
+                        connection.execSql(new mssql.Request(sqlQuery, (queryErr, rowCount) => {
                             if (queryErr)
                                 reject(queryErr);
                             else
@@ -198,6 +214,46 @@ class _database {
             catch (err) {
                 reject(err);
                 logger_js_1.logger.logError('database.executeMssql()', err);
+            }
+        });
+    }
+    executePostgres(sqlQuery) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                let connection = new postgres.Client({
+                    host: this.config.server,
+                    port: this.config.port,
+                    database: this.config.schema,
+                    user: this.config.username,
+                    password: this.config.password,
+                    ssl: this.config.ssl
+                });
+                await connection.connect();
+                let qryConfig = {
+                    rowMode: 'array',
+                    text: sqlQuery
+                };
+                let result = await connection.query(qryConfig);
+                await connection.end();
+                resolve(result.rowCount);
+            }
+            catch (err) {
+                let errorMessage = '';
+                let errSystemMessage = typeof err['message'] == 'string' ? err['message'] : '';
+                if (errSystemMessage.startsWith('getaddrinfo ENOTFOUND'))
+                    errorMessage = 'Unable to make PostgreSQL connection to servername or IP address';
+                else if (errSystemMessage.startsWith('connect ECONNREFUSED'))
+                    errorMessage = 'Unable to make PostgreSQL connection on specified port';
+                else if (errSystemMessage.startsWith('database') && errSystemMessage.endsWith('does not exist'))
+                    errorMessage = 'Invalid PostgreSQL database';
+                else if (errSystemMessage.startsWith('password authentication failed for user'))
+                    errorMessage = 'Invalid PostgreSQL username or password';
+                else if (errSystemMessage == 'The server does not support SSL connections')
+                    errorMessage = 'Specified PostgreSQL Database Server does not support secure connection';
+                else
+                    ;
+                reject(err);
+                logger_js_1.logger.logError('database.executePostgres()', errorMessage || err);
             }
         });
     }

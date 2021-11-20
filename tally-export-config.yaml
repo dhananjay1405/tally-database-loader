@@ -9,8 +9,8 @@ master:
           field: Name
           type: text
         - name: parent
-          field: if $$IsEqual:$Parent:$$SysName:Primary then $$StrByCharCode:245 else $$StringFindAndReplace:$Parent:'"':'""'
-          type: custom
+          field: if $$IsEqual:$Parent:$$SysName:Primary then "õ" else $$StringFindAndReplace:$Parent:'"':"ø"
+          type: text
         - name: primary_group
           field: _PrimaryGroup
           type: text
@@ -36,8 +36,8 @@ master:
           field: Name
           type: text
         - name: parent
-          field: if $$IsEqual:$Parent:$$SysName:Primary then $$StrByCharCode:245 else $$StringFindAndReplace:$Parent:'"':'""'
-          type: custom
+          field: if $$IsEqual:$Parent:$$SysName:Primary then "õ" else $$StringFindAndReplace:$Parent:'"':"ø"
+          type: text
         - name: is_revenue
           field: IsRevenue
           type: logical
@@ -54,8 +54,8 @@ master:
           field: MailingName
           type: text
         - name: mailing_address
-          field: if $$IsEmpty:$Address then $$StrByCharCode:245 else $$StringFindAndReplace:($$FullList:Address:$Address):'"':'""'
-          type: custom
+          field: if $$IsEmpty:$Address then "õ" else $$StringFindAndReplace:($$FullList:Address:$Address):'"':"ø"
+          type: text
         - name: mailing_state
           field: LedStateName
           type: text
@@ -156,11 +156,11 @@ master:
           field: Name
           type: text
         - name: parent
-          field: if $$IsEmpty:$Address then $$StrByCharCode:245 else $$StringFindAndReplace:($$FullList:Address:$Address):'"':'""'
-          type: custom
+          field: if $$IsEmpty:$Address then "õ" else $$StringFindAndReplace:($$FullList:Address:$Address):'"':"ø"
+          type: text
         - name: address
-          field: if $$IsEmpty:$Address then $$StrByCharCode:245 else $$StringFindAndReplace:($$FullList:Address:$Address):'"':'""'
-          type: custom
+          field: if $$IsEmpty:$Address then "õ" else $$StringFindAndReplace:($$FullList:Address:$Address):'"':"ø"
+          type: text
     - name: mst_stock_group
       collection: StockGroup
       fields:
@@ -171,8 +171,8 @@ master:
           field: Name
           type: text
         - name: parent
-          field: if $$IsEqual:$Parent:$$SysName:Primary then $$StrByCharCode:245 else $$StringFindAndReplace:$Parent:'"':'""'
-          type: custom
+          field: if $$IsEqual:$Parent:$$SysName:Primary then "õ" else $$StringFindAndReplace:$Parent:'"':"ø"
+          type: text
     - name: mst_stock_item
       collection: StockItem
       fetch:
@@ -185,8 +185,8 @@ master:
           field: Name
           type: text
         - name: parent
-          field: if $$IsEqual:$Parent:$$SysName:Primary then $$StrByCharCode:245 else $$StringFindAndReplace:$Parent:'"':'""'
-          type: custom
+          field: if $$IsEqual:$Parent:$$SysName:Primary then "õ" else $$StringFindAndReplace:$Parent:'"':"ø"
+          type: text
         - name: uom
           field: BaseUnits
           type: text
@@ -200,14 +200,14 @@ master:
           field: OpeningValue
           type: amount
         - name: gst_nature_of_goods
-          field: if ($$IsEqual:$GstApplicable:($$SysName:Applicable) AND NOT $$IsEmpty:$GstDetails[Last].Natureofgoods) then $GstDetails[Last].Natureofgoods else $$StrByCharCode:245
-          type: custom
+          field: if ($$IsEqual:$GstApplicable:($$SysName:Applicable) AND NOT $$IsEmpty:$GstDetails[Last].Natureofgoods) then $GstDetails[Last].Natureofgoods else "õ"
+          type: text
         - name: gst_hsn_code
-          field: if ($$IsEqual:$GstApplicable:($$SysName:Applicable) AND NOT $$IsEmpty:$GstDetails[Last].Hsncode) then $GstDetails[Last].Hsncode else $$StrByCharCode:245
-          type: custom
+          field: if ($$IsEqual:$GstApplicable:($$SysName:Applicable) AND NOT $$IsEmpty:$GstDetails[Last].Hsncode) then $GstDetails[Last].Hsncode else "õ"
+          type: text
         - name: gst_taxability
-          field: if ($$IsEqual:$GstApplicable:($$SysName:Applicable) AND NOT $$IsEmpty:$GstDetails[Last].Taxability) then $GstDetails[Last].Taxability else $$StrByCharCode:245
-          type: custom
+          field: if ($$IsEqual:$GstApplicable:($$SysName:Applicable) AND NOT $$IsEmpty:$GstDetails[Last].Taxability) then $GstDetails[Last].Taxability else "õ"
+          type: text
     - name: mst_cost_category
       collection: CostCategory
       fields:
@@ -233,8 +233,8 @@ master:
           field: Name
           type: text
         - name: parent
-          field: if $$IsEqual:$Parent:$$SysName:Primary then $$StrByCharCode:245 else $$StringFindAndReplace:$Parent:'"':'""'
-          type: custom
+          field: if $$IsEqual:$Parent:$$SysName:Primary then "õ" else $$StringFindAndReplace:$Parent:'"':"ø"
+          type: text
         - name: category
           field: Category
           type: text
@@ -257,7 +257,7 @@ master:
           type: text
         - name: rate
           field: if NOT $$IsEmpty:$StateWiseDetails then $StateWiseDetails[First].RateDetails[3].GstRate else 0
-          type: custom
+          type: number
         - name: is_rcm_applicable
           field: IsReverseChargeApplicable
           type: logical
@@ -363,13 +363,13 @@ transaction:
           type: logical
         - name: is_accounting_voucher
           field: if $$IsAccountingVch:$VoucherTypeName then 1 else 0
-          type: custom
+          type: logical
         - name: is_inventory_voucher
           field: if $$IsInventoryVch:$VoucherTypeName then 1 else 0
-          type: custom
+          type: logical
         - name: is_order_voucher
           field: if $$IsOrderVch:$VoucherTypeName then 1 else 0
-          type: custom
+          type: logical
     - name: trn_accounting
       collection: Voucher.AllLedgerEntries
       fetch:
@@ -388,11 +388,11 @@ transaction:
           field: Amount
           type: amount
         - name: amount_forex
-          field: $$StringFindAndReplace:(if $$IsDebit:$Amount then -$$ForexValue:$Amount else $$ForexValue:$Amount):"(-)":"-"
-          type: custom
+          field: if $$IsEmpty:$$ForexValue:$Amount then 0 else $$StringFindAndReplace:(if $$IsDebit:$Amount then -$$ForexValue:$Amount else $$ForexValue:$Amount):"(-)":"-"
+          type: amount
         - name: currency
           field: $$Currency:$Amount
-          type: custom
+          type: text
     - name: trn_inventory
       collection: Voucher.AllInventoryEntries
       fetch:
@@ -426,8 +426,8 @@ transaction:
           field: GodownName
           type: text
         - name: tracking_number
-          field: if ($$IsEmpty:$TrackingNumber or $$IsNotApplicable:$TrackingNumber) then $$StrByCharCode:245 else ($$StringFindAndReplace:$TrackingNumber:'"':'""')
-          type: custom
+          field: if ($$IsEmpty:$TrackingNumber or $$IsNotApplicable:$TrackingNumber) then "õ" else ($$StringFindAndReplace:$TrackingNumber:'"':"ø")
+          type: text
     - name: trn_cost_centre
       collection: Voucher.AllLedgerEntries.CostCentreAllocations
       fetch:
@@ -501,5 +501,5 @@ transaction:
           field: DestinationGodownName
           type: text
         - name: tracking_number
-          field: if ($$IsEmpty:$TrackingNumber or $$IsNotApplicable:$TrackingNumber) then $$StrByCharCode:245 else ($$StringFindAndReplace:$TrackingNumber:'"':'""')
-          type: custom
+          field: if ($$IsEmpty:$TrackingNumber or $$IsNotApplicable:$TrackingNumber) then "õ" else ($$StringFindAndReplace:$TrackingNumber:'"':"ø")
+          type: text

@@ -11,12 +11,14 @@
   "dependencies": {
     "js-yaml": "^4.1.0",
     "mysql": "^2.18.1",
+    "pg": "^8.7.1",
     "tedious": "^11.0.5"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.1",
     "@types/mysql": "^2.15.18",
     "@types/node": "^14.14.32",
+    "@types/pg": "^8.6.1",
     "@types/tedious": "^4.0.3"
   }
 }
