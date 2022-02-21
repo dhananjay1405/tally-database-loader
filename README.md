@@ -38,6 +38,7 @@ Commandline utility to load data into Database Server from Tally software, inten
 * [Develop Further](#develop-further)
 * [License](#license)
 * [Contact](#contact)
+* [Credits](#credits)
 * [Known Issues](#known-issues)
 * [Frequently Asked Questions](#frequently-asked-questions)
 * [Release History](#release-history)
@@ -45,8 +46,8 @@ Commandline utility to load data into Database Server from Tally software, inten
 <br><br>
 
 ## Version
-Latest Version: **1.0.12**<br>
-Updated on: **20-Nov-2021**
+Latest Version: **1.0.13**<br>
+Updated on: **21-Feb-2022**
 
 *Note: I keep on fixing utility and adding fields into database. So you are requested to re-create existing databases and re-download utility folder *
 
@@ -91,7 +92,7 @@ Preferred versions:
 
 Database Loader Utility is portable, and does not have a setup wizard like we find for software installation. Zip archive of utility can be downloaded from below link. Kindly use open-source &amp; free software [7-zip file archiver](https://www.7-zip.org/download.html) to un-compress utility archive.
 
-[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.12.7z)
+[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.13.7z)
 
 Also, it is a commandline utility having no window interface (to keep it minimal and faster)
 
@@ -373,6 +374,11 @@ For any query email to **dhananjay1405@gmail.com** or Whatsapp on **(+91) 90284-
 
 <br><br>
 
+## Credits
+Bug fixes or enhancements from various contributors
+
+* [CA Venugopal Gella](https://github.com/gellavenugopal) - Fixing of Tally Prime 2.0.1 export issue
+
 ## Known Issues
 * Data loading in Microsoft SQL Server (technology: **mssql**) via loadmethod as **insert** does not support pushing of **unicode** characters (i.e. Indian language characters &amp; extended characters beyond ASCII table). Kindly use **file** method for this if at all required. You will notice question marks instead of these unicode characters in database. For rest of the technology, this limitation does not apply.
 * When multiple companies are selected in Tally &amp; specific company name is specified in config.json, it has been observed that in a rare case (especially on Windows Server), Tally fails to fetch data from that target company &amp; internally produces an error that specified company is not loaded.
@@ -410,6 +416,12 @@ For any query email to **dhananjay1405@gmail.com** or Whatsapp on **(+91) 90284-
 <br><br>
 
 ## Release History
+
+**Version: 1.0.13 [21-Feb-2022]**<br>
+Fixed:
+* Due to undocumented breaking changes in Tally Prime 2.0.1 export functionality was affected, now restored with fresh code changes
+* In few cases, utility was not getting list of open companies from Tally Prime properly, now fixed
+* PostgreSQL SSL connection was being rejected for self-signed certificates, now fixed by setting ignore flag
 
 **Version: 1.0.12 [20-Nov-2021]**<br>
 Added:

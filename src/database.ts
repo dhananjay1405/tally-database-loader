@@ -230,7 +230,9 @@ class _database {
                     database: this.config.schema,
                     user: this.config.username,
                     password: this.config.password,
-                    ssl: this.config.ssl
+                    ssl: !this.config.ssl ? false : {
+                        rejectUnauthorized: false
+                    }
                 });
                 await connection.connect();
                 let qryConfig: postgres.QueryArrayConfig = {
