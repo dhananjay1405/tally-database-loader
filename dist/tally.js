@@ -46,8 +46,8 @@ class _tally {
             if (lstConfigs.has('tally-fromdate') && lstConfigs.has('tally-todate')) {
                 let fromDate = lstConfigs.get('tally-fromdate') || '';
                 let toDate = lstConfigs.get('tally-todate') || '';
-                this.config.fromdate = /^\d{4}-\d{2}-\d{2}$/g.test(fromDate) ? fromDate : 'auto';
-                this.config.todate = /^\d{4}-\d{2}-\d{2}$/g.test(toDate) ? toDate : 'auto';
+                this.config.fromdate = /^\d{4}\d{2}\d{2}$/g.test(fromDate) ? fromDate : 'auto';
+                this.config.todate = /^\d{4}\d{2}\d{2}$/g.test(toDate) ? toDate : 'auto';
             }
             if (lstConfigs.has('tally-company'))
                 this.config.company = lstConfigs.get('tally-company') || '';
