@@ -38,6 +38,9 @@ master:
         - name: parent
           field: if $$IsEqual:$Parent:$$SysName:Primary then "õ" else $$StringFindAndReplace:$Parent:'"':"ø"
           type: text
+        - name: alias
+          field: OnlyAlias
+          type: text
         - name: is_revenue
           field: IsRevenue
           type: logical
@@ -187,12 +190,15 @@ master:
         - name: parent
           field: if $$IsEqual:$Parent:$$SysName:Primary then "õ" else $$StringFindAndReplace:$Parent:'"':"ø"
           type: text
+        - name: alias
+          field: OnlyAlias
+          type: text
         - name: uom
           field: BaseUnits
           type: text
         - name: opening_balance
-          field: OpeningBalance
-          type: quantity
+          field: $$StringFindAndReplace:($$Number:$$String:$OpeningBalance):"(-)":"-"
+          type: number
         - name: opening_rate
           field: OpeningRate
           type: rate
@@ -280,8 +286,8 @@ master:
           field: ..Name
           type: text
         - name: opening_balance
-          field: OpeningBalance
-          type: quantity
+          field: $$StringFindAndReplace:($$Number:$$String:$OpeningBalance):"(-)":"-"
+          type: amount
         - name: opening_rate
           field: OpeningRate
           type: rate
@@ -427,6 +433,9 @@ transaction:
           type: text
         - name: tracking_number
           field: if ($$IsEmpty:$TrackingNumber or $$IsNotApplicable:$TrackingNumber) then "õ" else ($$StringFindAndReplace:$TrackingNumber:'"':"ø")
+          type: text
+        - name: order_number
+          field: if ($$IsEmpty:$OrderNo or $$IsNotApplicable:$OrderNo) then "õ" else ($$StringFindAndReplace:$OrderNo:'"':"ø")
           type: text
     - name: trn_cost_centre
       collection: Voucher.AllLedgerEntries.CostCentreAllocations

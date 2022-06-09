@@ -1,11 +1,11 @@
 {
     "database": {
-        "technology": "mysql",
+        "technology": "mssql",
         "server": "localhost",
-        "port": 3306,
+        "port": 1433,
         "ssl": false,
         "schema": "tallydb",
-        "username": "root",
+        "username": "sa",
         "password": "admin",
         "loadmethod": "insert"
     },
@@ -14,8 +14,8 @@
         "port": 9000,
         "master": true,
         "transaction": true,
-        "fromdate": "20190401",
-        "todate": "20200331",
+        "fromdate": "20210401",
+        "todate": "20220331",
         "company": ""
     }
 }

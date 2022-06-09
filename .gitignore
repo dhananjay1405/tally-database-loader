@@ -1,8 +1,10 @@
 node_modules/
-doc/
+private/
 csv/
 ssl/
+sync/
 dist/*.js.map
 import-log.txt
 error-log.txt
 *.zip
+bigquery-credentials.json

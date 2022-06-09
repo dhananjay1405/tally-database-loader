@@ -13,15 +13,7 @@ Commandline utility to load data into Database Server from Tally software, inten
 * [Upcoming Features](#upcoming-features)
 * [Requirements](#requirements)
 * [Download](#download)
-    * Utility
-    * Tally
-    * Node JS
-    * SQL Server
-    * MySQL Server
-    * MariaDB Server
 * [Tally XML Server](#tally-xml-server)
-    * Tally Prime
-    * Tally.ERP 9
 * [Database Creation](#database-creation)
 * [Utility Installation](#utility-installation)
 * [Configuration Setup](#configuration-setup)
@@ -30,24 +22,23 @@ Commandline utility to load data into Database Server from Tally software, inten
 * [Steps](#steps)
 * [Tutorial](#tutorial)
 * [Tally Export Config](#tally-export-config)
-* [Commandline Options](#commandline-options)
+* [Commandline Options](docs/commandline-options.md)
 * [Logs](#logs)
 * [Reports](#reports)
-* [Power BI Template](#power-bi-template)
-* [Google BigQuery Database CSV loading](#google-bigquery-database-csv-loading)
+* [Google BigQuery](docs/google-bigquery.md)
 * [Develop Further](#develop-further)
 * [License](#license)
 * [Contact](#contact)
 * [Credits](#credits)
 * [Known Issues](#known-issues)
-* [Frequently Asked Questions](#frequently-asked-questions)
-* [Release History](#release-history)
+* [Frequently Asked Questions](docs/faq.md)
+* [Release History](docs/release-history.md)
 
 <br><br>
 
 ## Version
-Latest Version: **1.0.14**<br>
-Updated on: **28-Feb-2022**
+Latest Version: **1.0.15**<br>
+Updated on: **09-Jun-2022**
 
 *Note: I keep on fixing utility and adding fields into database. So you are requested to re-create existing databases and re-download utility folder *
 
@@ -76,6 +67,7 @@ Utility requires installation of following as a pre-requisite (along with downlo
     * [PostgreSQL](https://www.postgresql.org/download/)
     * [MySQL](https://dev.mysql.com/downloads/mysql/)
     * [MariaDB](https://mariadb.org/download/)
+    * [Google BigQuery](https://cloud.google.com/bigquery/)
 
 Free version of all the above Database Servers are available for download. Also all of them are available on popular cloud like Microsoft Azure / Google Cloud Platform / Amazon Web Services
 
@@ -92,7 +84,7 @@ Preferred versions:
 
 Database Loader Utility is portable, and does not have a setup wizard like we find for software installation. Zip archive of utility can be downloaded from below link. Kindly use open-source &amp; free software [7-zip file archiver](https://www.7-zip.org/download.html) to un-compress utility archive.
 
-[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.14.7z)
+[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.15.7z)
 
 Also, it is a commandline utility having no window interface (to keep it minimal and faster)
 
@@ -186,7 +178,7 @@ Database Connection credentials needs to be set in the file in **database** sect
 
 | Settings | Value |
 | --- | --- |
-| technology | **mssql**: Microsoft SQL Server<br>**mysql**: MySQL Server or MariaDB Server<br>**postgres**: PostgreSQL Server<br>**csv**: Generate CSV dump for further import (below parameters of database connection are dummy when CSV setting is applied) |
+| technology | **mssql**: Microsoft SQL Server<br>**mysql**: MySQL Server or MariaDB Server<br>**postgres**: PostgreSQL Server<br>**bigquery**: Google BigQuery<br>**csv**: Generate CSV dump for further import (below parameters of database connection are dummy when CSV setting is applied) |
 | server | IP Address of PC on which Database Server is hosted (**localhost** = same machine) |
 | port | Port number on which Database Server is listening<br>**mssql**: Default port is **1433**<br>**mysql**: Default port is **3306**<br>**postgres**: Default port is **5432** |
 | ssl | **true**: Secured (to be used only if Database Server is on Cloud)<br>**false**: Unsecured [*default*] (to be used when Database Server is on same machine / within LAN / within VPN)<br>Supported for mssql / postgres only |
@@ -279,41 +271,6 @@ type: **text / logical / date / number / amount / quantity / rate / custom**
 **rate:** Rate type of data (is always positive)<br>
 **custom:** Any custom expression in TDL format
 
-<br><br>
-
-## Commandline Options
-Utility is completely driven by configuration specified in **config.json** file. In case if specific configuration(s) needs to be overriden without changing it in config file, it can be done using commandline switches as follows:
-
-```bat
-node ./dist/index.js [[--option 01] [value 01] [--option 02] [value 02] ...]
-```
-
-**option**: Syntax for option is **--parent-child** , *parent* is the main config name followed by *child* is the sub-config name in **config.json** . (Refer example for further explanation)
-
-**value**: Value of config for corresponsing option
-
-### Examples:
-
-**Scenario 01:** We have created separate databases for individual clients & currently need to load data of client in database named **airtel** in SQL Server, with rest of the settings unchanged, then below is the command for desired output
-```bat
-node ./dist/index.js --database-schema airtel
-```
-
-**Scenario 02:** We need to set from & to date dynamically (without changing config file), lets say **FY 2019-20 Q3**, then below is the command for that
-```bat
-node ./dist/index.js --tally-fromdate 20191001 --tally-todate 20191231
-```
-
-**Scenario 03:** You have a tally company named *Reliance Industries*, created database of it by name *client_reliance* and want to export **FY 2019-20**  Then below is the command for that
-```bat
-node ./dist/index.js --tally-fromdate 20191001 --tally-todate 20191231 --tally-company "Reliance Industries" --database-schema client_reliance
-```
-
-
-**Scenario 04:** You are using Amazon Web Services (AWS) as database server, and have multiple servers for each client group of companies with multiple separate database for each subsidiary company. You intend to sync data for **FY 2020-21** from Tally into **Jio** company database residing in **Reliance** server hosted at Mumbai region data centre of AWS. Command will be
-```bat
-node ./dist/index.js --tally-fromdate 20200401 --tally-todate 20210331 --database-server database-1.reliance.in-mumbai-1.rds.amazonaws.com --database-schema jio
-```
 
 <br><br>
 
@@ -329,28 +286,6 @@ Author actively supports **Google BigQuery** (fully cloud-based solution of Goog
 
 <br><br>
 
-## Power BI Template
-For further data analysis and dashboard preparation, users can load data into Power BI. Template files containing table structure and M language scripts to load data are already in-built into the Power BI template file. Below are the files available
-
-* **CSV File Loading:** This template loads CSV files generated by the utility into Power BI data model. Just set **TargetFolder** parameter as documented in table<br>
-[Download tally-powerbi-csv.pbix](https://excelkida.com/resource/tally-powerbi-csv.pbit)
-
-| Parameter | Value |
-| --- | --- |
-| TargetFolder | Folder path of CSV files (e.g: *D:\\utility\\csv\\* )  |
-| Host | URL of Tally XML Server (default: *http://localhost:9000*) |
-| TargetCompany | Name of Target company with special characters escaped in XML (default: *##SVCurrentCompany* represents active company) |
-| FromDate | Period From in DD-MM-YYYY format (dependent on Region settings of your PC) |
-| ToDate | Period To in DD-MM-YYYY format (dependent on Region settings of your PC) |
-
-Note: XML Server loading method of template attempts to fetch Tally XML Server, whenever Refresh button is pressed. This process is CPU and memory intensive, consuming large amount of RAM. Power BI too consumes high RAM during this phase of data loading. So, both the applications running together may drain out RAM, choking other operations of PC. So it is recommended to use CSV loading method. Also ensure to close Tally after data pull operation, as it lacks functionality to dispose blocked memory after export of data.
-
-<br><br>
-
-## Google BigQuery Database CSV loading
-Utility supports pure CSV data dumping by setting *technology* parameter as **csv** in config.json. CSV files are generated and stored in **csv** folder. These files can be imported into BigQuery by creating & uploading these into a **bucket** in **Cloud Storage**. BigQuery can then import & create table from these files. Bash Shell Script file **bigquery-bulk-load.sh** has been provided in the project to automate import of files from Cloud Storage bucket to BigQuery dataset. Video tutorial for the same will be made available shortly
-
-<br><br>
 
 ## Develop Further
 If you intend to develop and modify this utility further to next level for your use-case, then you can clone this project from Git and run the project as below
@@ -384,143 +319,3 @@ Bug fixes or enhancements from various contributors
 * When multiple companies are selected in Tally &amp; specific company name is specified in config.json, it has been observed that in a rare case (especially on Windows Server), Tally fails to fetch data from that target company &amp; internally produces an error that specified company is not loaded.
 * It has been observed that sometimes when Tally remain running for several days on PC then in a rare case Tally fails to return back updated / latest data (especially on Windows Server) &amp; you may have to restart Tally.
 * If you have configured automatic sync of data via Windows Task Schedular, then make sure you don't log-off, but just disconnect as Tally is graphical based software.
-
-<br><br>
-
-## Frequently Asked Question
-
-**Ques:** How to enable SQL Server connectivity via TCP/IP port for Microsoft SQL Server ?
-
-**Ans:** Utility supports connection to MS SQL Server via TCP/IP port only. It does not support connecting through named instance like *PC-NAME\\SQLEXPRESS*. This setting can be enabled using below steps:
-
-1. Launch **Computer Management** (just type it in Windows Search bar)
-1. Open: Services and Applications > SQL Server Configuration Manager > SQL Server Network Configuration > Protocols for MSSQLSERVER > TCP/IP
-![SQL Server Configuration Manager network settings](https://excelkida.com/image/github/sql-server-configuration-manager-setting.png)
-1. Right Click and **Enable** it
-1. Double Click (or right click and open Properties) to open TCP/IP Properties window
-1. Goto IP Addresses tab > IPAll > and set
-    * TCP Dynamic Ports = (blank) erase value from it
-    * TCP Port = 1433<br>
-![SQL Server Configuration Manager IP Address settings](https://excelkida.com/image/github/sql-server-configuration-manager-ipaddress-port-config.png)
-1. Restart SQL Server: Task Manager > Services > MSSQLSERVER > right click > Restart<br>
-![SQL Server Service restart](https://excelkida.com/image/github/task-manager-sql-server-service-restart.png)
-
-**Ques:** How to enable MySQL Server invalid authentication mode error ?
-
-**Ans:** In MySQL 8.x new authentication method was introduce. Currently project's MySQL client driver does not support that method. So you will have to modify your MySQL Server settings to **Legacy Authentication Method**. For windows PC follow steps as below:
-1. Run *MySQL Installer Community* and choose re-configure option
-![MySQL Server Window reconfigure server](https://excelkida.com/image/github/mysql-installer-packages-screen.png)
-1. Change method to *Legacy Authentication*
-![MySQL Server Window authentication method](https://excelkida.com/image/github/mysql-installer-authentication-mode-screen.png)
-
-<br><br>
-
-## Release History
-
-**Version: 1.0.14 [28-Feb-2022]**<br>
-Fixed:
-* Commandline config --tally-fromdate and --tally-todate was not effecting from/to date while sending export request to Tally, now corrected
-
-**Version: 1.0.13 [21-Feb-2022]**<br>
-Fixed:
-* Due to undocumented breaking changes in Tally Prime 2.0.1 export functionality was affected, now restored with fresh code changes
-* In few cases, utility was not getting list of open companies from Tally Prime properly, now fixed
-* PostgreSQL SSL connection was being rejected for self-signed certificates, now fixed by setting ignore flag
-
-**Version: 1.0.12 [20-Nov-2021]**<br>
-Added:
-* Support of Postgre SQL Database Server Server.
-* SSL (Secured Socket Layer) database connections for secure exchange of data especially for cloud database (PostgreSQL / SQL Server).
-
-Fixed:
-* Use of single quotes in INSERT statement, string type values, instead of double quotes, to bring uniformity of SQL Statements across multiple RDBMS platforms.
-* CSV folder was used as parking space for intermediate process in database import method. Now the folder is deleted once data is imported successfully into database.
-
-**Version: 1.0.11 [07-Nov-2021]**<br>
-Fixed:
-* Introduced specific error message related to database and connectvity.
-* Reduced repetation of call stack in error messages to once for improved error diagnostic.
-
-**Version: 1.0.10 [10-Oct-2021]**<br>
-Added:
-* 2 new fields in **trn_voucher** table. Party field was added for easy determination of Sundry Debtor / Creditor in any transaction and optimized aggregation.
-
-**Version: 1.0.9 [08-Aug-2021]**<br>
-Added:
-* 2 new fields of amount in forex and currency in **trn_accounting** table. For Indian currency transaction, this field amount will be same as amount field.
-
-Fixed:
-* Crashing of Tally in the case when compound unit of measurement was used. TDL extraction expression is fixed.
-* Failure in fetching data from specific company, when target company name was specified in **config.json** . Mechanism was failing when company had special characters like dash, brackets in its name.
-* Default date in SQL queries in demo report section, changed to FY 2020-21.
-
-**Version: 1.0.8 [01-Jul-2021]**<br>
-Added:
-* Rate column in stock item and inventory transaction table
-* Added 2 new tables for opening batch & bill allocation (useful when company is split and there are pending bills as on split date)
-* Introduced compatibility for field containing **rate** type of data in Tally. YAML export configuration now supports type *rate*
-
-**Version: 1.0.7 [23-Jun-2021]**<br>
-Added:
-* Table named mst_gst_effective_rate containing rate of GST applicable on different stock item on multiple dates
-* Email and Bank details related fields into mst_ledger table
-* Power BI template for importing CSV files into Power BI model, is made available
-
-Fixed:
-* Exporting date type fields with blank value from Tally was causing issue while import. So now empty date field will be treated as NULL for database. During CSV export, same fields will remain as blank
-* UTF-8 BOM (Byte Order Mark) is emmited to CSV files, when choosing CSV export in config.json so Without BOM, any field containing Unicode value was not decoded properly by excel
-
-**Version: 1.0.6 [11-Jun-2021]**<br>
-Fixed:
-* Parent nature field of Tally containing value Primary, is converted to value as blank string, by custom TDL expression in YAML. In few tables this expression was missing, which is now fixed
-
-**Version: 1.0.5 [05-Jun-2021]**<br>
-Added:
-* YAML format tally tables & fields definition specification file **tally-export-config.yaml**, for easy expansion of User Defined Fields as utility now aims for easy export of fields created by TDL Developers customising Tally. TDL XML is created on-the-fly by reading this specification file.
-* Timestamps in **import-log.txt** file, to know exactly when utility was run
-* No of seconds it took for each table of Tally to export. This information might be helpful when user wants to skip any heavy tables of Tally from export, by removing it from **tally-export-config.yaml** specification file for quick export
-
-Removed:
-* XML folder containing specification of Tally tables and fields, as this XML is now automatically created on-the-fly. Also *table-info.json* file was removed, as **tally-export-config.yaml** already contains equivalent name of fields in database for corresponding Tally fields.
-* In **config.json** file, **batch** mode of transaction export where we could specify it full or daily is removed, as whole logic is now revamped. Revamping of logic resulted in longer time to export data from Tally, but significant lower usage of RAM while export (as high RAM usage by Tally Prime was hindering other process in few cases)
-
-Version: **1.0.4 [17-May-2021]**<br>
-Added:
-* Support for selecting specific company from which to export data (using Powershell script loop can be setup to automate this for multiple companies)
-* Voucher Reference number field added
-* 5 more tables added related to cost centre, bill reference, batch allocation
-
-Version: **1.0.3 [24-Apr-2021]**<br>
-Added:
-* SQL Queries for generating reports in a folder named **reports**. Due to difference in SQL functions names and syntax nomenclature in MySQL and MS-SQL, query for same report is made available for both database technologies
-* Option to simply generate CSV files dump and then exit utility, by setting **technology** as **csv** in **config.json**. This option is introduced with an aim of transferring these CSV dumps to PC when Database Server is not directly accessible via Network (LAN/Internet). Also, these files can be used for **Google BigQuery** schema tables loading for cloud-based reporting
-
-Fixed:
-* CSV file dump, adopted ISO date format of **YYYY-MM-DD** instead of YYYYMMDD for easy detection of dates by Database Server
-* Database table **trn_voucher**  field **date** was erronously assigned *datetime* data type instead of *date* now fixed
-
-Version: **1.0.2 [12-Apr-2021]**<br>
-Added:
-* A configuration option **batch** has been added to handle cases where export of large number transaction rows from Tally in a single HTTP request results in freezing of Tally (due to huge amount of RAM usage). So, assigning value **daily** to this settings exports transactions (or vouchers) data day-by-day into CSV file and then pushes it to Database at once.
-* New fields of Tally related to GST (HSN Code, type of supply, etc) have been added in *stock item* table
-* 3 more flag type of fields added to *voucher* table to determine if voucher is of type accounting / inventory / order. These fields speed-up SQL Query for calculating of closing balance as on date
-
-Fixed:
-* **port** and **server** settings for *Tally* section in the file **config.json** were not effected if default value was overriden. This issue is now fixed
-* In **file** based loading mode, first row of CSV file containing header was even treated as data row. So modified that query to skip 1 row from top
-* SQL Server does not accept text enclosed in *double quotes* in SQL query for row insert by default. Due to this *file* based bulk loading of data failed for MS SQL Server . So modified SQL query for MS SQL Server where *QUOTED_IDENTIFIER* flag is set to *OFF* before the SQL statement
-
-
-Version: **1.0.1 [06-Apr-2021]**<br>
-Added:
-* Header column in CSV files is introduced for easy viewing of CSV files from Excel to know exact error. Also these files can easily be imported, if database server is in protected PC with no external access
-
-Fixed:
-* \\ character in text field generated invalid CSV files, interrupting database loading. Proper escaping of backslah is now fixed
-* Character limit for PAN(10) & GST Number(15) field increased in **database-structure.sql** as older versions of Tally were found to be accepting extra characters
-* Closing Stock values for **trn_closingstock_ledger** table were missing 0 if no amount was specified for corresponding date. So now fixed with 0 in amount
-* Commandline process exits with code of 0 = Success / 1 = Error, so that any other dependent programs/scripts can utilise this exit code for troubleshooting
-
-
-Version: **1.0.0 [26-Mar-2021]**<br>
-* Utility released

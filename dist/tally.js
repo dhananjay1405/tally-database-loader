@@ -9,6 +9,8 @@ const yaml = require("js-yaml");
 const utility_js_1 = require("./utility.js");
 const logger_js_1 = require("./logger.js");
 const database_js_1 = require("./database.js");
+const bigquery_1 = require("@google-cloud/bigquery");
+let bigquery;
 class _tally {
     constructor() {
         this.lstTableMaster = [];
@@ -65,12 +67,19 @@ class _tally {
                     logger_js_1.logger.logMessage('Updating company information configuration table [%s]', new Date().toLocaleDateString());
                     await this.saveCompanyInfo();
                 }
+                else if (database_js_1.database.config.technology == 'bigquery') {
+                    bigquery = new bigquery_1.BigQuery({
+                        keyFilename: './bigquery-credentials.json'
+                    });
+                }
+                else
+                    ;
                 //prepare substitution list of runtime values to reflected in TDL XML
                 let configTallyXML = new Map();
                 configTallyXML.set('fromDate', utility_js_1.utility.Date.parse(this.config.fromdate, 'yyyy-MM-dd'));
                 configTallyXML.set('toDate', utility_js_1.utility.Date.parse(this.config.todate, 'yyyy-MM-dd'));
                 configTallyXML.set('targetCompany', this.config.company ? utility_js_1.utility.String.escapeHTML(this.config.company) : '##SVCurrentCompany');
-                if (/^(mssql|mysql|postgres)$/g.test(database_js_1.database.config.technology)) {
+                if (/^(mssql|mysql|postgres|bigquery)$/g.test(database_js_1.database.config.technology)) {
                     //truncate master/transaction tables
                     logger_js_1.logger.logMessage('Erasing database');
                     for (let i = 0; i < this.lstTableMaster.length; i++) {
@@ -125,7 +134,9 @@ class _tally {
                         }
                     fs.rmdirSync('./csv'); //remove directory
                 }
-                else if (database_js_1.database.config.technology == 'csv') {
+                else if (database_js_1.database.config.technology == 'csv' || database_js_1.database.config.technology == 'bigquery') {
+                    if (database_js_1.database.config.technology == 'bigquery')
+                        logger_js_1.logger.logMessage('Loading CSV files to BigQuery tables [%s]', new Date().toLocaleString());
                     //remove special character of date from CSV files, which was inserted for null dates
                     if (this.config.master)
                         for (let i = 0; i < this.lstTableMaster.length; i++) {
@@ -134,6 +145,14 @@ class _tally {
                             content = this.substituteCSV(content);
                             fs.writeFileSync(`./csv/${targetTable}.csv`, '\ufeff' + content);
                             fs.unlinkSync(`./csv/${targetTable}.data`); //delete raw file
+                            if (database_js_1.database.config.technology == 'bigquery') {
+                                const [job] = await bigquery.dataset(database_js_1.database.config.schema).table(targetTable).load(`./csv/${targetTable}.csv`, {
+                                    sourceFormat: 'CSV',
+                                    skipLeadingRows: 1,
+                                    writeDisposition: 'WRITE_TRUNCATE'
+                                });
+                                logger_js_1.logger.logMessage('  %s: imported', targetTable);
+                            }
                         }
                     if (this.config.transaction)
                         for (let i = 0; i < this.lstTableTransaction.length; i++) {
@@ -142,6 +161,14 @@ class _tally {
                             content = this.substituteCSV(content);
                             fs.writeFileSync(`./csv/${targetTable}.csv`, '\ufeff' + content);
                             fs.unlinkSync(`./csv/${targetTable}.data`); //delete raw file
+                            if (database_js_1.database.config.technology == 'bigquery') {
+                                const [job] = await bigquery.dataset(database_js_1.database.config.schema).table(targetTable).load(`./csv/${targetTable}.csv`, {
+                                    sourceFormat: 'CSV',
+                                    skipLeadingRows: 1,
+                                    writeDisposition: 'WRITE_TRUNCATE'
+                                });
+                                logger_js_1.logger.logMessage('  %s: imported', targetTable);
+                            }
                         }
                 }
                 else
@@ -277,8 +304,14 @@ class _tally {
                         this.config.todate = lstCompanyInfoParts[3];
                     }
                     //clear config table of database and insert active company info to config table
-                    await database_js_1.database.execute('truncate table config;');
-                    await database_js_1.database.execute(`insert into config(name,value) values('Update Timestamp','${new Date().toLocaleString()}'),('Company Name','${companyName}'),('Period From','${this.config.fromdate}'),('Period To','${this.config.todate}');`);
+                    if (/^(mssql|mysql|postgres)$/g.test(database_js_1.database.config.technology)) {
+                        await database_js_1.database.execute('truncate table config;');
+                        await database_js_1.database.execute(`insert into config(name,value) values('Update Timestamp','${new Date().toLocaleString()}'),('Company Name','${companyName}'),('Period From','${this.config.fromdate}'),('Period To','${this.config.todate}');`);
+                    }
+                    else if (database_js_1.database.config.technology == 'bigquery') {
+                        await bigquery.dataset(database_js_1.database.config.schema).createQueryJob('truncate table config');
+                        await bigquery.dataset(database_js_1.database.config.schema).createQueryJob(`insert into config(name,value) values('Update Timestamp','${new Date().toLocaleString()}'),('Company Name','${companyName}'),('Period From','${this.config.fromdate}'),('Period To','${this.config.todate}');`);
+                    }
                 }
                 else {
                     reject('Cannot detect First/Last voucher date from company');

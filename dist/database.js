@@ -66,8 +66,9 @@ class _database {
                     let fieldList = lstLines.shift() || '';
                     while (lstLines.length) { //loop until row is found
                         sqlQuery = `insert into ${targetTable} (${fieldList}) values`;
+                        let countBatch = 0; //number of rows in batch
                         //run a loop to keep on appending row to SQL Query values until max allowable size of query is exhausted
-                        while (lstLines.length && (sqlQuery.length + lstLines[0].length + 3 < maxQuerySize))
+                        while (lstLines.length && (sqlQuery.length + lstLines[0].length + 3 < maxQuerySize) && ++countBatch <= 1000)
                             sqlQuery += `(${lstLines.shift()}),`; //enclose row values into round braces
                         sqlQuery = sqlQuery.substr(0, sqlQuery.length - 1) + ';'; //remove last trailing comma and append colon
                         rowCount += await this.execute(sqlQuery);
