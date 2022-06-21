@@ -1,5 +1,9 @@
 ## Release History
 
+**Version: 1.0.16 [21-Jun-2022]**<br>
+Added:
+* Field named *order_duedate* introduced in trn_inventory table
+
 **Version: 1.0.15 [09-Jun-2022]**<br>
 Added:
 * Loading of Tally data directly into Google BigQuery dataset

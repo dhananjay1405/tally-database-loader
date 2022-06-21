@@ -437,6 +437,9 @@ transaction:
         - name: order_number
           field: if ($$IsEmpty:$OrderNo or $$IsNotApplicable:$OrderNo) then "õ" else ($$StringFindAndReplace:$OrderNo:'"':"ø")
           type: text
+        - name: order_duedate
+          field: OrderDueDate
+          type: date
     - name: trn_cost_centre
       collection: Voucher.AllLedgerEntries.CostCentreAllocations
       fetch:

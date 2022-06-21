@@ -14,8 +14,8 @@
         "port": 9000,
         "master": true,
         "transaction": true,
-        "fromdate": "20210401",
-        "todate": "20220331",
+        "fromdate": "auto",
+        "todate": "auto",
         "company": ""
     }
 }

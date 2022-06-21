@@ -181,6 +181,7 @@ create table tallydb.trn_inventory
  godown string(1024),
  tracking_number string(256),
  order_number string(256),
+ order_duedate date
 );
 
 create table tallydb.trn_cost_centre

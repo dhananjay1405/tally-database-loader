@@ -8,7 +8,7 @@ Google BigQuery is a cloud-based Data Warehouse supporting SQL Query syntax for 
 1. Create a dataset by name **tallydb** under the default project<br>
 ![Big Query Create Dataset](https://excelkida.com/image/github/bigquery-create-dataset.png)<br>
 ![Big Query Create Dataset Options](https://excelkida.com/image/github/bigquery-create-dataset-options.png)
-1. Grab databate schema using file under the folder of project [platform/google-bigquery/database-structure.sql](platform/google-bigquery/database-structure.sql) , dump it to the SQL Query editor window and run it<br>
+1. Grab databate schema using file under the folder of project [platform/google-bigquery/database-structure.sql](../platform/google-bigquery/database-structure.sql) , dump it to the SQL Query editor window and run it<br>
 ![Big Query Create Schema SQL](https://excelkida.com/image/github/bigquery-create-schema-sql.png)<br>
 ![Big Query Dataset Table listing](https://excelkida.com/image/github/bigquery-dataset-table-listing.png)
 1. Create service account for connectivity and secured authentication<br>

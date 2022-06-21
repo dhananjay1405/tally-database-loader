@@ -1,5 +1,5 @@
 # Tally to Database Server: Data Loader Utility
-![logo](tally-database-loader.png)
+![logo](https://excelkida.com/image/github/tally-database-loader.png)
 
 
 
@@ -37,8 +37,8 @@ Commandline utility to load data into Database Server from Tally software, inten
 <br><br>
 
 ## Version
-Latest Version: **1.0.15**<br>
-Updated on: **09-Jun-2022**
+Latest Version: **1.0.16**<br>
+Updated on: **21-Jun-2022**
 
 *Note: I keep on fixing utility and adding fields into database. So you are requested to re-create existing databases and re-download utility folder *
 
@@ -48,8 +48,8 @@ Updated on: **09-Jun-2022**
 *Stagnant water is hazardous.* Same applies to human brain. Improvement / Exploration is a one of key aspect of this project.
 
 In-progress features:
-* Direct data push to Google BigQuery (a robust offering by Google Cloud with plently of opportunity to explore in Always Free plan)
-* Support for IBM DB2 database (they offer a free plan with a DB2 database &amp; access to analytical tool)
+* **Incremental Sync** to achieve near-realtime sync
+* Documentation &amp; tutorial videos explaining database design, relationship between multiple tables, etc
 
 Tentative Features:
 * Graphical Interface for the utility (Electron JS powered App)
@@ -84,7 +84,7 @@ Preferred versions:
 
 Database Loader Utility is portable, and does not have a setup wizard like we find for software installation. Zip archive of utility can be downloaded from below link. Kindly use open-source &amp; free software [7-zip file archiver](https://www.7-zip.org/download.html) to un-compress utility archive.
 
-[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.15.7z)
+[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.16.7z)
 
 Also, it is a commandline utility having no window interface (to keep it minimal and faster)
 

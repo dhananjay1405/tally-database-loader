@@ -21,6 +21,7 @@ create table mst_ledger
  guid varchar(64) not null primary key,
  name varchar(1024) not null default '',
  parent varchar(1024) not null default '',
+ alias varchar(256) not null default '',
  is_revenue boolean,
  is_deemedpositive boolean,
  opening_balance decimal(17,2) default 0,
@@ -85,6 +86,7 @@ create table mst_stock_item
  guid varchar(64) not null primary key,
  name varchar(1024) not null default '',
  parent varchar(1024) not null default '',
+ alias varchar(256) not null default '',
  uom varchar(1024) not null default '',
  opening_balance decimal(15,4) default 0,
  opening_rate decimal(15,4) default 0,
@@ -176,7 +178,9 @@ create table trn_inventory
  additional_amount decimal(17,2) not null default 0,
  discount_amount decimal(17,2) not null default 0,
  godown varchar(1024),
- tracking_number varchar(1024)
+ tracking_number varchar(1024),
+ order_number varchar(256),
+ order_duedate date
 );
 
 create table trn_cost_centre

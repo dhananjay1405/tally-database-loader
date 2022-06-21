@@ -180,6 +180,7 @@ create table trn_inventory
  godown nvarchar(1024),
  tracking_number nvarchar(256),
  order_number nvarchar(256),
+ order_duedate date
 );
 
 create table trn_cost_centre
