@@ -12,10 +12,9 @@
     "tally": {
         "server": "localhost",
         "port": 9000,
-        "master": true,
-        "transaction": true,
-        "fromdate": "auto",
-        "todate": "auto",
+        "fromdate": "20210401",
+        "todate": "20220331",
+        "sync": "full",
         "company": ""
     }
 }

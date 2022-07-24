@@ -49,50 +49,102 @@ class _database {
             throw err;
         }
     }
-    bulkLoad(csvFile, targetTable) {
+    convertCSV(content, lstFieldType, doubleQuote = false) {
+        let lstLines = content.split(/\r\n/g);
+        for (let r = 0; r < lstLines.length; r++) {
+            let line = lstLines[r];
+            line = line.replace(/ñ/g, ''); //replace blank date with empty text
+            line = line.replace(/\"/g, '""'); //escape double quotes with 2 instance of double quotes (as per ISO)
+            let lstValues = line.split('\t');
+            for (let c = 0; c < lstValues.length; c++) {
+                let targetFieldType = lstFieldType[c];
+                let targetFieldValue = lstValues[c];
+                if (doubleQuote)
+                    lstValues[c] = `"${targetFieldValue}"`;
+                else if (targetFieldType == 'text' || targetFieldType == 'date')
+                    lstValues[c] = `"${targetFieldValue}"`;
+            }
+            lstLines[r] = lstValues.join(',');
+        }
+        return lstLines.join('\r\n');
+    }
+    bulkLoad(csvFile, targetTable, lstFieldType) {
         return new Promise(async (resolve, reject) => {
+            let sqlQuery = '';
             try {
-                let sqlQuery = '';
+                sqlQuery = '';
                 let rowCount = 0;
                 if (this.config.loadmethod == 'insert') { //INSERT query based loading
                     let txtCSV = fs.readFileSync(csvFile, 'utf-8');
-                    txtCSV = txtCSV.replace(/'/g, '\'\''); //escape single quote
-                    txtCSV = txtCSV.replace(/æ/g, '\''); //set field quote as single quote
-                    txtCSV = txtCSV.replace(/\'ñ\'/g, 'NULL'); //replace special character for null dates with NULL for insert
-                    if (this.config.technology == 'mysql')
-                        txtCSV = txtCSV.replace(/\\/g, '\\\\'); //MySQL requires escaping of backslash
                     let lstLines = txtCSV.split(/\r\n/g);
-                    lstLines.pop(); //remove last empty item
-                    let fieldList = lstLines.shift() || '';
+                    let fieldList = lstLines.shift() || ''; //extract header
+                    fieldList = fieldList.replace(/\t/g, ','); //replace tab with comma for header
                     while (lstLines.length) { //loop until row is found
                         sqlQuery = `insert into ${targetTable} (${fieldList}) values`;
                         let countBatch = 0; //number of rows in batch
                         //run a loop to keep on appending row to SQL Query values until max allowable size of query is exhausted
-                        while (lstLines.length && (sqlQuery.length + lstLines[0].length + 3 < maxQuerySize) && ++countBatch <= 1000)
-                            sqlQuery += `(${lstLines.shift()}),`; //enclose row values into round braces
+                        while (lstLines.length && (sqlQuery.length + lstLines[0].length + 3 < maxQuerySize) && ++countBatch <= 1000) {
+                            let activeLine = lstLines.shift() || '';
+                            let lstValues = activeLine.split('\t');
+                            for (let i = 0; i < lstValues.length; i++) {
+                                let targetFieldType = lstFieldType[i];
+                                let targetFieldValue = lstValues[i];
+                                if (targetFieldType == 'text') {
+                                    let hasUnicodeText = /[^\u0000-\u007f]/g.test(targetFieldValue);
+                                    targetFieldValue = targetFieldValue.replace(/'/g, '\'\''); //escape single quote
+                                    if (this.config.technology == 'mysql')
+                                        targetFieldValue = targetFieldValue.replace(/\\/g, '\\\\'); //MySQL requires escaping of backslash
+                                    targetFieldValue = `'${targetFieldValue}'`; //enclose value in single quotes for SQL query
+                                    if (hasUnicodeText && this.config.technology == 'mssql')
+                                        targetFieldValue = 'N' + targetFieldValue; //SQL Server requires prefixing quoted text with N if any Unicode character exists in string
+                                    lstValues[i] = targetFieldValue;
+                                }
+                                else if (targetFieldType == 'date') {
+                                    lstValues[i] = targetFieldValue == 'ñ' ? 'NULL' : `'${targetFieldValue}'`;
+                                }
+                                else
+                                    ;
+                            }
+                            activeLine = lstValues.join(','); //prepare SQL statement with values separated by comma
+                            sqlQuery += `(${activeLine}),`; //enclose row values into round braces
+                        }
                         sqlQuery = sqlQuery.substr(0, sqlQuery.length - 1) + ';'; //remove last trailing comma and append colon
-                        rowCount += await this.execute(sqlQuery);
+                        rowCount += await this.executeNonQuery(sqlQuery);
                     }
                 }
                 else { //File based loading
                     //modify file to handle null values for date field
-                    let fileContent = fs.readFileSync(csvFile, 'utf-8');
-                    fileContent = fileContent.replace(/\"/g, '""'); //escape double quotes
-                    fileContent = fileContent.replace(/æ/g, '"'); //replace field quotes with double quotes
-                    fileContent = fileContent.replace(/\"ñ\"/g, this.config.technology == 'mysql' ? 'NULL' : ''); //replace empty dates with NULL
-                    fs.writeFileSync(csvFile, fileContent); //write desired changes to file
-                    fileContent = ''; //reset string to erase memory
+                    if (this.config.technology == 'postgres') {
+                        let fileContent = fs.readFileSync(csvFile, 'utf-8');
+                        fileContent = fileContent.replace(/ñ/g, 'ø'); //substitute NULL with placeholder
+                        fileContent = this.convertCSV(fileContent, lstFieldType);
+                        fileContent = fileContent.replace(/\"ø\"/g, ''); //replace placeholder with nothing along with enclosing double quotes
+                        fs.writeFileSync(csvFile, '\ufeff' + fileContent);
+                    }
+                    else if (this.config.technology == 'mysql') {
+                        let fileContent = fs.readFileSync(csvFile, 'utf-8');
+                        fileContent = fileContent.replace(/ñ/g, 'ø'); //substitute NULL with placeholder
+                        fileContent = this.convertCSV(fileContent, lstFieldType, true);
+                        fileContent = fileContent.replace(/\"ø\"/g, 'NULL'); //replace placeholder with nothing along with enclosing double quotes
+                        fs.writeFileSync(csvFile, '\ufeff' + fileContent); //write desired changes to file
+                    }
+                    else { //SQL Server
+                        let fileContent = fs.readFileSync(csvFile, 'utf-8');
+                        fileContent = fileContent.replace(/ñ/g, ''); //substitute NULL with placeholder
+                        fileContent = fileContent.replace(/\"/g, '""'); //escape double quotes
+                        fs.writeFileSync(csvFile, '\ufeff' + fileContent); //write desired changes to file
+                    }
                     if (this.config.technology == 'mysql') {
                         sqlQuery = `load data infile '${csvFile.replace(/\\/g, '\\\\')}' into table ${targetTable} fields terminated by ',' enclosed by '"' escaped by '' lines terminated by '\r\n' ignore 1 lines ;`;
-                        rowCount = await this.execute(sqlQuery);
+                        rowCount = await this.executeNonQuery(sqlQuery);
                     }
                     else if (this.config.technology == 'mssql') {
-                        sqlQuery = `bulk insert ${targetTable} from '${csvFile}' with ( format = 'CSV', firstrow = 2, codepage = '65001' )`;
-                        rowCount = await this.execute(sqlQuery);
+                        sqlQuery = `bulk insert ${targetTable} from '${csvFile}' with ( firstrow = 2, codepage = '65001')`;
+                        rowCount = await this.executeNonQuery(sqlQuery);
                     }
                     else if (this.config.technology == 'postgres') {
                         sqlQuery = `copy ${targetTable} from '${csvFile}' csv header;`;
-                        rowCount = await this.executePostgres(sqlQuery);
+                        rowCount = await this.executeNonQuery(sqlQuery);
                     }
                     else
                         ;
@@ -101,26 +153,71 @@ class _database {
             }
             catch (err) {
                 reject(err);
+                if (typeof err == 'object')
+                    err['targetQuery'] = sqlQuery;
                 logger_js_1.logger.logError('database.bulkLoad()', err);
             }
         });
     }
-    execute(sqlQuery, values) {
+    executeNonQuery(sqlQuery, values) {
         return new Promise(async (resolve, reject) => {
             try {
-                let rowCount = 0;
+                let retval = 0;
                 if (this.config.technology.toLowerCase() == 'mysql')
-                    rowCount = await this.executeMysql(sqlQuery);
+                    retval = (await this.executeMysql(sqlQuery)).rowCount;
                 else if (this.config.technology.toLowerCase() == 'mssql')
-                    rowCount = await this.executeMssql(sqlQuery);
+                    retval = (await this.executeMssql(sqlQuery)).rowCount;
                 else if (this.config.technology.toLowerCase() == 'postgres')
-                    rowCount = await this.executePostgres(sqlQuery);
+                    retval = (await this.executePostgres(sqlQuery)).rowCount;
                 else
                     ;
-                resolve(rowCount);
+                resolve(retval);
             }
             catch (err) {
                 reject(err);
+            }
+        });
+    }
+    executeScalar(sqlQuery) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                let retval = undefined;
+                if (this.config.technology.toLowerCase() == 'mysql') {
+                    let result = await this.executeMysql(sqlQuery);
+                    if (Array.isArray(result.data) && result.data.length == 1) {
+                        let lstProps = Object.keys(result.data[0]);
+                        retval = result.data[0][lstProps[0]];
+                    }
+                }
+                else if (this.config.technology.toLowerCase() == 'mssql') {
+                    let result = await this.executeMssql(sqlQuery);
+                    if (Array.isArray(result.data) && result.data.length == 1)
+                        retval = result.data[0][0].value;
+                }
+                else if (this.config.technology.toLowerCase() == 'postgres') {
+                    let result = await this.executePostgres(sqlQuery);
+                    if (Array.isArray(result.data) && result.data.length == 1)
+                        retval = result.data[0][0];
+                }
+                else
+                    ;
+                resolve(retval);
+            }
+            catch (err) {
+                reject(err);
+            }
+        });
+    }
+    truncateTables(lstTables) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                for (let i = 0; i < lstTables.length; i++)
+                    await this.executeNonQuery(`truncate table ${lstTables[i]};`);
+                resolve();
+            }
+            catch (err) {
+                reject(err);
+                logger_js_1.logger.logError('database.truncateTables()', err);
             }
         });
     }
@@ -159,7 +256,7 @@ class _database {
                                 reject(queryErr);
                             }
                             else
-                                resolve(results['affectedRows']);
+                                resolve({ rowCount: results['affectedRows'], data: results });
                         });
                 });
             }
@@ -185,7 +282,8 @@ class _database {
                         database: this.config.schema,
                         port: this.config.port,
                         trustServerCertificate: true,
-                        encrypt: this.config.ssl
+                        encrypt: this.config.ssl,
+                        rowCollectionOnRequestCompletion: true
                     }
                 });
                 connection.on('connect', (connErr) => {
@@ -203,11 +301,11 @@ class _database {
                         reject(connErr);
                     }
                     else
-                        connection.execSql(new mssql.Request(sqlQuery, (queryErr, rowCount) => {
+                        connection.execSql(new mssql.Request(sqlQuery, (queryErr, rowCount, rows) => {
                             if (queryErr)
                                 reject(queryErr);
                             else
-                                resolve(rowCount);
+                                resolve({ rowCount, data: rows });
                         }));
                 });
                 connection.connect();
@@ -229,7 +327,7 @@ class _database {
                     password: this.config.password,
                     ssl: !this.config.ssl ? false : {
                         rejectUnauthorized: false
-                    }
+                    },
                 });
                 await connection.connect();
                 let qryConfig = {
@@ -238,7 +336,7 @@ class _database {
                 };
                 let result = await connection.query(qryConfig);
                 await connection.end();
-                resolve(result.rowCount);
+                resolve({ rowCount: result.rowCount, data: result.rows });
             }
             catch (err) {
                 let errorMessage = '';

@@ -6,7 +6,7 @@
 
 Commandline utility to load data into Database Server from Tally software, intended for further use by
 * MS Excel / Google Sheet (for tabular reports)
-* Power BI / Google Data Studio (for dashboards)
+* Power BI / Tableau / Google Data Studio (for dashboards)
 
 ## Index
 * [Version](version)
@@ -21,6 +21,8 @@ Commandline utility to load data into Database Server from Tally software, inten
     * Tally Options
 * [Steps](#steps)
 * [Tutorial](#tutorial)
+* [Understanding Database Structure](docs/data-structure.md)
+* [Incremental / Full Sync](docs/incremental-sync.md)
 * [Tally Export Config](#tally-export-config)
 * [Commandline Options](docs/commandline-options.md)
 * [Logs](#logs)
@@ -37,8 +39,8 @@ Commandline utility to load data into Database Server from Tally software, inten
 <br><br>
 
 ## Version
-Latest Version: **1.0.16**<br>
-Updated on: **21-Jun-2022**
+Latest Version: **1.0.17**<br>
+Updated on: **24-Jul-2022**
 
 *Note: I keep on fixing utility and adding fields into database. So you are requested to re-create existing databases and re-download utility folder *
 
@@ -47,12 +49,12 @@ Updated on: **21-Jun-2022**
 ## Upcoming Features
 *Stagnant water is hazardous.* Same applies to human brain. Improvement / Exploration is a one of key aspect of this project.
 
-In-progress features:
-* **Incremental Sync** to achieve near-realtime sync
-* Documentation &amp; tutorial videos explaining database design, relationship between multiple tables, etc
+Upcoming features:
+* Graphical Interface for the utility (Electron JS powered App)
+* Password encryption in *config.json* to prevent password reveal while editing it
+* Web-page to configure **tally-export-config.yaml** and **database-structure.sql** for easy expansion of Tally system defined and/or TDL fields
 
 Tentative Features:
-* Graphical Interface for the utility (Electron JS powered App)
 * Export to Excel (cannot promise, is a bit difficult to implement in Node.JS)
 
 <br><br>
@@ -84,7 +86,7 @@ Preferred versions:
 
 Database Loader Utility is portable, and does not have a setup wizard like we find for software installation. Zip archive of utility can be downloaded from below link. Kindly use open-source &amp; free software [7-zip file archiver](https://www.7-zip.org/download.html) to un-compress utility archive.
 
-[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.16.7z)
+[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.17.7z)
 
 Also, it is a commandline utility having no window interface (to keep it minimal and faster)
 
@@ -201,10 +203,9 @@ Few of the options of Tally may need modification, if default settings of Tally 
 "tally": {
      "server": "localhost",
      "port": 9000,
-     "master": true,
-     "transaction": true,
      "fromdate" : "20190401",
      "todate" : "20200331",
+     "sync": "full",
      "company": ""
 }
 ```
@@ -215,6 +216,7 @@ Few of the options of Tally may need modification, if default settings of Tally 
 | port | By default Tally runs XML Server on port number **9000**. Modify this if you have assigned different port number in Tally XML Server settings (typically done when you want run Tally.ERP 9 and Tally Prime both at a same time parallely, where you will be changing this port number) |
 | master / transaction | **true** = Export master/transaction data from Tally (*default*) <br> **false** = Skip master/transaction data |
 | fromdate / todate | **YYYYMMDD** = Period from/to for export of transaction and opening balance (in 8 digit format) <br> **auto** = This will export complete transactions (irrespective of selected Financial Year) from Tally by auto-detection of First & Last date of transaction |
+| sync | **full** = Sync complete data from Tally to Database Server (*default*)<br> **incremental** = Sync only that data which was added/modified/delete from last sync |
 | company | Name of the company from which to export data or leave it blank to export from Active company of Tally (this parameter is intended for use when user needs to export data from specific company irrespective of it is active or not. Setup a powershell script to run a loop when multiple companies needs to be targeted one-by-one) |
 
 <br><br>
@@ -315,7 +317,6 @@ Bug fixes or enhancements from various contributors
 * [CA Venugopal Gella](https://github.com/gellavenugopal) - Fixing of Tally Prime 2.0.1 export issue
 
 ## Known Issues
-* Data loading in Microsoft SQL Server (technology: **mssql**) via loadmethod as **insert** does not support pushing of **unicode** characters (i.e. Indian language characters &amp; extended characters beyond ASCII table). Kindly use **file** method for this if at all required. You will notice question marks instead of these unicode characters in database. For rest of the technology, this limitation does not apply.
 * When multiple companies are selected in Tally &amp; specific company name is specified in config.json, it has been observed that in a rare case (especially on Windows Server), Tally fails to fetch data from that target company &amp; internally produces an error that specified company is not loaded.
 * It has been observed that sometimes when Tally remain running for several days on PC then in a rare case Tally fails to return back updated / latest data (especially on Windows Server) &amp; you may have to restart Tally.
 * If you have configured automatic sync of data via Windows Task Schedular, then make sure you don't log-off, but just disconnect as Tally is graphical based software.

@@ -1,5 +1,19 @@
 ## Release History
 
+**Version: 1.0.17 [24-Jul-2022]**<br>
+Added:
+* Introduced feature **incremental sync** using which utility can sync specifically those masters and transactions which got added / deleted / modified from last sync point. This resulted in drastic performance boost, as only differencial data is pull out from Tally. It opens an opportunity to auto schedule (using Windows Task Schedule) sync to lower frequency like every 5 min, which will help to keep data near to realtime in database.
+* Option to keep port or username in datase config setting zero/blank, which will auto-populate default values
+
+Fixed:
+* Changed Tally XML Server output method from CSV to XML, since Tally was found to be skipping few fields when no value was found, thereby breaking CSV output.
+* Unicode text (i.e. Hindi, or any Indian language text) using insert method was were not displaying correctly, now fixed.
+* Changed bulk data loading of data for SQL Server from CSV (comma separate) to TSV (tab separated). This resulted in compatibility for bulk loading in SQL Server 2016 or older one.
+
+Removed:
+* Option to sync Master or/and Transaction separately. This option was creating data integrity issues, so it was removed from *config.json* totally .
+
+
 **Version: 1.0.16 [21-Jun-2022]**<br>
 Added:
 * Field named *order_duedate* introduced in trn_inventory table

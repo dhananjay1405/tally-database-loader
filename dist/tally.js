@@ -28,8 +28,7 @@ class _tally {
                 company: '',
                 fromdate: 'auto',
                 todate: 'auto',
-                master: true,
-                transaction: true
+                sync: 'full'
             };
             logger_js_1.logger.logError('tally()', err);
             throw err;
@@ -41,16 +40,14 @@ class _tally {
                 this.config.server = lstConfigs.get('tally-server') || '';
             if (lstConfigs.has('tally-port'))
                 this.config.port = parseInt(lstConfigs.get('tally-port') || '9000');
-            if (lstConfigs.has('tally-master'))
-                this.config.master = lstConfigs.get('tally-master') == 'true';
-            if (lstConfigs.has('tally-transaction'))
-                this.config.transaction = lstConfigs.get('tally-transaction') == 'true';
             if (lstConfigs.has('tally-fromdate') && lstConfigs.has('tally-todate')) {
                 let fromDate = lstConfigs.get('tally-fromdate') || '';
                 let toDate = lstConfigs.get('tally-todate') || '';
                 this.config.fromdate = /^\d{4}\d{2}\d{2}$/g.test(fromDate) ? fromDate : 'auto';
                 this.config.todate = /^\d{4}\d{2}\d{2}$/g.test(toDate) ? toDate : 'auto';
             }
+            if (lstConfigs.has('tally-sync'))
+                this.config.sync = lstConfigs.get('tally-sync') || 'full';
             if (lstConfigs.has('tally-company'))
                 this.config.company = lstConfigs.get('tally-company') || '';
         }
@@ -62,87 +59,215 @@ class _tally {
     importData() {
         return new Promise(async (resolve, reject) => {
             try {
-                if (/^(mssql|mysql|postgres)$/g.test(database_js_1.database.config.technology)) {
-                    //update active company information before starting import
-                    logger_js_1.logger.logMessage('Updating company information configuration table [%s]', new Date().toLocaleDateString());
-                    await this.saveCompanyInfo();
-                }
-                else if (database_js_1.database.config.technology == 'bigquery') {
-                    bigquery = new bigquery_1.BigQuery({
-                        keyFilename: './bigquery-credentials.json'
-                    });
-                }
-                else
-                    ;
-                //prepare substitution list of runtime values to reflected in TDL XML
-                let configTallyXML = new Map();
-                configTallyXML.set('fromDate', utility_js_1.utility.Date.parse(this.config.fromdate, 'yyyy-MM-dd'));
-                configTallyXML.set('toDate', utility_js_1.utility.Date.parse(this.config.todate, 'yyyy-MM-dd'));
-                configTallyXML.set('targetCompany', this.config.company ? utility_js_1.utility.String.escapeHTML(this.config.company) : '##SVCurrentCompany');
-                if (/^(mssql|mysql|postgres|bigquery)$/g.test(database_js_1.database.config.technology)) {
-                    //truncate master/transaction tables
-                    logger_js_1.logger.logMessage('Erasing database');
-                    for (let i = 0; i < this.lstTableMaster.length; i++) {
-                        let targetTable = this.lstTableMaster[i].name;
-                        await database_js_1.database.execute(`truncate table ${targetTable};`);
-                    }
-                    for (let i = 0; i < this.lstTableTransaction.length; i++) {
-                        let targetTable = this.lstTableTransaction[i].name;
-                        await database_js_1.database.execute(`truncate table ${targetTable};`);
-                    }
-                }
-                //delete and re-create CSV folder
-                if (fs.existsSync('./csv'))
-                    fs.rmSync('./csv', { recursive: true });
-                fs.mkdirSync('./csv');
-                //dump data exported from Tally to CSV file required for bulk import
-                logger_js_1.logger.logMessage('Generating CSV files from Tally [%s]', new Date().toLocaleString());
-                if (this.config.master)
-                    for (let i = 0; i < this.lstTableMaster.length; i++) {
-                        let timestampBegin = Date.now();
-                        let targetTable = this.lstTableMaster[i].name;
-                        await this.processReport(targetTable, this.lstTableMaster[i], configTallyXML);
-                        let timestampEnd = Date.now();
-                        let elapsedSecond = utility_js_1.utility.Number.round((timestampEnd - timestampBegin) / 1000, 3);
-                        logger_js_1.logger.logMessage('  saving file %s.csv [%f sec]', targetTable, elapsedSecond);
-                    }
-                if (this.config.transaction)
-                    for (let i = 0; i < this.lstTableTransaction.length; i++) {
-                        let timestampBegin = Date.now();
-                        let targetTable = this.lstTableTransaction[i].name;
-                        await this.processReport(targetTable, this.lstTableTransaction[i], configTallyXML);
-                        let timestampEnd = Date.now();
-                        let elapsedSecond = utility_js_1.utility.Number.round((timestampEnd - timestampBegin) / 1000, 3);
-                        logger_js_1.logger.logMessage('  saving file %s.csv [%f sec]', targetTable, elapsedSecond);
-                    }
-                if (/^(mssql|mysql|postgres)$/g.test(database_js_1.database.config.technology)) {
-                    //perform CSV file based bulk import into database
-                    logger_js_1.logger.logMessage('Loading CSV files to database tables [%s]', new Date().toLocaleString());
-                    if (this.config.master)
-                        for (let i = 0; i < this.lstTableMaster.length; i++) {
-                            let targetTable = this.lstTableMaster[i].name;
-                            let rowCount = await database_js_1.database.bulkLoad(path.join(process.cwd(), `./csv/${targetTable}.data`), targetTable);
-                            fs.unlinkSync(path.join(process.cwd(), `./csv/${targetTable}.data`)); //delete raw file
-                            logger_js_1.logger.logMessage('  %s: imported %d rows', targetTable, rowCount);
+                if (this.config.sync == 'incremental') {
+                    if (/^(mssql|mysql|postgres)$/g.test(database_js_1.database.config.technology)) {
+                        //set mandatory config required for incremental sync
+                        this.config.fromdate = 'auto';
+                        this.config.todate = 'auto';
+                        database_js_1.database.config.loadmethod = 'insert';
+                        //update active company information before starting import
+                        logger_js_1.logger.logMessage('Updating company information configuration table [%s]', new Date().toLocaleDateString());
+                        await this.saveCompanyInfo();
+                        //delete and re-create CSV folder
+                        if (fs.existsSync('./csv'))
+                            fs.rmSync('./csv', { recursive: true });
+                        fs.mkdirSync('./csv');
+                        //prepare substitution list of runtime values to reflected in TDL XML
+                        let configTallyXML = new Map();
+                        configTallyXML.set('fromDate', utility_js_1.utility.Date.parse(this.config.fromdate, 'yyyy-MM-dd'));
+                        configTallyXML.set('toDate', utility_js_1.utility.Date.parse(this.config.todate, 'yyyy-MM-dd'));
+                        configTallyXML.set('targetCompany', this.config.company ? utility_js_1.utility.String.escapeHTML(this.config.company) : '##SVCurrentCompany');
+                        logger_js_1.logger.logMessage('Performing incremental sync [%s]', new Date().toLocaleString());
+                        //delete and re-create diff table
+                        await database_js_1.database.executeNonQuery('drop table if exists _diff');
+                        await database_js_1.database.executeNonQuery('create table _diff (guid varchar(64) not null, alterid int not null)');
+                        await database_js_1.database.executeNonQuery('drop table if exists _delete');
+                        await database_js_1.database.executeNonQuery('create table _delete (guid varchar(64) not null)');
+                        //acquire last AlterID of master & transaction from database
+                        let lstPrimaryMasterTableNames = this.lstTableMaster.filter(p => p.nature == 'Primary').map(p => p.name);
+                        let sqlQuery = 'select max(coalesce(t.alterid,0)) from (';
+                        lstPrimaryMasterTableNames.forEach(p => sqlQuery += ` select alterid from ${p} union`);
+                        sqlQuery = utility_js_1.utility.String.strip(sqlQuery, 5);
+                        sqlQuery += ') as t';
+                        let lastAlterIdMaster = await database_js_1.database.executeScalar(sqlQuery);
+                        let lastAlterIdTransaction = await database_js_1.database.executeScalar('select max(coalesce(alterid,0)) from trn_voucher');
+                        //iterate through all the Primary type of tables
+                        let lstPrimaryTables = this.lstTableMaster.filter(p => p.nature == 'Primary');
+                        lstPrimaryTables.push(...this.lstTableTransaction.filter(p => p.nature == 'Primary'));
+                        for (let i = 0; i < lstPrimaryTables.length; i++) {
+                            let activeTable = lstPrimaryTables[i];
+                            await database_js_1.database.executeNonQuery('truncate table _diff;');
+                            await database_js_1.database.executeNonQuery('truncate table _delete;');
+                            let tempTable = {
+                                name: '',
+                                collection: activeTable.collection,
+                                fields: [
+                                    {
+                                        name: 'guid',
+                                        field: 'Guid',
+                                        type: 'text'
+                                    },
+                                    {
+                                        name: 'alterid',
+                                        field: 'AlterId',
+                                        type: 'text'
+                                    }
+                                ],
+                                nature: '',
+                                fetch: ['AlterId'],
+                                filters: activeTable.filters
+                            };
+                            await this.processReport('_diff', tempTable, configTallyXML);
+                            await database_js_1.database.bulkLoad(path.join(process.cwd(), `./csv/_diff.data`), '_diff', tempTable.fields.map(p => p.type)); //upload to temporary table
+                            fs.unlinkSync(path.join(process.cwd(), `./csv/_diff.data`)); //delete temporary file
+                            //insert into delete list rows there were deleted in current data compared to previous one
+                            await database_js_1.database.executeNonQuery(`insert into _delete select guid from ${activeTable.name} where guid not in (select guid from _diff);`);
+                            //insert into delete list rows that were modified in current data (as they will be imported freshly)
+                            await database_js_1.database.executeNonQuery(`insert into _delete select t.guid from ${activeTable.name} as t join _diff as s on s.guid = t.guid where s.alterid <> t.alterid;`);
+                            //remove delete list rows from the source table
+                            await database_js_1.database.executeNonQuery(`delete from ${activeTable.name} where guid in (select guid from _delete)`);
+                            //iterate through each cascade delete table and delete modified rows for insertion of fresh copy
+                            if (Array.isArray(activeTable.cascade_delete) && activeTable.cascade_delete.length)
+                                for (let j = 0; j < activeTable.cascade_delete.length; j++) {
+                                    let targetTable = activeTable.cascade_delete[j].table;
+                                    let targetField = activeTable.cascade_delete[j].field;
+                                    await database_js_1.database.executeNonQuery(`delete from ${targetTable} where ${targetField} in (select guid from _delete);`);
+                                }
                         }
-                    if (this.config.transaction)
+                        // iterate through all Master and Transaction tables to extract modifed and added rows in Tally data
+                        for (let i = 0; i < this.lstTableMaster.length; i++) {
+                            let activeTable = this.lstTableMaster[i];
+                            //add AlterID filter
+                            if (!Array.isArray(activeTable.filters))
+                                activeTable.filters = [];
+                            activeTable.filters.push(`$AlterID > ${lastAlterIdMaster}`);
+                            let targetTable = activeTable.name;
+                            await this.processReport(targetTable, activeTable, configTallyXML);
+                            await database_js_1.database.bulkLoad(path.join(process.cwd(), `./csv/${targetTable}.data`), targetTable, activeTable.fields.map(p => p.type));
+                            fs.unlinkSync(path.join(process.cwd(), `./csv/${targetTable}.data`)); //delete raw file
+                            logger_js_1.logger.logMessage('  syncing table %s', targetTable);
+                        }
                         for (let i = 0; i < this.lstTableTransaction.length; i++) {
-                            let targetTable = this.lstTableTransaction[i].name;
-                            let rowCount = await database_js_1.database.bulkLoad(path.join(process.cwd(), `./csv/${targetTable}.data`), targetTable);
+                            let activeTable = this.lstTableTransaction[i];
+                            //add AlterID filter
+                            if (!Array.isArray(activeTable.filters))
+                                activeTable.filters = [];
+                            activeTable.filters.push(`$AlterID > ${lastAlterIdTransaction}`);
+                            let targetTable = activeTable.name;
+                            await this.processReport(targetTable, activeTable, configTallyXML);
+                            await database_js_1.database.bulkLoad(path.join(process.cwd(), `./csv/${targetTable}.data`), targetTable, activeTable.fields.map(p => p.type));
+                            fs.unlinkSync(path.join(process.cwd(), `./csv/${targetTable}.data`)); //delete raw file
+                            logger_js_1.logger.logMessage('  syncing table %s', targetTable);
+                        }
+                        // process foreign key updates to derived table fields
+                        for (let i = 0; i < lstPrimaryTables.length; i++) {
+                            let activeTable = lstPrimaryTables[i];
+                            if (Array.isArray(activeTable.cascade_update) && activeTable.cascade_update.length)
+                                for (let j = 0; j < activeTable.cascade_update.length; j++) {
+                                    let targetTable = activeTable.cascade_update[j].table;
+                                    let targetField = activeTable.cascade_update[j].field;
+                                    await database_js_1.database.executeNonQuery(`update t set t.${targetField} = s.name from ${targetTable} as t join ${activeTable.name} as s on s.guid = t._${targetField} ;`);
+                                }
+                        }
+                        //check if any Voucher Type is set to auto numbering
+                        //automatic voucher number shifts voucher numbers of all subsequent date vouchers on insertion of in-between which requires updation
+                        let countAutoNumberVouchers = await database_js_1.database.executeNonQuery(`select count(*) as c from mst_vouchertype where numbering_method like '%Auto%' ;`);
+                        if (countAutoNumberVouchers) {
+                            await database_js_1.database.executeNonQuery('drop table if exists _vchnumber;');
+                            await database_js_1.database.executeNonQuery('create table _vchnumber (guid varchar(64) not null, voucher_number varchar(256) not null);');
+                            //pull list of voucher numbers for all the vouchers
+                            let activeTable = this.lstTableTransaction.filter(p => p.name = 'trn_voucher')[0];
+                            if (Array.isArray(activeTable.filters))
+                                activeTable.filters.splice(activeTable.filters.length - 1, 1); //remove AlterID filter
+                            let tempTable = {
+                                name: '',
+                                collection: activeTable.collection,
+                                fields: [
+                                    {
+                                        name: 'guid',
+                                        field: 'Guid',
+                                        type: 'text'
+                                    },
+                                    {
+                                        name: 'voucher_number',
+                                        field: 'VoucherNumber',
+                                        type: 'text'
+                                    }
+                                ],
+                                nature: '',
+                                filters: activeTable.filters
+                            };
+                            await this.processReport('_vchnumber', tempTable, configTallyXML);
+                            await database_js_1.database.bulkLoad(path.join(process.cwd(), `./csv/_vchnumber.data`), '_vchnumber', tempTable.fields.map(p => p.type)); //upload to temporary table
+                            fs.unlinkSync(path.join(process.cwd(), `./csv/_vchnumber.data`)); //delete temporary file
+                            //update voucher number with fresh copy
+                            await database_js_1.database.executeNonQuery('update t set t.voucher_number = s.voucher_number from trn_voucher as t join _vchnumber as s on s.guid = t.guid');
+                        }
+                        //drop all temporary types of tables created for incremental sync
+                        await database_js_1.database.executeNonQuery('drop table _diff;');
+                        await database_js_1.database.executeNonQuery('drop table _delete;');
+                        await database_js_1.database.executeNonQuery('drop table _vchnumber;');
+                    }
+                    else
+                        logger_js_1.logger.logMessage('Incremental Sync is supported only for SQL Server / MySQL / PostgreSQL');
+                }
+                else { // assume default as full
+                    let lstTables = [];
+                    lstTables.push(...this.lstTableMaster);
+                    lstTables.push(...this.lstTableTransaction);
+                    if (/^(mssql|mysql|postgres)$/g.test(database_js_1.database.config.technology)) {
+                        //update active company information before starting import
+                        logger_js_1.logger.logMessage('Updating company information configuration table [%s]', new Date().toLocaleDateString());
+                        await this.saveCompanyInfo();
+                    }
+                    else if (database_js_1.database.config.technology == 'bigquery') {
+                        bigquery = new bigquery_1.BigQuery({
+                            keyFilename: './bigquery-credentials.json'
+                        });
+                    }
+                    else
+                        ;
+                    //prepare substitution list of runtime values to reflected in TDL XML
+                    let configTallyXML = new Map();
+                    configTallyXML.set('fromDate', utility_js_1.utility.Date.parse(this.config.fromdate, 'yyyy-MM-dd'));
+                    configTallyXML.set('toDate', utility_js_1.utility.Date.parse(this.config.todate, 'yyyy-MM-dd'));
+                    configTallyXML.set('targetCompany', this.config.company ? utility_js_1.utility.String.escapeHTML(this.config.company) : '##SVCurrentCompany');
+                    if (/^(mssql|mysql|postgres|bigquery)$/g.test(database_js_1.database.config.technology))
+                        if (/^(mssql|mysql|postgres)$/g.test(database_js_1.database.config.technology))
+                            await database_js_1.database.truncateTables(lstTables.map(p => p.name)); //truncate tables
+                    //delete and re-create CSV folder
+                    if (fs.existsSync('./csv'))
+                        fs.rmSync('./csv', { recursive: true });
+                    fs.mkdirSync('./csv');
+                    //dump data exported from Tally to CSV file required for bulk import
+                    logger_js_1.logger.logMessage('Generating CSV files from Tally [%s]', new Date().toLocaleString());
+                    for (let i = 0; i < lstTables.length; i++) {
+                        let timestampBegin = Date.now();
+                        let targetTable = lstTables[i].name;
+                        await this.processReport(targetTable, lstTables[i], configTallyXML);
+                        let timestampEnd = Date.now();
+                        let elapsedSecond = utility_js_1.utility.Number.round((timestampEnd - timestampBegin) / 1000, 3);
+                        logger_js_1.logger.logMessage('  saving file %s.csv [%f sec]', targetTable, elapsedSecond);
+                    }
+                    if (/^(mssql|mysql|postgres)$/g.test(database_js_1.database.config.technology)) {
+                        //perform CSV file based bulk import into database
+                        logger_js_1.logger.logMessage('Loading CSV files to database tables [%s]', new Date().toLocaleString());
+                        for (let i = 0; i < lstTables.length; i++) {
+                            let targetTable = lstTables[i].name;
+                            let rowCount = await database_js_1.database.bulkLoad(path.join(process.cwd(), `./csv/${targetTable}.data`), targetTable, lstTables[i].fields.map(p => p.type));
                             fs.unlinkSync(path.join(process.cwd(), `./csv/${targetTable}.data`)); //delete raw file
                             logger_js_1.logger.logMessage('  %s: imported %d rows', targetTable, rowCount);
                         }
-                    fs.rmdirSync('./csv'); //remove directory
-                }
-                else if (database_js_1.database.config.technology == 'csv' || database_js_1.database.config.technology == 'bigquery') {
-                    if (database_js_1.database.config.technology == 'bigquery')
-                        logger_js_1.logger.logMessage('Loading CSV files to BigQuery tables [%s]', new Date().toLocaleString());
-                    //remove special character of date from CSV files, which was inserted for null dates
-                    if (this.config.master)
-                        for (let i = 0; i < this.lstTableMaster.length; i++) {
-                            let targetTable = this.lstTableMaster[i].name;
+                        fs.rmdirSync('./csv'); //remove directory
+                    }
+                    else if (database_js_1.database.config.technology == 'csv' || database_js_1.database.config.technology == 'bigquery') {
+                        if (database_js_1.database.config.technology == 'bigquery')
+                            logger_js_1.logger.logMessage('Loading CSV files to BigQuery tables [%s]', new Date().toLocaleString());
+                        //remove special character of date from CSV files, which was inserted for null dates
+                        for (let i = 0; i < lstTables.length; i++) {
+                            let targetTable = lstTables[i].name;
                             let content = fs.readFileSync(`./csv/${targetTable}.data`, 'utf-8');
-                            content = this.substituteCSV(content);
+                            content = database_js_1.database.convertCSV(content, lstTables[i].fields.map(p => p.type));
                             fs.writeFileSync(`./csv/${targetTable}.csv`, '\ufeff' + content);
                             fs.unlinkSync(`./csv/${targetTable}.data`); //delete raw file
                             if (database_js_1.database.config.technology == 'bigquery') {
@@ -154,25 +279,10 @@ class _tally {
                                 logger_js_1.logger.logMessage('  %s: imported', targetTable);
                             }
                         }
-                    if (this.config.transaction)
-                        for (let i = 0; i < this.lstTableTransaction.length; i++) {
-                            let targetTable = this.lstTableTransaction[i].name;
-                            let content = fs.readFileSync(`./csv/${targetTable}.data`, 'utf-8');
-                            content = this.substituteCSV(content);
-                            fs.writeFileSync(`./csv/${targetTable}.csv`, '\ufeff' + content);
-                            fs.unlinkSync(`./csv/${targetTable}.data`); //delete raw file
-                            if (database_js_1.database.config.technology == 'bigquery') {
-                                const [job] = await bigquery.dataset(database_js_1.database.config.schema).table(targetTable).load(`./csv/${targetTable}.csv`, {
-                                    sourceFormat: 'CSV',
-                                    skipLeadingRows: 1,
-                                    writeDisposition: 'WRITE_TRUNCATE'
-                                });
-                                logger_js_1.logger.logMessage('  %s: imported', targetTable);
-                            }
-                        }
+                    }
+                    else
+                        ;
                 }
-                else
-                    ;
                 resolve();
             }
             catch (err) {
@@ -246,21 +356,26 @@ class _tally {
         }
         return retval;
     }
-    substituteCSV(content) {
-        content = content.replace(/ñ/g, ''); //replace blank date with empty text
-        content = content.replace(/\"/g, '""'); //escape double quotes with 2 instance of double quotes (as per ISO)
-        content = content.replace(/æ/g, '"'); //replace field quote with double quote
-        return content;
-    }
     processTdlOutputManipulation(txt) {
         let retval = txt;
         try {
-            retval = retval.replace(/[\r\n\t]/g, ''); //remove line terminators and tabs
-            retval = retval.replace(/\x04\s/g, ''); //remove system reserved symbols
-            retval = retval.replace(/õ/g, ''); //remove empty character indicator (as defined in TDL)
-            retval = retval.replace(/,\"†\",/g, '\r\n'); //substitute end of field terminators indicator (as defined in TDL) with proper line terminators
-            retval = retval.replace(/\"/g, 'æ'); //get rid of double quotes used as field quotes
-            retval = retval.replace(/ø/g, '"'); //restore back the double quotes inside field value
+            retval = retval.replace('<ENVELOPE>', ''); //Eliminate ENVELOPE TAG
+            retval = retval.replace('</ENVELOPE>', '');
+            retval = retval.replace(/\<FLDBLANK\>\<\/FLDBLANK\>/g, ''); //Eliminate blank tag
+            retval = retval.replace(/\s+\r\n/g, ''); //remove empty lines
+            retval = retval.replace(/\r\n/g, ''); //remove all line breaks
+            retval = retval.replace(/\t/g, ' '); //replace all tabs with a single space
+            retval = retval.replace(/\s+\<F/g, '<F'); //trim left space
+            retval = retval.replace(/\<\/F\d+\>/g, ''); //remove XML end tags
+            retval = retval.replace(/\<F01\>/g, '\r\n'); //append line break to each row start and remove first field XML start tag
+            retval = retval.replace(/\<F\d+\>/g, '\t'); //replace XML start tags with tab separator
+            retval = retval.replace(/&amp;/g, '&'); //escape ampersand
+            retval = retval.replace(/&lt;/g, '<'); //escape less than
+            retval = retval.replace(/&gt;/g, '>'); //escape greater than
+            retval = retval.replace(/&quot;/g, '"'); //escape ampersand
+            retval = retval.replace(/&apos;/g, "'"); //escape ampersand
+            retval = retval.replace(/&tab;/g, ''); //strip out tab if any
+            retval = retval.replace(/&#\d+;/g, ""); //remove all unreadable character escapes
         }
         catch (err) {
             logger_js_1.logger.logError('tally.processTdlOutputManipulation()', err);
@@ -275,7 +390,7 @@ class _tally {
                     xml = this.substituteTDLParameters(xml, substitutions);
                 let output = await this.postTallyXML(xml);
                 output = this.processTdlOutputManipulation(output);
-                let columnHeaders = tableConfig.fields.map(p => p.name).join(',') + '\r\n';
+                let columnHeaders = tableConfig.fields.map(p => p.name).join('\t');
                 fs.writeFileSync(`./csv/${targetTable}.data`, columnHeaders + output);
                 resolve();
             }
@@ -305,8 +420,8 @@ class _tally {
                     }
                     //clear config table of database and insert active company info to config table
                     if (/^(mssql|mysql|postgres)$/g.test(database_js_1.database.config.technology)) {
-                        await database_js_1.database.execute('truncate table config;');
-                        await database_js_1.database.execute(`insert into config(name,value) values('Update Timestamp','${new Date().toLocaleString()}'),('Company Name','${companyName}'),('Period From','${this.config.fromdate}'),('Period To','${this.config.todate}');`);
+                        await database_js_1.database.executeNonQuery('truncate table config;');
+                        await database_js_1.database.executeNonQuery(`insert into config(name,value) values('Update Timestamp','${new Date().toLocaleString()}'),('Company Name','${companyName}'),('Period From','${this.config.fromdate}'),('Period To','${this.config.todate}');`);
                     }
                     else if (database_js_1.database.config.technology == 'bigquery') {
                         await bigquery.dataset(database_js_1.database.config.schema).createQueryJob('truncate table config');
@@ -331,7 +446,7 @@ class _tally {
         let retval = '';
         try {
             //XML header
-            retval = `<?xml version="1.0" encoding="utf-8"?><ENVELOPE><HEADER><VERSION>1</VERSION><TALLYREQUEST>Export</TALLYREQUEST><TYPE>Data</TYPE><ID>MyReportLedgerTable</ID></HEADER><BODY><DESC><STATICVARIABLES><SVEXPORTFORMAT>ASCII (Comma Delimited)</SVEXPORTFORMAT><SVFROMDATE>{fromDate}</SVFROMDATE><SVTODATE>{toDate}</SVTODATE><SVCURRENTCOMPANY>{targetCompany}</SVCURRENTCOMPANY></STATICVARIABLES><TDL><TDLMESSAGE><REPORT NAME="MyReportLedgerTable"><FORMS>MyForm</FORMS></REPORT><FORM NAME="MyForm"><PARTS>MyPart01</PARTS></FORM>`;
+            retval = `<?xml version="1.0" encoding="utf-8"?><ENVELOPE><HEADER><VERSION>1</VERSION><TALLYREQUEST>Export</TALLYREQUEST><TYPE>Data</TYPE><ID>MyReportLedgerTable</ID></HEADER><BODY><DESC><STATICVARIABLES><SVEXPORTFORMAT>XML (Data Interchange)</SVEXPORTFORMAT><SVFROMDATE>{fromDate}</SVFROMDATE><SVTODATE>{toDate}</SVTODATE><SVCURRENTCOMPANY>{targetCompany}</SVCURRENTCOMPANY></STATICVARIABLES><TDL><TDLMESSAGE><REPORT NAME="MyReportLedgerTable"><FORMS>MyForm</FORMS></REPORT><FORM NAME="MyForm"><PARTS>MyPart01</PARTS></FORM>`;
             if (!this.config.company) //remove complete SVCURRENTCOMPANY tag if no target company is specified
                 retval = retval.replace('<SVCURRENTCOMPANY>{targetCompany}</SVCURRENTCOMPANY>', '');
             else
@@ -357,7 +472,8 @@ class _tally {
             //Append field declaration list
             for (let i = 0; i < tblConfig.fields.length; i++)
                 retval += utility_js_1.utility.Number.format(i + 1, 'Fld00') + ',';
-            retval += `FldEOL</FIELDS></LINE>`; //End of Field declaration
+            retval = utility_js_1.utility.String.strip(retval, 1);
+            retval += `</FIELDS></LINE>`; //End of Field declaration
             //loop through each field
             for (let i = 0; i < tblConfig.fields.length; i++) {
                 let fieldXML = `<FIELD NAME="${utility_js_1.utility.Number.format(i + 1, 'Fld00')}">`;
@@ -365,7 +481,7 @@ class _tally {
                 //set field TDL XML expression based on type of data
                 if (/^(\.\.)?[a-zA-Z0-9_]+$/g.test(iField.field)) {
                     if (iField.type == 'text')
-                        fieldXML += `<SET>if $$IsEmpty:$${iField.field} then "õ" else $$StringFindAndReplace:$${iField.field}:'"':"ø"</SET>`;
+                        fieldXML += `<SET>$${iField.field}</SET>`;
                     else if (iField.type == 'logical')
                         fieldXML += `<SET>if $${iField.field} then 1 else 0</SET>`;
                     else if (iField.type == 'date')
@@ -383,10 +499,10 @@ class _tally {
                 }
                 else
                     fieldXML += `<SET>${iField.field}</SET>`;
+                fieldXML += `<XMLTAG>${utility_js_1.utility.Number.format(i + 1, 'F00')}</XMLTAG>`;
                 fieldXML += `</FIELD>`;
                 retval += fieldXML;
             }
-            retval += `<FIELD NAME="FldEOL"><SET>†</SET></FIELD>`; //End of Field specification
             retval += `<FIELD NAME="FldBlank"><SET>""</SET></FIELD>`; //Blank Field specification
             //collection
             retval += `<COLLECTION NAME="MyCollection"><TYPE>${targetCollection}</TYPE>`;
@@ -417,11 +533,4 @@ class _tally {
 }
 let tally = new _tally();
 exports.tally = tally;
-/*
-    Escape characters used
-    ø 248 0xF8 = Substitution for double quote contained in text in Tally
-    õ 245 0xF5 = Substitution of blank text in text field of Tally
-    ñ 241 0xF1 = Substitution of blank date in Tally
-    æ 230 0xE6 = Field quotes replacement for double quotes
-*/ 
 //# sourceMappingURL=tally.js.map
