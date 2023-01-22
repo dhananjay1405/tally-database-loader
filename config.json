@@ -12,8 +12,8 @@
     "tally": {
         "server": "localhost",
         "port": 9000,
-        "fromdate": "20210401",
-        "todate": "20220331",
+        "fromdate": "20220401",
+        "todate": "20230331",
         "sync": "full",
         "company": ""
     }

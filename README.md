@@ -39,8 +39,8 @@ Commandline utility to load data into Database Server from Tally software, inten
 <br><br>
 
 ## Version
-Latest Version: **1.0.17**<br>
-Updated on: **24-Jul-2022**
+Latest Version: **1.0.18**<br>
+Updated on: **22-Jan-2023**
 
 *Note: I keep on fixing utility and adding fields into database. So you are requested to re-create existing databases and re-download utility folder *
 
@@ -51,7 +51,7 @@ Updated on: **24-Jul-2022**
 
 Upcoming features:
 * Graphical Interface for the utility (Electron JS powered App)
-* Password encryption in *config.json* to prevent password reveal while editing it
+* Password encryption in *config.json* to prevent password reveal while editing it (to be covered in GUI based version)
 * Web-page to configure **tally-export-config.yaml** and **database-structure.sql** for easy expansion of Tally system defined and/or TDL fields
 
 Tentative Features:

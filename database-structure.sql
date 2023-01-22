@@ -182,6 +182,7 @@ create table trn_voucher
  _voucher_type varchar(64) not null default '',
  voucher_number nvarchar(64) not null default '',
  reference_number nvarchar(64) not null default '',
+ reference_date date,
  narration nvarchar(4000) not null default '',
  party_name nvarchar(256) not null,
  _party_name varchar(64) not null default '',

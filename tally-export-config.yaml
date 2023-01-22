@@ -472,7 +472,7 @@ transaction:
       collection: Voucher
       nature: Primary
       fetch:
-        - AlterId,Narration,PartyLedgerName,PlaceOfSupply
+        - AlterId,Narration,PartyLedgerName,PlaceOfSupply,Reference,ReferenceDate
       filters:
         - NOT $IsCancelled
         - NOT $IsOptional
@@ -497,6 +497,9 @@ transaction:
           type: text
         - name: reference_number
           field: Reference
+          type: text
+        - name: reference_date
+          field: ReferenceDate
           type: text
         - name: narration
           field: Narration

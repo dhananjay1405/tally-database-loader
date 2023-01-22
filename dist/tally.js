@@ -15,6 +15,10 @@ class _tally {
     constructor() {
         this.lstTableMaster = [];
         this.lstTableTransaction = [];
+        //hidden commandline flags
+        this.importMaster = true;
+        this.importTransaction = true;
+        this.truncateTable = true;
         try {
             this.config = JSON.parse(fs.readFileSync('./config.json', 'utf8'))['tally'];
             let objYAML = yaml.load(fs.readFileSync('./tally-export-config.yaml', 'utf-8'));
@@ -50,6 +54,13 @@ class _tally {
                 this.config.sync = lstConfigs.get('tally-sync') || 'full';
             if (lstConfigs.has('tally-company'))
                 this.config.company = lstConfigs.get('tally-company') || '';
+            //flags
+            if (lstConfigs.has('tally-master'))
+                this.importMaster = lstConfigs.get('tally-master') == 'true';
+            if (lstConfigs.has('tally-transaction'))
+                this.importTransaction = lstConfigs.get('tally-transaction') == 'true';
+            if (lstConfigs.has('tally-truncate'))
+                this.truncateTable = lstConfigs.get('tally-truncate') == 'true';
         }
         catch (err) {
             logger_js_1.logger.logError('tally.updateCommandlineConfig()', err);
@@ -86,11 +97,11 @@ class _tally {
                         //acquire last AlterID of master & transaction from database
                         let lstPrimaryMasterTableNames = this.lstTableMaster.filter(p => p.nature == 'Primary').map(p => p.name);
                         let sqlQuery = 'select max(coalesce(t.alterid,0)) from (';
-                        lstPrimaryMasterTableNames.forEach(p => sqlQuery += ` select alterid from ${p} union`);
+                        lstPrimaryMasterTableNames.forEach(p => sqlQuery += ` select max(alterid) from ${p} union`);
                         sqlQuery = utility_js_1.utility.String.strip(sqlQuery, 5);
                         sqlQuery += ') as t';
-                        let lastAlterIdMaster = await database_js_1.database.executeScalar(sqlQuery);
-                        let lastAlterIdTransaction = await database_js_1.database.executeScalar('select max(coalesce(alterid,0)) from trn_voucher');
+                        let lastAlterIdMaster = await database_js_1.database.executeScalar(sqlQuery) || 0;
+                        let lastAlterIdTransaction = await database_js_1.database.executeScalar('select max(coalesce(alterid,0)) from trn_voucher') || 0;
                         //iterate through all the Primary type of tables
                         let lstPrimaryTables = this.lstTableMaster.filter(p => p.nature == 'Primary');
                         lstPrimaryTables.push(...this.lstTableTransaction.filter(p => p.nature == 'Primary'));
@@ -213,8 +224,10 @@ class _tally {
                 }
                 else { // assume default as full
                     let lstTables = [];
-                    lstTables.push(...this.lstTableMaster);
-                    lstTables.push(...this.lstTableTransaction);
+                    if (this.importMaster)
+                        lstTables.push(...this.lstTableMaster);
+                    if (this.importTransaction)
+                        lstTables.push(...this.lstTableTransaction);
                     if (/^(mssql|mysql|postgres)$/g.test(database_js_1.database.config.technology)) {
                         //update active company information before starting import
                         logger_js_1.logger.logMessage('Updating company information configuration table [%s]', new Date().toLocaleDateString());
@@ -232,7 +245,7 @@ class _tally {
                     configTallyXML.set('fromDate', utility_js_1.utility.Date.parse(this.config.fromdate, 'yyyy-MM-dd'));
                     configTallyXML.set('toDate', utility_js_1.utility.Date.parse(this.config.todate, 'yyyy-MM-dd'));
                     configTallyXML.set('targetCompany', this.config.company ? utility_js_1.utility.String.escapeHTML(this.config.company) : '##SVCurrentCompany');
-                    if (/^(mssql|mysql|postgres|bigquery)$/g.test(database_js_1.database.config.technology))
+                    if (this.truncateTable)
                         if (/^(mssql|mysql|postgres)$/g.test(database_js_1.database.config.technology))
                             await database_js_1.database.truncateTables(lstTables.map(p => p.name)); //truncate tables
                     //delete and re-create CSV folder
@@ -286,7 +299,7 @@ class _tally {
                 resolve();
             }
             catch (err) {
-                logger_js_1.logger.logError('tally.processMasters()', err);
+                logger_js_1.logger.logError('tally.importData()', err);
                 reject(err);
             }
         });

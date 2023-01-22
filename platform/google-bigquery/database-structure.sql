@@ -182,6 +182,7 @@ create table tallydb.trn_voucher
  _voucher_type string(64) not null,
  voucher_number string(64) not null,
  reference_number string(64) not null,
+ reference_date date,
  narration string(4000) not null,
  party_name string(256) not null,
  _party_name string(64) not null,

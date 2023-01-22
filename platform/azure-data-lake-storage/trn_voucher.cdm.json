@@ -1,0 +1,72 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/CDM/master/schemaDocuments/schema.cdm.json",
+    "definitions": [
+        {
+            "entityName": "trn_voucher",
+            "displayName": "trn_voucher",
+            "hasAttributes": [
+                {
+                    "name": "guid",
+                    "dataType": "string",
+                    "isPrimaryKey": true
+                },
+                {
+                    "name": "alterid",
+                    "dataType": "int64"
+                },
+                {
+                    "name": "date",
+                    "dataType": "date"
+                },
+                {
+                    "name": "voucher_type",
+                    "dataType": "string"
+                },
+                {
+                    "name": "_voucher_type",
+                    "dataType": "string"
+                },
+                {
+                    "name": "voucher_number",
+                    "dataType": "string"
+                },
+                {
+                    "name": "reference_number",
+                    "dataType": "string"
+                },
+                {
+                    "name": "narration",
+                    "dataType": "string"
+                },
+                {
+                    "name": "party_name",
+                    "dataType": "string"
+                },
+                {
+                    "name": "_party_name",
+                    "dataType": "string"
+                },
+                {
+                    "name": "place_of_supply",
+                    "dataType": "string"
+                },
+                {
+                    "name": "is_invoice",
+                    "dataType": "int64"
+                },
+                {
+                    "name": "is_accounting_voucher",
+                    "dataType": "int64"
+                },
+                {
+                    "name": "is_inventory_voucher",
+                    "dataType": "int64"
+                },
+                {
+                    "name": "is_order_voucher",
+                    "dataType": "int64"
+                }
+            ]
+        }
+    ]
+}

@@ -182,6 +182,7 @@ create table trn_voucher
  _voucher_type varchar(64) not null default '',
  voucher_number varchar(64) not null default '',
  reference_number varchar(64) not null default '',
+ reference_date date,
  narration varchar(4000) not null default '',
  party_name varchar(256) not null,
  _party_name varchar(64) not null default '',
@@ -194,7 +195,7 @@ create table trn_voucher
 
 create table trn_accounting
 (
- guid varchar(64) not null,
+ guid varchar(64) not null default '',
  ledger varchar(1024) not null default '',
  _ledger varchar(64) not null default '',
  amount decimal(17,2) not null default 0,
@@ -204,7 +205,7 @@ create table trn_accounting
 
 create table trn_inventory
 (
- guid varchar(64) not null,
+ guid varchar(64) not null default '',
  item varchar(1024) not null default '',
  _item varchar(64) not null default '',
  quantity decimal(15,4) not null default 0,
@@ -221,7 +222,7 @@ create table trn_inventory
 
 create table trn_cost_centre
 (
- guid varchar(64) not null,
+ guid varchar(64) not null default '',
  ledger varchar(1024) not null default '',
  _ledger varchar(64) not null default '',
  costcentre varchar(1024) not null default '',
@@ -231,7 +232,7 @@ create table trn_cost_centre
 
 create table trn_bill
 (
- guid varchar(64) not null,
+ guid varchar(64) not null default '',
  ledger varchar(1024) not null default '',
  _ledger varchar(64) not null default '',
  name varchar(1024) not null default '',
@@ -241,7 +242,7 @@ create table trn_bill
 
 create table trn_batch
 (
- guid varchar(64) not null,
+ guid varchar(64) not null default '',
  item varchar(1024) not null default '',
  _item varchar(64) not null default '',
  name varchar(1024) not null default '',

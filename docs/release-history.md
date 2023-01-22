@@ -1,5 +1,17 @@
 ## Release History
 
+**Version: 1.0.18 [22-Jan-2023]**<br>
+Added:
+* Reference Date field in trn_voucher to capture supplier invoice date
+* Option to sync Master or/and Transaction which was removed in previous release, was again added back, but not as a setting in config.json, but as a hidden commandline flag. (eg --tally-transaction false). This feature was provided for having control on multi year sync with huge volume of data. With this flag, now user can perform sync in multiple batches instead of doing it in single batch. Example demonstrated in command-line section of help.
+* By default utility cleared all data from existing database before sync. A hidden commandline flag (--tally-truncate false) is introduced, which allows multi year sync in batches without clearing existing data when running utility again.
+
+Fixed:
+* Reference Number field of trn_voucher was found empty. Now fixed with correction in field name.
+* Command line flags were not being detected correctly, now fixed.
+* Minor fixes in incremental sync
+
+
 **Version: 1.0.17 [24-Jul-2022]**<br>
 Added:
 * Introduced feature **incremental sync** using which utility can sync specifically those masters and transactions which got added / deleted / modified from last sync point. This resulted in drastic performance boost, as only differencial data is pull out from Tally. It opens an opportunity to auto schedule (using Windows Task Schedule) sync to lower frequency like every 5 min, which will help to keep data near to realtime in database.

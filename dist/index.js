@@ -11,7 +11,7 @@ function parseCommandlineOptions() {
         if (lstArgs.length > 2 && lstArgs.length % 2 == 0)
             for (let i = 2; i < lstArgs.length; i += 2) {
                 let argName = lstArgs[i];
-                let argValue = lstArgs[i + 2];
+                let argValue = lstArgs[i + 1];
                 if (/^--\w+-\w+$/g.test(argName))
                     retval.set(argName.substr(2), argValue);
             }

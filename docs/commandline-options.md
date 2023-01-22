@@ -11,23 +11,30 @@ node ./dist/index.js [[--option 01] [value 01] [--option 02] [value 02] ...]
 
 ### Examples:
 
-**Scenario 01:** We have created separate databases for individual clients & currently need to load data of client in database named **airtel** in SQL Server, with rest of the settings unchanged, then below is the command for desired output
-```bat
-node ./dist/index.js --database-schema airtel
-```
-
-**Scenario 02:** We need to set from & to date dynamically (without changing config file), lets say **FY 2019-20 Q3**, then below is the command for that
+**Scenario 01:** We need to set from & to date dynamically (without changing config file), lets say **FY 2019-20 Q3**, then below is the command for that
 ```bat
 node ./dist/index.js --tally-fromdate 20191001 --tally-todate 20191231
 ```
 
-**Scenario 03:** You have a tally company named *Reliance Industries*, created database of it by name *client_reliance* and want to export **FY 2019-20**  Then below is the command for that
+**Scenario 02:** You have a tally company named *Reliance Industries*, created database of it by name *client_reliance* and want to export **FY 2019-20**  Then below is the command for that
 ```bat
 node ./dist/index.js --tally-fromdate 20191001 --tally-todate 20191231 --tally-company "Reliance Industries" --database-schema client_reliance
 ```
 
-
-**Scenario 04:** You are using Amazon Web Services (AWS) as database server, and have multiple servers for each client group of companies with multiple separate database for each subsidiary company. You intend to sync data for **FY 2020-21** from Tally into **Jio** company database residing in **Reliance** server hosted at Mumbai region data centre of AWS. Command will be
+**Scenario 03:** We need to sync data for multiple companies of Tally. So, this requires creation of separate database for each company. And then sync of all the companies in one go can be done like this
 ```bat
-node ./dist/index.js --tally-fromdate 20200401 --tally-todate 20210331 --database-server database-1.reliance.in-mumbai-1.rds.amazonaws.com --database-schema jio
+node ./dist/index.js --database-schema tallydb_airtel --tally-company "Bharti Airtel"
+node ./dist/index.js --database-schema tallydb_voda_idea --tally-company "Vodafone Idea Ltd FY 2021-22" --tally-fromdate 20210401 --tally-todate 20220331
+node ./dist/index.js --database-schema tallydb_jio --tally-company "Reliance Jio from (01-Apr-2022)"
 ```
+
+
+**Scenario 04:** Your have a single Tally company with 3 years of data FY 2017-18, FY 2018-19 and FY 2019-20 in it. Full sync for 3 years in single go by setting from-to dates is taking long time with Tally using up large amount of RAM. This can be setup as below with first line of syncing both master and transactions for first year, and then subsequent sync only pushing transactions of that year
+```bat
+node ./dist/index.js --tally-fromdate 20170401 --tally-todate 20180331
+node ./dist/index.js --tally-fromdate 20180401 --tally-todate 20190331 --tally-master false --tally-truncate false
+node ./dist/index.js --tally-fromdate 20190401 --tally-todate 20200331 --tally-master false --tally-truncate false
+```
+
+The first line instructions sync to run with normal behaviour (with default mode of clear database and sync).
+For next 2 years, commandline instructs utility to exclude master from sync (as they were pushed already in previous step), and suppress database clearing, since we are simply pushing (or adding) current year transactions to existing database.
