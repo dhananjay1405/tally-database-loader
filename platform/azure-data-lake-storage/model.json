@@ -712,6 +712,10 @@
                     "dataType": "string"
                 },
                 {
+                    "name": "reference_date",
+                    "dataType": "date"
+                },
+                {
                     "name": "narration",
                     "dataType": "string"
                 },

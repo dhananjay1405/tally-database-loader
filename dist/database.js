@@ -132,7 +132,7 @@ class _database {
                         let fileContent = fs.readFileSync(csvFile, 'utf-8');
                         fileContent = fileContent.replace(/ñ/g, ''); //substitute NULL with placeholder
                         fileContent = fileContent.replace(/\"/g, '""'); //escape double quotes
-                        fs.writeFileSync(csvFile, '\ufeff' + fileContent); //write desired changes to file
+                        fs.writeFileSync(csvFile, '\ufeff' + fileContent + '\r\n'); //write desired changes to file
                     }
                     if (this.config.technology == 'mysql') {
                         sqlQuery = `load data infile '${csvFile.replace(/\\/g, '\\\\')}' into table ${targetTable} fields terminated by ',' enclosed by '"' escaped by '' lines terminated by '\r\n' ignore 1 lines ;`;

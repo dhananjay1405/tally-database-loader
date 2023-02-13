@@ -39,8 +39,8 @@ Commandline utility to load data into Database Server from Tally software, inten
 <br><br>
 
 ## Version
-Latest Version: **1.0.18**<br>
-Updated on: **22-Jan-2023**
+Latest Version: **1.0.19**<br>
+Updated on: **13-Feb-2023**
 
 *Note: I keep on fixing utility and adding fields into database. So you are requested to re-create existing databases and re-download utility folder *
 
@@ -50,12 +50,9 @@ Updated on: **22-Jan-2023**
 *Stagnant water is hazardous.* Same applies to human brain. Improvement / Exploration is a one of key aspect of this project.
 
 Upcoming features:
-* Graphical Interface for the utility (Electron JS powered App)
-* Password encryption in *config.json* to prevent password reveal while editing it (to be covered in GUI based version)
+* Graphical Interface for the utility
+* Password encryption in *config.json* to prevent password reveal while editing it (to be covered in Graphical version)
 * Web-page to configure **tally-export-config.yaml** and **database-structure.sql** for easy expansion of Tally system defined and/or TDL fields
-
-Tentative Features:
-* Export to Excel (cannot promise, is a bit difficult to implement in Node.JS)
 
 <br><br>
 
@@ -86,7 +83,7 @@ Preferred versions:
 
 Database Loader Utility is portable, and does not have a setup wizard like we find for software installation. Zip archive of utility can be downloaded from below link. Kindly use open-source &amp; free software [7-zip file archiver](https://www.7-zip.org/download.html) to un-compress utility archive.
 
-[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.18.7z)
+[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.19.7z)
 
 Also, it is a commandline utility having no window interface (to keep it minimal and faster)
 

@@ -1,9 +1,5 @@
 ## Release History
 
-**Version: 1.0.19 [13-Feb-2023]**<br>
-Fixed:
-* Last row of data was getting skipped in SQL Server in *file* mode due to missing last line terminator, now fixed.
-
 **Version: 1.0.18 [22-Jan-2023]**<br>
 Added:
 * Reference Date field in trn_voucher to capture supplier invoice date
