@@ -178,7 +178,7 @@
             ],
             "partitions": [
                 {
-                    "name": "mst_group",
+                    "name": "mst_ledger",
                     "location": "https://<domain>.dfs.core.windows.net/<folder>/mst_ledger.csv",
                     "fileFormatSettings": {
                         "$type": "CsvFormatSettings",

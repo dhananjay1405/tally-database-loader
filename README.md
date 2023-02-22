@@ -39,8 +39,8 @@ Commandline utility to load data into Database Server from Tally software, inten
 <br><br>
 
 ## Version
-Latest Version: **1.0.19**<br>
-Updated on: **13-Feb-2023**
+Latest Version: **1.0.20**<br>
+Updated on: **22-Feb-2023**
 
 *Note: I keep on fixing utility and adding fields into database. So you are requested to re-create existing databases and re-download utility folder *
 
@@ -83,23 +83,24 @@ Preferred versions:
 
 Database Loader Utility is portable, and does not have a setup wizard like we find for software installation. Zip archive of utility can be downloaded from below link. Kindly use open-source &amp; free software [7-zip file archiver](https://www.7-zip.org/download.html) to un-compress utility archive.
 
-[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.19.7z)
+[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.20.7z)
 
 Also, it is a commandline utility having no window interface (to keep it minimal and faster)
 
 <br><br>
 
 ## Tally XML Server
-Tally has in-built XML Server capability, which can import/export data in/out of Tally. This utility sends export command to Tally along with report specification written in TDL (Tally Developer Language) in XML format. In response, Tally returns back the requested data (in CSV format), which is then imported into Database Server. This utility works for both Tally.ERP 9 and Tally Prime both. Kindly ensure that XML Server of Tally is enabled (one-time). Avoid running Tally Prime & ERP.9 both at same time, as by default, both of them would try to block port numbert 9000 for XML Server. If you still need to run both simulteneously, change the port number of Tally Prime, or you can also disable XML Server of any of the Tally instance.
+Tally has in-built XML Server capability, which can import/export data in/out of Tally. This utility sends export command to Tally along with report specification written in TDL (Tally Developer Language) in XML format. In response, Tally returns back the requested data (in XML format), which is then imported into Database Server. 
 
-### Tally.ERP 9
-* Gateway of Tally > Configure (F12) > Advanced Configuration
-* Set Tally.ERP 9 is acting as **Both**
 
 ### Tally Prime
 * Help (F1) > Settings > Connectivity
 * Client/Server configuration
 * Set TallyPrime is acting as **Both**
+
+<br>
+
+**Note: Support for Tally.ERP 9 has been removed, to keep database aligned to Tally Prime. Kindly upgrade to Tally Prime.**
 
 <br><br>
 

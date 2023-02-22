@@ -1,5 +1,9 @@
 ## Release History
 
+**Version: 1.0.20 [20-Feb-2023]**<br>
+Fixed:
+* Incorrect datatype of reference_date field was mentioned in tally-export-config.json causing empty dates in that field, now fixed.
+
 **Version: 1.0.19 [13-Feb-2023]**<br>
 Fixed:
 * Last row of data was getting skipped in SQL Server in *file* mode due to missing last line terminator, now fixed.

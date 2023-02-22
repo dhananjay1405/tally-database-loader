@@ -500,7 +500,7 @@ transaction:
           type: text
         - name: reference_date
           field: ReferenceDate
-          type: text
+          type: date
         - name: narration
           field: Narration
           type: text

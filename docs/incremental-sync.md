@@ -14,8 +14,9 @@ To perform incremental sync, it is a pre-requisite that a Full sync must be done
 ## Compatibility
 Incremental sync option is compatible only for RDBMS types of database i.e.
 1. SQL Server
-1. MySQL / MariaDB Server
 1. PostgreSQL Server
+
+MySQL / MariaDB, incremental sync is experience issues. So kindly use it at your own risk.
 
 Google BigQuery read operation incurs cost. So incremental sync might shoot billing compared to full sync. So, incremental sync option is delibarely not provided for BigQuery. CSV file mode too does not support incremental sync.
 
