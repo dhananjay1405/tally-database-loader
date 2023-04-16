@@ -1,5 +1,11 @@
 ## Release History
 
+**Version: 1.0.20 [16-Apr-2023]**<br>
+Added:
+* Field **affects_gross_profit** in mst_group table for calculation of Gross Profit / Net Profit
+* Utility version identification
+* SQL queries for few reports
+
 **Version: 1.0.20 [20-Feb-2023]**<br>
 Fixed:
 * Incorrect datatype of reference_date field was mentioned in tally-export-config.json causing empty dates in that field, now fixed.

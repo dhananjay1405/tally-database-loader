@@ -30,6 +30,9 @@ master:
         - name: is_reserved
           field: IsReserved
           type: logical
+        - name: affects_gross_profit
+          field: AffectsGrossProfit
+          type: logical
         - name: sort_position
           field: SortPosition
           type: number

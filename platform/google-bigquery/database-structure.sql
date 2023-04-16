@@ -15,6 +15,7 @@ create table tallydb.mst_group
  is_revenue tinyint,
  is_deemedpositive tinyint,
  is_reserved tinyint,
+ affects_gross_profit tinyint,
  sort_position int
 );
 
@@ -254,5 +255,3 @@ create table tallydb.trn_batch
  _destination_godown string(64) not null,
  tracking_number string(1024)
 );
-
-

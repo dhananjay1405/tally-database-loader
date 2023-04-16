@@ -44,6 +44,10 @@
                     "dataType": "int64"
                 },
                 {
+                    "name": "affects_gross_profit",
+                    "dataType": "int64"
+                },
+                {
                     "name": "sort_position",
                     "dataType": "int64"
                 }

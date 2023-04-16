@@ -10,7 +10,6 @@ Commandline utility to load data into Database Server from Tally software, inten
 
 ## Index
 * [Version](version)
-* [Upcoming Features](#upcoming-features)
 * [Requirements](#requirements)
 * [Download](#download)
 * [Tally XML Server](#tally-xml-server)
@@ -39,27 +38,18 @@ Commandline utility to load data into Database Server from Tally software, inten
 <br><br>
 
 ## Version
-Latest Version: **1.0.20**<br>
-Updated on: **22-Feb-2023**
+Latest Version: **1.0.21**<br>
+Updated on: **16-Apr-2023**
 
 *Note: I keep on fixing utility and adding fields into database. So you are requested to re-create existing databases and re-download utility folder *
 
 <br><br>
 
-## Upcoming Features
-*Stagnant water is hazardous.* Same applies to human brain. Improvement / Exploration is a one of key aspect of this project.
-
-Upcoming features:
-* Graphical Interface for the utility
-* Password encryption in *config.json* to prevent password reveal while editing it (to be covered in Graphical version)
-* Web-page to configure **tally-export-config.yaml** and **database-structure.sql** for easy expansion of Tally system defined and/or TDL fields
-
-<br><br>
 
 ## Requirements
 Utility requires installation of following as a pre-requisite (along with download link)
 * Windows 10
-* [Tally.ERP 9 / Tally Prime](https://tallysolutions.com/download/)
+* [Tally Prime](https://tallysolutions.com/download/)
 * [Node JS](https://nodejs.org/en/)
 * Database Server (supports any of below)
     * [Microsoft SQL Server](https://www.microsoft.com/en-ie/sql-server/sql-server-downloads/)
@@ -83,7 +73,7 @@ Preferred versions:
 
 Database Loader Utility is portable, and does not have a setup wizard like we find for software installation. Zip archive of utility can be downloaded from below link. Kindly use open-source &amp; free software [7-zip file archiver](https://www.7-zip.org/download.html) to un-compress utility archive.
 
-[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.20.7z)
+[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.21.7z)
 
 Also, it is a commandline utility having no window interface (to keep it minimal and faster)
 
@@ -92,8 +82,6 @@ Also, it is a commandline utility having no window interface (to keep it minimal
 ## Tally XML Server
 Tally has in-built XML Server capability, which can import/export data in/out of Tally. This utility sends export command to Tally along with report specification written in TDL (Tally Developer Language) in XML format. In response, Tally returns back the requested data (in XML format), which is then imported into Database Server. 
 
-
-### Tally Prime
 * Help (F1) > Settings > Connectivity
 * Client/Server configuration
 * Set TallyPrime is acting as **Both**

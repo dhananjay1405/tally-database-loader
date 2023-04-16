@@ -70,6 +70,7 @@ class _tally {
     importData() {
         return new Promise(async (resolve, reject) => {
             try {
+                logger_js_1.logger.logMessage('Tally to Database | version: 1.0.21');
                 if (this.config.sync == 'incremental') {
                     if (/^(mssql|mysql|postgres)$/g.test(database_js_1.database.config.technology)) {
                         //set mandatory config required for incremental sync

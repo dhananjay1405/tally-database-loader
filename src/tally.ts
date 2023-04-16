@@ -100,6 +100,8 @@ class _tally {
         return new Promise<void>(async (resolve, reject) => {
             try {
 
+                logger.logMessage('Tally to Database | version: 1.0.21');
+
                 if (this.config.sync == 'incremental') {
                     if (/^(mssql|mysql|postgres)$/g.test(database.config.technology)) {
 

@@ -15,6 +15,7 @@ create table mst_group
  is_revenue smallint,
  is_deemedpositive smallint,
  is_reserved smallint,
+ affects_gross_profit smallint,
  sort_position int
 );
 
