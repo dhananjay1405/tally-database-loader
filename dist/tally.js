@@ -70,7 +70,7 @@ class _tally {
     importData() {
         return new Promise(async (resolve, reject) => {
             try {
-                logger_js_1.logger.logMessage('Tally to Database | version: 1.0.21');
+                logger_js_1.logger.logMessage('Tally to Database | version: 1.0.22');
                 if (this.config.sync == 'incremental') {
                     if (/^(mssql|mysql|postgres)$/g.test(database_js_1.database.config.technology)) {
                         //set mandatory config required for incremental sync
@@ -225,10 +225,12 @@ class _tally {
                 }
                 else { // assume default as full
                     let lstTables = [];
-                    if (this.importMaster)
+                    if (this.importMaster) {
                         lstTables.push(...this.lstTableMaster);
-                    if (this.importTransaction)
+                    }
+                    if (this.importTransaction) {
                         lstTables.push(...this.lstTableTransaction);
+                    }
                     if (/^(mssql|mysql|postgres)$/g.test(database_js_1.database.config.technology)) {
                         //update active company information before starting import
                         logger_js_1.logger.logMessage('Updating company information configuration table [%s]', new Date().toLocaleDateString());
@@ -246,12 +248,15 @@ class _tally {
                     configTallyXML.set('fromDate', utility_js_1.utility.Date.parse(this.config.fromdate, 'yyyy-MM-dd'));
                     configTallyXML.set('toDate', utility_js_1.utility.Date.parse(this.config.todate, 'yyyy-MM-dd'));
                     configTallyXML.set('targetCompany', this.config.company ? utility_js_1.utility.String.escapeHTML(this.config.company) : '##SVCurrentCompany');
-                    if (this.truncateTable)
-                        if (/^(mssql|mysql|postgres)$/g.test(database_js_1.database.config.technology))
+                    if (this.truncateTable) {
+                        if (/^(mssql|mysql|postgres)$/g.test(database_js_1.database.config.technology)) {
                             await database_js_1.database.truncateTables(lstTables.map(p => p.name)); //truncate tables
+                        }
+                    }
                     //delete and re-create CSV folder
-                    if (fs.existsSync('./csv'))
+                    if (fs.existsSync('./csv')) {
                         fs.rmSync('./csv', { recursive: true });
+                    }
                     fs.mkdirSync('./csv');
                     //dump data exported from Tally to CSV file required for bulk import
                     logger_js_1.logger.logMessage('Generating CSV files from Tally [%s]', new Date().toLocaleString());
@@ -274,15 +279,22 @@ class _tally {
                         }
                         fs.rmdirSync('./csv'); //remove directory
                     }
-                    else if (database_js_1.database.config.technology == 'csv' || database_js_1.database.config.technology == 'bigquery') {
-                        if (database_js_1.database.config.technology == 'bigquery')
+                    else if (database_js_1.database.config.technology == 'csv' || database_js_1.database.config.technology == 'json' || database_js_1.database.config.technology == 'bigquery' || database_js_1.database.config.technology == 'adls') {
+                        if (database_js_1.database.config.technology == 'bigquery') {
                             logger_js_1.logger.logMessage('Loading CSV files to BigQuery tables [%s]', new Date().toLocaleString());
+                        }
                         //remove special character of date from CSV files, which was inserted for null dates
                         for (let i = 0; i < lstTables.length; i++) {
                             let targetTable = lstTables[i].name;
+                            let lstFieldTypes = lstTables[i].fields.map(p => p.type);
                             let content = fs.readFileSync(`./csv/${targetTable}.data`, 'utf-8');
-                            content = database_js_1.database.convertCSV(content, lstTables[i].fields.map(p => p.type));
-                            fs.writeFileSync(`./csv/${targetTable}.csv`, '\ufeff' + content);
+                            if (database_js_1.database.config.technology == 'json') {
+                                content = JSON.stringify(database_js_1.database.csvToJsonArray(content, targetTable, lstFieldTypes));
+                            }
+                            else {
+                                content = database_js_1.database.convertCSV(content, lstFieldTypes);
+                            }
+                            fs.writeFileSync(`./csv/${targetTable}.${database_js_1.database.config.technology == 'json' ? 'json' : 'csv'}`, '\ufeff' + content);
                             fs.unlinkSync(`./csv/${targetTable}.data`); //delete raw file
                             if (database_js_1.database.config.technology == 'bigquery') {
                                 const [job] = await bigquery.dataset(database_js_1.database.config.schema).table(targetTable).load(`./csv/${targetTable}.csv`, {
@@ -292,6 +304,10 @@ class _tally {
                                 });
                                 logger_js_1.logger.logMessage('  %s: imported', targetTable);
                             }
+                        }
+                        //upload CSV files to Azure Data Lake
+                        if (database_js_1.database.config.technology == 'adls') {
+                            await database_js_1.database.uploadAzureDataLake(lstTables);
                         }
                     }
                     else

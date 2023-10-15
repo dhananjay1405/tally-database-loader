@@ -7,39 +7,9 @@ import { utility } from './utility.js';
 import { logger } from './logger.js';
 import { database } from './database.js';
 import { BigQuery } from '@google-cloud/bigquery';
+import { tallyConfig, tableConfigYAML } from './definition.js';
 
 let bigquery: BigQuery;
-
-interface tallyConfig {
-    server: string;
-    port: number;
-    fromdate: string; // [ YYYYMMDD / auto ]
-    todate: string; // [ YYYYMMDD / auto ]
-    sync: string; // [ full / incremental ]
-    company: string;
-}
-
-interface fieldConfigYAML {
-    name: string;
-    field: string;
-    type: string;
-}
-
-interface tableFieldYAML {
-    table: string;
-    field: string;
-}
-
-interface tableConfigYAML {
-    name: string;
-    collection: string;
-    nature: string;
-    fields: fieldConfigYAML[];
-    filters?: string[];
-    fetch?: string[];
-    cascade_update?: tableFieldYAML[];
-    cascade_delete?: tableFieldYAML[];
-}
 
 class _tally {
 
@@ -70,7 +40,6 @@ class _tally {
             logger.logError('tally()', err);
             throw err;
         }
-
     }
 
     updateCommandlineConfig(lstConfigs: Map<string, string>): void {
@@ -100,7 +69,7 @@ class _tally {
         return new Promise<void>(async (resolve, reject) => {
             try {
 
-                logger.logMessage('Tally to Database | version: 1.0.21');
+                logger.logMessage('Tally to Database | version: 1.0.22');
 
                 if (this.config.sync == 'incremental') {
                     if (/^(mssql|mysql|postgres)$/g.test(database.config.technology)) {
@@ -280,13 +249,14 @@ class _tally {
                 }
                 else { // assume default as full
                     let lstTables: tableConfigYAML[] = [];
-                    if (this.importMaster)
+                    if (this.importMaster) {
                         lstTables.push(...this.lstTableMaster);
-                    if (this.importTransaction)
+                    }
+                    if (this.importTransaction) {
                         lstTables.push(...this.lstTableTransaction);
+                    }
 
                     if (/^(mssql|mysql|postgres)$/g.test(database.config.technology)) {
-
                         //update active company information before starting import
                         logger.logMessage('Updating company information configuration table [%s]', new Date().toLocaleDateString());
                         await this.saveCompanyInfo();
@@ -304,13 +274,17 @@ class _tally {
                     configTallyXML.set('toDate', utility.Date.parse(this.config.todate, 'yyyy-MM-dd'));
                     configTallyXML.set('targetCompany', this.config.company ? utility.String.escapeHTML(this.config.company) : '##SVCurrentCompany');
 
-                    if (this.truncateTable)
-                        if (/^(mssql|mysql|postgres)$/g.test(database.config.technology))
+                    if (this.truncateTable) {
+                        if (/^(mssql|mysql|postgres)$/g.test(database.config.technology)) {
                             await database.truncateTables(lstTables.map(p => p.name)); //truncate tables
+                        }
+                    }
+                        
 
                     //delete and re-create CSV folder
-                    if (fs.existsSync('./csv'))
+                    if (fs.existsSync('./csv')) {
                         fs.rmSync('./csv', { recursive: true });
+                    }
                     fs.mkdirSync('./csv');
 
                     //dump data exported from Tally to CSV file required for bulk import
@@ -337,17 +311,24 @@ class _tally {
                         fs.rmdirSync('./csv'); //remove directory
 
                     }
-                    else if (database.config.technology == 'csv' || database.config.technology == 'bigquery') {
+                    else if (database.config.technology == 'csv' || database.config.technology == 'json' || database.config.technology == 'bigquery' || database.config.technology == 'adls') {
 
-                        if (database.config.technology == 'bigquery')
+                        if (database.config.technology == 'bigquery') {
                             logger.logMessage('Loading CSV files to BigQuery tables [%s]', new Date().toLocaleString());
+                        }
 
                         //remove special character of date from CSV files, which was inserted for null dates
                         for (let i = 0; i < lstTables.length; i++) {
                             let targetTable = lstTables[i].name;
+                            let lstFieldTypes = lstTables[i].fields.map(p => p.type);
                             let content = fs.readFileSync(`./csv/${targetTable}.data`, 'utf-8');
-                            content = database.convertCSV(content, lstTables[i].fields.map(p => p.type));
-                            fs.writeFileSync(`./csv/${targetTable}.csv`, '\ufeff' + content);
+                            if(database.config.technology == 'json') {
+                                content = JSON.stringify(database.csvToJsonArray(content, targetTable, lstFieldTypes));
+                            }
+                            else {
+                                content = database.convertCSV(content, lstFieldTypes);
+                            }
+                            fs.writeFileSync(`./csv/${targetTable}.${database.config.technology == 'json' ? 'json' : 'csv'}`, '\ufeff' + content);
                             fs.unlinkSync(`./csv/${targetTable}.data`); //delete raw file
                             if (database.config.technology == 'bigquery') {
                                 const [job] = await bigquery.dataset(database.config.schema).table(targetTable).load(`./csv/${targetTable}.csv`, {
@@ -357,6 +338,12 @@ class _tally {
                                 });
                                 logger.logMessage('  %s: imported', targetTable);
                             }
+
+                        }
+
+                        //upload CSV files to Azure Data Lake
+                        if (database.config.technology == 'adls') {
+                            await database.uploadAzureDataLake(lstTables);
                         }
                     }
                     else;

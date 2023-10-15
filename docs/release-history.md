@@ -1,6 +1,13 @@
 ## Release History
 
-**Version: 1.0.20 [16-Apr-2023]**<br>
+**Version: 1.0.22 [15-Oct-2023]**<br>
+Added:
+* Azure Data Lake Gen2 connectivity to push CSV files to data lake, which can be imported via Excel, Power BI, etc.
+* Enabled loading of local PC CSV files into database server via bulk load / copy feature of database (applicable for SQL Server / PostgreSQL / MySQL), for a faster loading when data volume is bigger
+Fixed:
+* MySQL connector authentication issue. Older version of MySQL connector library supported Legacy authentication which is no longer used and will be removed in future from MySQL. So upgraded the connector library to support CACHING_SHA2_PASSWORD authentication which is more secure.
+
+**Version: 1.0.21 [16-Apr-2023]**<br>
 Added:
 * Field **affects_gross_profit** in mst_group table for calculation of Gross Profit / Net Profit
 * Utility version identification

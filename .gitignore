@@ -7,4 +7,6 @@ dist/*.js.map
 import-log.txt
 error-log.txt
 *.zip
+*.exe
 bigquery-credentials.json
+adls-config.json

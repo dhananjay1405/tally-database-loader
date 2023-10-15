@@ -23,3 +23,10 @@
 ![MySQL Server Window reconfigure server](https://excelkida.com/image/github/mysql-installer-packages-screen.png)
 1. Change method to *Legacy Authentication*
 ![MySQL Server Window authentication method](https://excelkida.com/image/github/mysql-installer-authentication-mode-screen.png)
+
+**Ques:** MySQL gives error *Loading local data is disabled; this must be enabled on both the client and server sides*
+
+**Ans:** MySQL by default disables loading of local files. To enable it run below command
+```sql
+SET GLOBAL local_infile=1;
+```
