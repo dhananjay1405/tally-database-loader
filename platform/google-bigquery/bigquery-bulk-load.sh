@@ -14,7 +14,7 @@ sch=(
     guid:STRING,alterid:INT64,name:STRING,parent:STRING,_parent:STRING,category:STRING
     item:STRING,_item:STRING,applicable_from:DATE,hsn_description:STRING,hsn_code:STRING,rate:DECIMAL,is_rcm_applicable:BOOL,nature_of_transaction:STRING,nature_of_goods:STRING,supply_type:STRING,taxability:STRING
     item:STRING,_item:STRING,opening_balance:DECIMAL,opening_rate:DECIMAL,opening_value:DECIMAL,godown:STRING,_godown:STRING,manufactured_on:DATE
-    ledger:STRING,_ledger:STRING,opening_balance:DECIMAL,bill_date:DATE
+    ledger:STRING,_ledger:STRING,opening_balance:DECIMAL,bill_date:DATE,name:STRING
     ledger:STRING,_ledger:STRING,stock_date:DATE,stock_value:DECIMAL
     guid:STRING,alterid:INT64,date:DATE,voucher_type:STRING,_voucher_type:STRING,voucher_number:STRING,reference_number:STRING,reference_date:DATE,narration:STRING,party_name:STRING,_party_name:STRING,place_of_supply:STRING,is_invoice:BOOL,is_accounting_voucher:BOOL,is_inventory_voucher:BOOL,is_order_voucher:BOOL
     guid:STRING,ledger:STRING,_ledger:STRING,amount:DECIMAL,amount_forex:DECIMAL,currency:STRING
