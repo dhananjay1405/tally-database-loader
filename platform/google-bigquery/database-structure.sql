@@ -163,7 +163,8 @@ create table tallydb.mst_opening_bill_allocation
  ledger string(1024) not null,
  _ledger string(64) not null,
  opening_balance decimal(17,4),
- bill_date date
+ bill_date date,
+ name string(1024) not null
 );
 
 create table tallydb.trn_closingstock_ledger

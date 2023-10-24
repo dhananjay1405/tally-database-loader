@@ -142,7 +142,8 @@ create table mst_opening_bill_allocation
 (
  ledger varchar(1024) not null,
  opening_balance decimal(17,4),
- bill_date date
+ bill_date date,
+ name varchar(1024) not null
 );
 
 create table trn_closingstock_ledger
