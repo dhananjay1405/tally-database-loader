@@ -38,8 +38,8 @@ Commandline utility to load data into Database Server from Tally software, inten
 <br><br>
 
 ## Version
-Latest Version: **1.0.22**<br>
-Updated on: **15-Oct-2023**
+Latest Version: **1.0.23**<br>
+Updated on: **17-Feb-2024**
 
 *Note: I keep on fixing utility and adding fields into database. So you are requested to re-create existing databases and re-download utility folder *
 
@@ -73,7 +73,7 @@ Preferred versions:
 
 Database Loader Utility is portable, and does not have a setup wizard like we find for software installation. Zip archive of utility can be downloaded from below link. Kindly use open-source &amp; free software [7-zip file archiver](https://www.7-zip.org/download.html) to un-compress utility archive.
 
-[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.22.7z)
+[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.23.7z)
 
 Also, it is a commandline utility having no window interface (to keep it minimal and faster)
 
@@ -167,7 +167,7 @@ Database Connection credentials needs to be set in the file in **database** sect
 
 | Settings | Value |
 | --- | --- |
-| technology | **mssql**: Microsoft SQL Server<br>**mysql**: MySQL Server or MariaDB Server<br>**postgres**: PostgreSQL Server<br>**bigquery**: Google BigQuery<br>**csv**: Generate CSV dump for further import (below parameters of database connection are dummy when CSV setting is applied) |
+| technology | **mssql**: Microsoft SQL Server<br>**mysql**: MySQL Server or MariaDB Server<br>**postgres**: PostgreSQL Server<br>**bigquery**: Google BigQuery<br>**adls**:Azure Data Lake storage<br>**json**: JSON file<br>**csv**: Generate CSV dump for further import (below parameters of database connection are dummy when CSV setting is applied) |
 | server | IP Address of PC on which Database Server is hosted (**localhost** = same machine) |
 | port | Port number on which Database Server is listening<br>**mssql**: Default port is **1433**<br>**mysql**: Default port is **3306**<br>**postgres**: Default port is **5432** |
 | ssl | **true**: Secured (to be used only if Database Server is on Cloud)<br>**false**: Unsecured [*default*] (to be used when Database Server is on same machine / within LAN / within VPN)<br>Supported for mssql / postgres only |
@@ -294,7 +294,7 @@ This project is under MIT license. You are free to use this utility for commerci
 ## Contact
 Project developed & maintained by: **Dhananjay Gokhale**
 
-For any query email to **dhananjay1405@gmail.com** or Whatsapp on **(+91) 90284-63366**
+For any query email to **info@excelkida.com** or Whatsapp on **(+91) 90284-63366**
 
 <br><br>
 

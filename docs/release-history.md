@@ -1,5 +1,9 @@
 ## Release History
 
+**Version: 1.0.23 [17-Feb-2024]**<br>
+Fixed:
+* Azure Data Lake Gen2, can now automatically generate *model.json* metadata file based on *tally-export-config.yaml*
+
 **Version: 1.0.22 [15-Oct-2023]**<br>
 Added:
 * Azure Data Lake Gen2 connectivity to push CSV files to data lake, which can be imported via Excel, Power BI, etc.

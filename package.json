@@ -9,20 +9,19 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@azure/storage-file-datalake": "^12.14.0",
-    "@google-cloud/bigquery": "^6.2.0",
+    "@azure/storage-file-datalake": "^12.16.0",
+    "@google-cloud/bigquery": "^7.3.0",
     "js-yaml": "^4.1.0",
-    "mysql2": "^3.6.1",
-    "odbc": "^2.4.8",
-    "pg": "^8.10.0",
+    "mysql2": "^3.9.0",
+    "pg": "^8.11.3",
     "pg-copy-streams": "^6.0.6",
-    "tedious": "^16.4.1"
+    "tedious": "^16.6.1"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.1",
-    "@types/node": "^18.15.11",
-    "@types/pg": "^8.6.6",
+    "@types/node": "^20.11.9",
+    "@types/pg": "^8.11.0",
     "@types/pg-copy-streams": "^1.2.3",
-    "@types/tedious": "^4.0.12"
+    "@types/tedious": "^4.0.14"
   }
 }

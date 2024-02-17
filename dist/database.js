@@ -290,17 +290,57 @@ class _database {
             try {
                 //extract connection string and domain from ADLS config file
                 let connectionString = '', domain = '';
-                let objADLS = JSON.parse(fs.readFileSync('./adls-config.json', 'utf-8'));
-                connectionString = objADLS['connection_string'];
+                connectionString = this.config.server;
                 let regDomain = /AccountName=([\w_-]+);/g.exec(connectionString);
                 if (regDomain)
                     domain = regDomain[1];
-                //replace model.json with target values in placeholder variables
-                let contentModel = fs.readFileSync('./platform/azure-data-lake-storage/model.json', 'utf-8');
-                contentModel = contentModel
-                    .replace(/\<database\>/g, this.config.schema)
-                    .replace(/\<domain\>/g, domain)
-                    .replace(/\<folder\>/g, `tally/${this.config.schema}`);
+                //generate model.json
+                let objCdmModel = {
+                    name: this.config.schema,
+                    version: '1.0.0',
+                    entities: []
+                };
+                for (const targetTable of lstTables) {
+                    let objEntity = {
+                        $type: 'LocalEntity',
+                        name: targetTable.name,
+                        attributes: [],
+                        partitions: [
+                            {
+                                name: targetTable.name,
+                                location: `https://${domain}.dfs.core.windows.net/tally/${this.config.schema}/${targetTable.name}.csv`,
+                                fileFormatSettings: {
+                                    $type: 'CsvFormatSettings',
+                                    columnHeaders: true
+                                }
+                            }
+                        ]
+                    };
+                    for (const targetField of targetTable.fields) {
+                        let cdmDataType = '';
+                        if (targetField.type == 'text') {
+                            cdmDataType = 'string';
+                        }
+                        else if (targetField.type == 'number' || targetField.type == 'logical') {
+                            cdmDataType = 'Int64';
+                        }
+                        else if (targetField.type == 'amount') {
+                            cdmDataType = 'decimal';
+                        }
+                        else if (targetField.type == 'date') {
+                            cdmDataType = 'date';
+                        }
+                        else { //fallback
+                            cdmDataType = 'text';
+                        }
+                        objEntity.attributes.push({
+                            name: targetField.name,
+                            dataType: cdmDataType
+                        });
+                    }
+                    objCdmModel.entities.push(objEntity);
+                }
+                let contentModel = JSON.stringify(objCdmModel);
                 //create tally container if not exists
                 const datalakeServiceClient = adls.DataLakeServiceClient.fromConnectionString(connectionString);
                 const fileSystemClient = datalakeServiceClient.getFileSystemClient('tally');
@@ -492,7 +532,7 @@ class _database {
                         text: sqlQuery
                     };
                     let result = await connection.query(qryConfig);
-                    rowCount = result.rowCount;
+                    rowCount = result.rowCount || 0;
                     data = result.rows;
                 }
                 await connection.end();

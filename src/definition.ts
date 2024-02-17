@@ -54,4 +54,33 @@ interface databaseFieldInfo {
     scale?: number;
 }
 
-export { connectionConfig, queryResult, tallyConfig, fieldConfigYAML, tableFieldYAML, tableConfigYAML, databaseFieldInfo };
+interface cdmFileFormatSetting {
+    $type: string;
+    columnHeaders: boolean;
+}
+
+interface cdmAttribute {
+    name: string;
+    dataType: string;
+}
+
+interface cdmPartition {
+    name: string;
+    location: string;
+    fileFormatSettings: cdmFileFormatSetting;
+}
+
+interface cdmEntity {
+    $type: string;
+    name: string;
+    attributes: cdmAttribute[];
+    partitions: cdmPartition[];
+}
+
+interface cdmModel {
+    name: string;
+    version: string;
+    entities: cdmEntity[];
+}
+
+export { connectionConfig, queryResult, tallyConfig, fieldConfigYAML, tableFieldYAML, tableConfigYAML, databaseFieldInfo, cdmModel, cdmEntity, cdmPartition, cdmAttribute, cdmFileFormatSetting };
