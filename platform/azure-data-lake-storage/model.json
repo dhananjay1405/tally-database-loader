@@ -638,6 +638,10 @@
                 {
                     "name": "bill_date",
                     "dataType": "date"
+                },
+                {
+                    "name": "name",
+                    "dataType": "string"
                 }
             ],
             "partitions": [

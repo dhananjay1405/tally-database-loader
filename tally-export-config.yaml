@@ -450,6 +450,9 @@ master:
         - name: bill_date
           field: BillDate
           type: date
+        - name: name
+          field: Name
+          type: text
     - name: trn_closingstock_ledger
       collection: Ledger.LedgerClosingValues
       nature: Derived
