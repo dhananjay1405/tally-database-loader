@@ -222,7 +222,7 @@ master:
           field: Parent
           type: text
         - name: _parent
-          field: if $$IsEmpty:$Address then "" else $Guid:Godown:$Parent
+          field: if $$IsEqual:$Parent:$$SysName:Primary then "" else $Guid:Godown:$Parent
           type: text
         - name: address
           field: if $$IsEmpty:$Address then "" else $$FullList:Address:$Address
@@ -301,11 +301,17 @@ master:
         - name: opening_value
           field: OpeningValue
           type: amount
-        - name: gst_nature_of_goods
-          field: if ($$IsEqual:$GstApplicable:($$SysName:Applicable) AND NOT $$IsEmpty:$GstDetails[Last].Natureofgoods) then $GstDetails[Last].Natureofgoods else ""
+        - name: gst_type_of_supply
+          field: GSTTypeofSupply
           type: text
         - name: gst_hsn_code
-          field: if ($$IsEqual:$GstApplicable:($$SysName:Applicable) AND NOT $$IsEmpty:$GstDetails[Last].Hsncode) then $GstDetails[Last].Hsncode else ""
+          field: _HSNCode
+          type: text
+        - name: gst_hsn_description
+          field: _HSNDescription
+          type: text
+        - name: gst_rate
+          field: _IntegratedTax
           type: text
         - name: gst_taxability
           field: if ($$IsEqual:$GstApplicable:($$SysName:Applicable) AND NOT $$IsEmpty:$GstDetails[Last].Taxability) then $GstDetails[Last].Taxability else ""
@@ -473,6 +479,42 @@ master:
         - name: stock_value
           field: Amount
           type: amount
+    - name: mst_stockitem_standard_cost
+      collection: StockItem.StandardCostList
+      nature: Derived
+      fetch:
+        - StandardCostList
+      fields:
+        - name: item
+          field: Name
+          type: text
+        - name: _item
+          field: $Guid:StockItem:$Name
+          type: text
+        - name: date
+          field: Date
+          type: date
+        - name: rate
+          field: Rate
+          type: rate
+    - name: mst_stockitem_standard_price
+      collection: StockItem.StandardPriceList
+      nature: Derived
+      fetch:
+        - StandardPriceList
+      fields:
+        - name: item
+          field: Name
+          type: text
+        - name: _item
+          field: $Guid:StockItem:$Name
+          type: text
+        - name: date
+          field: Date
+          type: date
+        - name: rate
+          field: Rate
+          type: rate
 transaction:
     - name: trn_voucher
       collection: Voucher

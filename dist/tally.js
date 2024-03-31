@@ -70,7 +70,7 @@ class _tally {
     importData() {
         return new Promise(async (resolve, reject) => {
             try {
-                logger_js_1.logger.logMessage('Tally to Database | version: 1.0.23');
+                logger_js_1.logger.logMessage('Tally to Database | version: 1.0.24');
                 if (this.config.sync == 'incremental') {
                     if (/^(mssql|mysql|postgres)$/g.test(database_js_1.database.config.technology)) {
                         //set mandatory config required for incremental sync
@@ -480,7 +480,7 @@ class _tally {
             if (!this.config.company) //remove complete SVCURRENTCOMPANY tag if no target company is specified
                 retval = retval.replace('<SVCURRENTCOMPANY>{targetCompany}</SVCURRENTCOMPANY>', '');
             else
-                retval = retval.replace('{targetCompany}', this.config.company);
+                retval = retval.replace('{targetCompany}', utility_js_1.utility.String.escapeHTML(this.config.company));
             //Push routes list
             let lstRoutes = tblConfig.collection.split(/\./g);
             let targetCollection = lstRoutes.splice(0, 1);

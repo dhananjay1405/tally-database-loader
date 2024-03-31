@@ -107,9 +107,11 @@ create table tallydb.mst_stock_item
  opening_balance decimal(15,4),
  opening_rate decimal(15,4),
  opening_value decimal(17,2),
- gst_nature_of_goods string(1024),
+ gst_type_of_supply string(32),
  gst_hsn_code string(64),
- gst_taxability string(1024)
+ gst_hsn_description string(256) default '',
+ gst_rate int default 0,
+ gst_taxability string(32)
 );
 
 create table tallydb.mst_cost_category
@@ -173,6 +175,22 @@ create table tallydb.trn_closingstock_ledger
  _ledger string(64) not null,
  stock_date date,
  stock_value decimal(17,2) not null
+);
+
+create table mst_stockitem_standard_cost
+(
+ item string(1024) not null,
+ _item string(64) not null,
+ date date,
+ rate decimal(15,4)
+);
+
+create table mst_stockitem_standard_price
+(
+ item string(1024) not null,
+ _item string(64) not null,
+ date date,
+ rate decimal(15,4)
 );
 
 create table tallydb.trn_voucher

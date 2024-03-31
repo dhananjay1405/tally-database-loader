@@ -7,13 +7,13 @@
         "schema": "tallydb",
         "username": "sa",
         "password": "admin",
-        "loadmethod": "insert"
+        "loadmethod": "file"
     },
     "tally": {
         "server": "localhost",
         "port": 9000,
-        "fromdate": "20220401",
-        "todate": "20230331",
+        "fromdate": "20230401",
+        "todate": "20230401",
         "sync": "full",
         "company": ""
     }

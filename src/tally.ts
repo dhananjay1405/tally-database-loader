@@ -69,7 +69,7 @@ class _tally {
         return new Promise<void>(async (resolve, reject) => {
             try {
 
-                logger.logMessage('Tally to Database | version: 1.0.23');
+                logger.logMessage('Tally to Database | version: 1.0.24');
 
                 if (this.config.sync == 'incremental') {
                     if (/^(mssql|mysql|postgres)$/g.test(database.config.technology)) {
@@ -523,7 +523,7 @@ class _tally {
             if (!this.config.company) //remove complete SVCURRENTCOMPANY tag if no target company is specified
                 retval = retval.replace('<SVCURRENTCOMPANY>{targetCompany}</SVCURRENTCOMPANY>', '');
             else
-                retval = retval.replace('{targetCompany}', this.config.company);
+                retval = retval.replace('{targetCompany}', utility.String.escapeHTML(this.config.company));
 
             //Push routes list
             let lstRoutes = tblConfig.collection.split(/\./g);

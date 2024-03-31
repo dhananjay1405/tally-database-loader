@@ -107,9 +107,11 @@ create table mst_stock_item
  opening_balance decimal(15,4) default 0,
  opening_rate decimal(15,4) default 0,
  opening_value decimal(17,2) default 0,
- gst_nature_of_goods nvarchar(1024) default '',
+ gst_type_of_supply nvarchar(32) default '',
  gst_hsn_code nvarchar(64) default '',
- gst_taxability nvarchar(1024) default ''
+ gst_hsn_description nvarchar(256) default '',
+ gst_rate int default 0,
+ gst_taxability nvarchar(32) default ''
 );
 
 create table mst_cost_category
@@ -173,6 +175,22 @@ create table trn_closingstock_ledger
  _ledger varchar(64) not null default '',
  stock_date date,
  stock_value decimal(17,2) not null default 0
+);
+
+create table mst_stockitem_standard_cost
+(
+ item nvarchar(1024) not null default '',
+ _item varchar(64) not null default '',
+ date date,
+ rate decimal(15,4) default 0
+);
+
+create table mst_stockitem_standard_price
+(
+ item nvarchar(1024) not null default '',
+ _item varchar(64) not null default '',
+ date date,
+ rate decimal(15,4) default 0
 );
 
 create table trn_voucher

@@ -182,19 +182,13 @@ class _database {
                     else
                         ;
                     if (this.config.technology == 'mysql') {
-                        // sqlQuery = `load data infile '${csvFile.replace(/\\/g, '\\\\')}' into table ${targetTable} fields terminated by ',' enclosed by '"' escaped by '' lines terminated by '\r\n' ignore 1 lines ;`;
-                        // rowCount = await this.executeNonQuery(sqlQuery);
                         rowCount = await this.dumpDataMysql(targetTable, lstFieldType);
                     }
                     else if (this.config.technology == 'mssql') {
-                        //sqlQuery = `bulk insert ${targetTable} from '${csvFile}' with ( firstrow = 2, codepage = '65001')`;
-                        //rowCount = await this.executeNonQuery(sqlQuery);
                         rowCount = await this.dumpDataMssql(targetTable, lstFieldType);
                     }
                     else if (this.config.technology == 'postgres') {
-                        //sqlQuery = `copy ${targetTable} from '${csvFile}' csv header;`;
-                        //rowCount = await this.executeNonQuery(sqlQuery);
-                        await this.dumpDataPostges(targetTable);
+                        rowCount = await this.dumpDataPostges(targetTable);
                     }
                     else
                         ;

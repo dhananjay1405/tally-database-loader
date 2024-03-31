@@ -1,5 +1,16 @@
 ## Release History
 
+**Version: 1.0.24 [31-Mar-2024]**<br>
+Fixed:
+* In table **mst_stock_item** field name **gst_nature_of_goods** is now re-named as **gst_type_of_supply** to describe it correctly
+* Resolved blank information related to GST fields in table **mst_stock_item**
+* Table **mst_godown** parent GUID fixed
+* Table row count were not displayed for PostgreSQL when loadmetho was set to file to enable fast data loading, now fixed
+
+Added:
+* 2 more fields in **mst_stock_item** related to GST are added
+* Added two more tables named **mst_stockitem_standard_cost** and **mst_stockitem_standard_price** to capture standard cost/price for the stock items
+
 **Version: 1.0.23 [17-Feb-2024]**<br>
 Fixed:
 * Azure Data Lake Gen2, can now automatically generate *model.json* metadata file based on *tally-export-config.yaml*

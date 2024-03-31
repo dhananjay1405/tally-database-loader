@@ -91,9 +91,11 @@ create table mst_stock_item
  opening_balance number(15,4) default 0,
  opening_rate number(15,4) default 0,
  opening_value number(17,2) default 0,
- gst_nature_of_goods nvarchar2(1024) default '',
+ gst_type_of_supply nvarchar2(32) default '',
  gst_hsn_code nvarchar2(64) default '',
- gst_taxability nvarchar2(1024) default ''
+ gst_hsn_description nvarchar2(256) default '',
+ gst_rate int default 0,
+ gst_taxability nvarchar2(32) default ''
 );
 
 create table mst_cost_category
@@ -141,6 +143,22 @@ create table mst_opening_bill_allocation
  ledger nvarchar2(1024) default '' not null,
  opening_balance number(17,4) default 0,
  bill_date date
+);
+
+create table mst_stockitem_standard_cost
+(
+ item nvarchar2(1024) default '' not null,
+ _item varchar(64) default '' not null,
+ date date,
+ rate decimal(15,4) default 0
+);
+
+create table mst_stockitem_standard_price
+(
+ item nvarchar2(1024) not null default '',
+ _item varchar(64) not null default '',
+ date date,
+ rate decimal(15,4) default 0
 );
 
 create table trn_voucher
