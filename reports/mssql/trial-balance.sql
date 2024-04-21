@@ -6,7 +6,7 @@ with tblop as
  select a.ledger 'ledger', sum(a.amount) 'amount'
  from trn_accounting a
  join trn_voucher v on v.guid = a.guid
- where v.is_accounting_voucher = 1 and v.date < @fromDate
+ where v.is_order_voucher = 0 and v.is_inventory_voucher = 0 and v.date < @fromDate
  group by a.ledger
 ),
 tblcurr as
@@ -16,7 +16,7 @@ tblcurr as
  sum(case when a.amount > 0 then a.amount else 0 end) 'credit'
  from trn_accounting a
  join trn_voucher v on v.guid = a.guid
- where v.is_accounting_voucher = 1 and v.date between @fromDate and @toDate 
+ where v.is_order_voucher = 0 and v.is_inventory_voucher = 0 and v.date between @fromDate and @toDate 
  group by a.ledger
 )
 select l.name,

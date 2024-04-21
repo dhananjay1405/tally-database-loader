@@ -44,6 +44,16 @@ class _database {
             if (lstConfigs.has('database-password')) this.config.password = lstConfigs.get('database-password') || '';
             if (lstConfigs.has('database-ssl')) this.config.ssl = lstConfigs.get('database-ssl') == 'true';
 
+            this.config.technology = this.config.technology.toLowerCase(); //convert technology to lowercase
+            
+            //port = 0 [load default port for]
+            if(this.config.port == 0) {
+                if(this.config.technology == 'mssql') this.config.port = 1433;
+                else if(this.config.technology == 'mysql') this.config.port = 3306;
+                else if(this.config.technology == 'postgres') this.config.port = 5432;
+                else;
+            }
+
         } catch (err) {
             logger.logError('database.updateCommandlineConfig()', err);
             throw err;

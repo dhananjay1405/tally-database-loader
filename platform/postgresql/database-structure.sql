@@ -102,8 +102,12 @@ create table mst_stock_item
  parent varchar(1024) not null default '',
  _parent varchar(64) not null default '',
  alias varchar(256) not null default '',
- uom varchar(1024) not null default '',
+ part_number varchar(256) not null default '',
+ uom varchar(32) not null default '',
  _uom varchar(64) not null default '',
+ alternate_uom varchar(32) not null default '',
+ _alternate_uom varchar(64) not null default '',
+ conversion int not null default 0,
  opening_balance decimal(15,4) default 0,
  opening_rate decimal(15,4) default 0,
  opening_value decimal(17,2) default 0,
@@ -258,6 +262,18 @@ create table trn_bill
  name varchar(1024) not null default '',
  amount decimal(17,2) not null default 0,
  billtype varchar(256) not null default ''
+);
+
+create table trn_bank
+(
+ guid varchar(64) not null default '',
+ ledger varchar(1024) not null default '',
+ _ledger varchar(64) not null default '',
+ transaction_type varchar(32) not null default '',
+ instrument_date date,
+ instrument_number varchar(1024) not null default '',
+ bank_name varchar(64) not null default '',
+ amount decimal(17,2) not null default 0
 );
 
 create table trn_batch

@@ -2,7 +2,7 @@
     "database": {
         "technology": "mssql",
         "server": "localhost",
-        "port": 1433,
+        "port": 0,
         "ssl": false,
         "schema": "tallydb",
         "username": "sa",
@@ -13,7 +13,7 @@
         "server": "localhost",
         "port": 9000,
         "fromdate": "20230401",
-        "todate": "20230401",
+        "todate": "20240331",
         "sync": "full",
         "company": ""
     }

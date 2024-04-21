@@ -17,7 +17,7 @@ tblEntry as
  select v.guid, string_agg(a.ledger, ',') ledgers
  from trn_voucher v
  join trn_accounting a on (a.guid = v.guid and a.ledger <> @ledger)
- where v.guid in (select distinct guid from tblLedger) and v.is_accounting_voucher = 1
+ where v.guid in (select distinct guid from tblLedger) and v.is_order_voucher = 0 and v.is_inventory_voucher = 0
  group by v.guid
 )
 select l.date, l.voucher_number, l.voucher_type, c.ledgers ledgers, l.debit, l.credit, l.narration

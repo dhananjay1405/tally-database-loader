@@ -47,7 +47,7 @@ tblGroupBalance as
 	join mst_vouchertype t on v.voucher_type = t.name
 	join mst_ledger l on a.ledger = l.name
 	join mst_group g on g.name = l.parent
-	where g.is_revenue = 1 and v.is_order_voucher = 0 and t.affects_stock = 0
+	where g.is_revenue = 1 and v.is_order_voucher = 0 and v.is_inventory_voucher = 0 and t.affects_stock = 0
 	group by g.primary_group, l.name
 )
 select * from tblGroupBalance

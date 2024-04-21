@@ -16,13 +16,6 @@
 1. Restart SQL Server: Task Manager > Services > MSSQLSERVER > right click > Restart<br>
 ![SQL Server Service restart](https://excelkida.com/image/github/task-manager-sql-server-service-restart.png)
 
-**Ques:** How to enable MySQL Server invalid authentication mode error ?
-
-**Ans:** In MySQL 8.x new authentication method was introduce. Currently project's MySQL client driver does not support that method. So you will have to modify your MySQL Server settings to **Legacy Authentication Method**. For windows PC follow steps as below:
-1. Run *MySQL Installer Community* and choose re-configure option
-![MySQL Server Window reconfigure server](https://excelkida.com/image/github/mysql-installer-packages-screen.png)
-1. Change method to *Legacy Authentication*
-![MySQL Server Window authentication method](https://excelkida.com/image/github/mysql-installer-authentication-mode-screen.png)
 
 **Ques:** MySQL gives error *Loading local data is disabled; this must be enabled on both the client and server sides*
 

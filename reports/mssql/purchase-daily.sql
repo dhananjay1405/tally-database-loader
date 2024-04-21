@@ -15,7 +15,7 @@ tblDailySales as
  join trn_voucher v on v.guid = a.guid
  join mst_ledger l on l.name = a.ledger
  join mst_group g on g.name = l.parent
- where g.primary_group = 'Purchase Accounts' and v.date >= @fromDate and v.date <= @toDate
+ where g.primary_group = 'Purchase Accounts' and v.is_order_voucher = 0 and v.is_inventory_voucher = 0 and v.date >= @fromDate and v.date <= @toDate
  group by v.date
 )
 select d.value date, isnull(-c.amount, 0) amount

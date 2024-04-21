@@ -69,10 +69,10 @@ class _tally {
         return new Promise<void>(async (resolve, reject) => {
             try {
 
-                logger.logMessage('Tally to Database | version: 1.0.24');
+                logger.logMessage('Tally to Database | version: 1.0.25');
 
                 if (this.config.sync == 'incremental') {
-                    if (/^(mssql|mysql|postgres)$/g.test(database.config.technology)) {
+                    if (/^(mssql|postgres)$/g.test(database.config.technology)) {
 
                         //set mandatory config required for incremental sync
                         this.config.fromdate = 'auto';
@@ -245,7 +245,7 @@ class _tally {
 
                     }
                     else
-                        logger.logMessage('Incremental Sync is supported only for SQL Server / MySQL / PostgreSQL');
+                        logger.logMessage('Incremental Sync is supported only for SQL Server / PostgreSQL');
                 }
                 else { // assume default as full
                     let lstTables: tableConfigYAML[] = [];

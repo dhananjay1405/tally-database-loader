@@ -266,7 +266,7 @@ master:
       collection: StockItem
       nature: Primary
       fetch:
-        - GstDetails
+        - GstDetails,PartNo
       fields:
         - name: guid
           field: Guid
@@ -286,12 +286,24 @@ master:
         - name: alias
           field: OnlyAlias
           type: text
+        - name: part_number
+          field: PartNo
+          type: text
         - name: uom
-          field: BaseUnits
+          field: if $$IsEqual:$BaseUnits:$$SysName:NotApplicable then "" else $BaseUnits
           type: text
         - name: _uom
           field: $Guid:Unit:$BaseUnits
           type: text
+        - name: alternate_uom
+          field: if $$IsEqual:$AdditionalUnits:$$SysName:NotApplicable then "" else $AdditionalUnits
+          type: text
+        - name: _alternate_uom
+          field: $Guid:Unit:$AdditionalUnits
+          type: text
+        - name: conversion
+          field: Conversion
+          type: number
         - name: opening_balance
           field: $$StringFindAndReplace:($$Number:$$String:$OpeningBalance):"(-)":"-"
           type: number
@@ -302,19 +314,19 @@ master:
           field: OpeningValue
           type: amount
         - name: gst_type_of_supply
-          field: GSTTypeofSupply
+          field: GSTMSTTypeofSupply
           type: text
         - name: gst_hsn_code
-          field: _HSNCode
+          field: InfGSTHSNCode
           type: text
         - name: gst_hsn_description
-          field: _HSNDescription
+          field: InfGSTHSNDescription
           type: text
         - name: gst_rate
-          field: _IntegratedTax
+          field: InfGSTIGSTRate
           type: text
         - name: gst_taxability
-          field: if ($$IsEqual:$GstApplicable:($$SysName:Applicable) AND NOT $$IsEmpty:$GstDetails[Last].Taxability) then $GstDetails[Last].Taxability else ""
+          field: InfGSTTaxablility
           type: text
       cascade_update:
         - table: trn_inventory
@@ -582,6 +594,8 @@ transaction:
           field: guid
         - table: trn_bill
           field: guid
+        - table: trn_bank
+          field: guid
         - table: trn_batch
           field: guid
     - name: trn_accounting
@@ -713,6 +727,39 @@ transaction:
         - name: billtype
           field: BillType
           type: text
+    - name: trn_bank
+      collection: Voucher.AllLedgerEntries.BankAllocations
+      nature: Derived
+      fetch:
+        - AllLedgerEntries
+      filters:
+        - NOT $IsCancelled
+        - NOT $IsOptional
+      fields:
+        - name: guid
+          field: Guid
+          type: text
+        - name: ledger
+          field: ..LedgerName
+          type: text
+        - name: _ledger
+          field: $Guid:Ledger:$..LedgerName
+          type: text
+        - name: transaction_type
+          field: TransactionType
+          type: text
+        - name: instrument_date
+          field: InstrumentDate
+          type: date
+        - name: instrument_number
+          field: InstrumentNumber
+          type: text
+        - name: bank_name
+          field: BankName
+          type: text
+        - name: amount
+          field: Amount
+          type: amount
     - name: trn_batch
       collection: Voucher.AllInventoryEntries.BatchAllocations
       nature: Derived
@@ -732,7 +779,7 @@ transaction:
           field: if $$IsEmpty:$StockItemName then "" else $Guid:StockItem:$StockItemName
           type: text
         - name: name
-          field: Name
+          field: BatchName
           type: text
         - name: quantity
           field: ActualQty

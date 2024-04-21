@@ -73,6 +73,8 @@ Quantity fields denotes inward / outward movement as below
 
 **trn_bill**: This table contains bill-wise breakup of purchase/sale invoice or receipt/payment.
 
+**trn_bank**: This table contains bank allocation for Receipt / Payment / Contra type of vouchers.
+
 **trn_cost_centre**: This table contains cost centre wise breakup for individual debit/credit effect of voucher.
 
 **trn_batch**: This table contains godown-wise breakup for individual inward/outward effect of voucher.
@@ -107,18 +109,11 @@ All the tables are related to each other with **one-to-many** relationship. The 
 |trn_voucher(guid)|trn_inventory(guid)|
 |trn_voucher(guid)|trn_cost_centre(guid)|
 |trn_voucher(guid)|trn_bill(guid)|
+|trn_voucher(guid)|trn_bank(guid)|
 |trn_voucher(guid)|trn_batch(guid)|
 
 
 
 ## Closing Balance
 Tally does not create any voucher entry for the closing stock. Instead, it stores declared value of closing stock on respective date, in table **Ledger** in a field named **Ledger Closing Values** which holds table inside it.
-
-
-
-
-
-
-
-
 

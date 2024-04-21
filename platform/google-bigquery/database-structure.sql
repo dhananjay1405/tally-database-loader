@@ -102,8 +102,12 @@ create table tallydb.mst_stock_item
  parent string(1024) not null,
  _parent string(64) not null,
  alias string(256) not null,
- uom string(1024) not null,
+ part_number string(256) not null,
+ uom string(32) not null,
  _uom string(64) not null,
+ alternate_uom string(32) not null,
+ _alternate_uom string(64) not null,
+ conversion int not null,
  opening_balance decimal(15,4),
  opening_rate decimal(15,4),
  opening_value decimal(17,2),
@@ -177,7 +181,7 @@ create table tallydb.trn_closingstock_ledger
  stock_value decimal(17,2) not null
 );
 
-create table mst_stockitem_standard_cost
+create table tallydb.mst_stockitem_standard_cost
 (
  item string(1024) not null,
  _item string(64) not null,
@@ -185,7 +189,7 @@ create table mst_stockitem_standard_cost
  rate decimal(15,4)
 );
 
-create table mst_stockitem_standard_price
+create table tallydb.mst_stockitem_standard_price
 (
  item string(1024) not null,
  _item string(64) not null,
@@ -258,6 +262,18 @@ create table tallydb.trn_bill
  name string(1024) not null,
  amount decimal(17,2) not null,
  billtype string(256) not null
+);
+
+create table tallydb.trn_bank
+(
+ guid string(64) not null,
+ ledger string(1024) not null,
+ _ledger string(64) not null,
+ transaction_type string(32) not null,
+ instrument_date date,
+ instrument_number string(1024) not null,
+ bank_name string(64) not null,
+ amount decimal(17,2) not null
 );
 
 create table tallydb.trn_batch

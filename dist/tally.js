@@ -70,9 +70,9 @@ class _tally {
     importData() {
         return new Promise(async (resolve, reject) => {
             try {
-                logger_js_1.logger.logMessage('Tally to Database | version: 1.0.24');
+                logger_js_1.logger.logMessage('Tally to Database | version: 1.0.25');
                 if (this.config.sync == 'incremental') {
-                    if (/^(mssql|mysql|postgres)$/g.test(database_js_1.database.config.technology)) {
+                    if (/^(mssql|postgres)$/g.test(database_js_1.database.config.technology)) {
                         //set mandatory config required for incremental sync
                         this.config.fromdate = 'auto';
                         this.config.todate = 'auto';
@@ -221,7 +221,7 @@ class _tally {
                         await database_js_1.database.executeNonQuery('drop table _vchnumber;');
                     }
                     else
-                        logger_js_1.logger.logMessage('Incremental Sync is supported only for SQL Server / MySQL / PostgreSQL');
+                        logger_js_1.logger.logMessage('Incremental Sync is supported only for SQL Server / PostgreSQL');
                 }
                 else { // assume default as full
                     let lstTables = [];

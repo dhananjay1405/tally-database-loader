@@ -1,5 +1,17 @@
 ## Release History
 
+**Version: 1.0.25 [21-Apr-2024]**<br>
+Fixed:
+* GST fields were not displaying correct value in **mst_stock_item** table, now fixed.
+* Batch Name in table **trn_batch** was displaying blank, now fixed.
+* **port** setting under database in **config.json** file can be kept to value as **0** which will apply default port settings.
+
+Added:
+* alternate unit and conversion field added in table **mst_stock_item** for reporting purpose.
+* table **trn_bank** introuduced to capture banking related information for receipt / payment / contra vouchers.
+* Powershell scripts to determine names of open companies in Tally
+* Powershell scripts to automate multi company sync
+
 **Version: 1.0.24 [31-Mar-2024]**<br>
 Fixed:
 * In table **mst_stock_item** field name **gst_nature_of_goods** is now re-named as **gst_type_of_supply** to describe it correctly
