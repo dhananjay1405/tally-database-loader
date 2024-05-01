@@ -157,19 +157,19 @@ There are two types of impacts which voucher might effect
 A specific voucher type might have impact on any of them, both or none. Below is the list for reference
 |Voucher Type|Accounting|Inventory|
 |---|---|---|
-|Journal|:green-circle:||
-|Receipt|:green-circle:||
-|Payment|:green-circle:||
-|Contra|:green-circle:||
-|Purchase|:green-circle:||
-|Sales|:green-circle:||
-|Credit Note|:green-circle:||
-|Debit Note|:green-circle:||
+|Journal| :heavy_check_mark: ||
+|Receipt| :heavy_check_mark: ||
+|Payment| :heavy_check_mark: ||
+|Contra| :heavy_check_mark: ||
+|Purchase| :heavy_check_mark: ||
+|Sales| :heavy_check_mark: ||
+|Credit Note| :heavy_check_mark: ||
+|Debit Note| :heavy_check_mark: ||
 |Purchase Order|||
 |Sales Order|||
-|Receipt Note||:green-circle:|
-|Delivery Note||:green-circle:|
-|Stock Journal||:green-circle:|
+|Receipt Note|| :heavy_check_mark: |
+|Delivery Note|| :heavy_check_mark: |
+|Stock Journal|| :heavy_check_mark: |
 
 Note: Purchase / Sales voucher has inventory impact only if stock items are used in the voucher.
 
@@ -187,8 +187,8 @@ In many organizations, certain business processes consists of multiple events, i
 
 ```mermaid
 flowchart LR
-	Purchase Order --> Goods Receipt Note --> Purchase
-	Sales Order --> Goods Delivery Note --> Sales
+	id1[Purchase Order] --> id2[Goods Receipt Note] --> id3[Purchase]
+	id1[Sales Order] --> id2[Goods Delivery Note] --> id3[Sales]
 ```
 
 An organization might not follow above workflow to keep things simple. Like, smaller organizations prefer to simply record Purchase & Sales voucher directly. Some organization might skip order vouchers. Also, an organization might not have events in the exact order defined in above workflow, like Sales vouchers might be recorded before Goods Delivery Note voucher.
