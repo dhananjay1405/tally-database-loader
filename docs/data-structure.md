@@ -185,9 +185,15 @@ Note voucher always have inventory effect. But in certain scenario, these vouche
 ## Concept of Workflow
 In many organizations, certain business processes consists of multiple events, in the form of chain of events captured as individual vouchers. This setup is known as workflow. Following business activities generally has defined workflow, captured as multiple vouchers in Tally Prime as below
 
+### Purchase Workflow
 ```mermaid
 flowchart LR
 	id1[Purchase Order] --> id2[Goods Receipt Note] --> id3[Purchase]
+```
+
+### Sales Workflow
+```mermaid
+flowchart LR
 	id1[Sales Order] --> id2[Goods Delivery Note] --> id3[Sales]
 ```
 
