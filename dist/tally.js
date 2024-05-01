@@ -69,8 +69,9 @@ class _tally {
     }
     importData() {
         return new Promise(async (resolve, reject) => {
+            var _a, _b;
             try {
-                logger_js_1.logger.logMessage('Tally to Database | version: 1.0.25');
+                logger_js_1.logger.logMessage('Tally to Database | version: 1.0.26');
                 if (this.config.sync == 'incremental') {
                     if (/^(mssql|postgres)$/g.test(database_js_1.database.config.technology)) {
                         //set mandatory config required for incremental sync
@@ -302,7 +303,7 @@ class _tally {
                                     skipLeadingRows: 1,
                                     writeDisposition: 'WRITE_TRUNCATE'
                                 });
-                                logger_js_1.logger.logMessage('  %s: imported', targetTable);
+                                logger_js_1.logger.logMessage('  %s: imported %d rows', targetTable, parseInt(((_b = (_a = job.statistics) === null || _a === void 0 ? void 0 : _a.load) === null || _b === void 0 ? void 0 : _b.outputRows) || '0'));
                             }
                         }
                         //upload CSV files to Azure Data Lake

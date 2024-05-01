@@ -38,8 +38,8 @@ Commandline utility to load data into Database Server from Tally software, inten
 <br><br>
 
 ## Version
-Latest Version: **1.0.25**<br>
-Updated on: **21-Apr-2024**
+Latest Version: **1.0.26**<br>
+Updated on: **01-May-2024**
 
 *Note: I keep on fixing utility and adding fields into database. So you are requested to re-create existing databases and re-download utility folder *
 
@@ -73,7 +73,7 @@ Preferred versions:
 
 Database Loader Utility is portable, and does not have a setup wizard like we find for software installation. Zip archive of utility can be downloaded from below link. Kindly use open-source &amp; free software [7-zip file archiver](https://www.7-zip.org/download.html) to un-compress utility archive.
 
-[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.25.7z)
+[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.26.7z)
 
 Also, it is a commandline utility having no window interface (to keep it minimal and faster)
 

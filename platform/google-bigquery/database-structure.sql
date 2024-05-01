@@ -7,10 +7,8 @@ create table tallydb.config
 create table tallydb.mst_group
 (
  guid string(64) not null,
- alterid int not null,
  name string(1024) not null,
  parent string(1024) not null,
- _parent string(64) not null,
  primary_group string(1024) not null,
  is_revenue tinyint,
  is_deemedpositive tinyint,
@@ -22,10 +20,8 @@ create table tallydb.mst_group
 create table tallydb.mst_ledger
 (
  guid string(64) not null,
- alterid int not null,
  name string(1024) not null ,
  parent string(1024) not null ,
- _parent string(64) not null,
  alias string(256) not null,
  is_revenue tinyint,
  is_deemedpositive tinyint,
@@ -54,10 +50,8 @@ create table tallydb.mst_ledger
 create table tallydb.mst_vouchertype
 (
  guid string(64) not null,
- alterid int not null,
  name string(1024) not null,
  parent string(1024) not null,
- _parent string(64) not null,
  numbering_method string(64) not null,
  is_deemedpositive tinyint,
  affects_stock tinyint
@@ -66,7 +60,6 @@ create table tallydb.mst_vouchertype
 create table tallydb.mst_uom
 (
  guid string(64) not null,
- alterid int not null,
  name string(1024) not null,
  formalname string(256) not null,
  is_simple_unit tinyint not null,
@@ -78,35 +71,27 @@ create table tallydb.mst_uom
 create table tallydb.mst_godown
 (
  guid string(64) not null,
- alterid int not null,
  name string(1024) not null,
  parent string(1024) not null,
- _parent string(64) not null,
  address string(1024) not null
 );
 
 create table tallydb.mst_stock_group
 (
  guid string(64) not null,
- alterid int not null,
  name string(1024) not null,
- parent string(1024) not null,
- _parent string(64) not null
+ parent string(1024) not null
 );
 
 create table tallydb.mst_stock_item
 (
  guid string(64) not null,
- alterid int not null,
  name string(1024) not null,
  parent string(1024) not null,
- _parent string(64) not null,
  alias string(256) not null,
  part_number string(256) not null,
  uom string(32) not null,
- _uom string(64) not null,
  alternate_uom string(32) not null,
- _alternate_uom string(64) not null,
  conversion int not null,
  opening_balance decimal(15,4),
  opening_rate decimal(15,4),
@@ -121,7 +106,6 @@ create table tallydb.mst_stock_item
 create table tallydb.mst_cost_category
 (
  guid string(64) not null,
- alterid int not null,
  name string(1024) not null,
  allocate_revenue tinyint,
  allocate_non_revenue tinyint
@@ -130,17 +114,14 @@ create table tallydb.mst_cost_category
 create table tallydb.mst_cost_centre
 (
  guid string(64) not null,
- alterid int not null,
  name string(1024) not null,
  parent string(1024) not null,
- _parent string(64) not null,
  category string(1024) not null
 );
 
 create table tallydb.mst_gst_effective_rate
 (
  item string(1024) not null,
- _item string(64) not null,
  applicable_from date,
  hsn_description string(256) not null,
  hsn_code string(64) not null,
@@ -155,19 +136,16 @@ create table tallydb.mst_gst_effective_rate
 create table tallydb.mst_opening_batch_allocation
 (
  item string(1024) not null,
- _item string(64) not null,
  opening_balance decimal(15,4),
  opening_rate decimal(15,4),
  opening_value decimal(17,2),
  godown string(1024) not null,
- _godown string(64) not null,
  manufactured_on date
 );
 
 create table tallydb.mst_opening_bill_allocation
 (
  ledger string(1024) not null,
- _ledger string(64) not null,
  opening_balance decimal(17,4),
  bill_date date,
  name string(1024) not null
@@ -176,7 +154,6 @@ create table tallydb.mst_opening_bill_allocation
 create table tallydb.trn_closingstock_ledger
 (
  ledger string(1024) not null,
- _ledger string(64) not null,
  stock_date date,
  stock_value decimal(17,2) not null
 );
@@ -184,7 +161,6 @@ create table tallydb.trn_closingstock_ledger
 create table tallydb.mst_stockitem_standard_cost
 (
  item string(1024) not null,
- _item string(64) not null,
  date date,
  rate decimal(15,4)
 );
@@ -192,7 +168,6 @@ create table tallydb.mst_stockitem_standard_cost
 create table tallydb.mst_stockitem_standard_price
 (
  item string(1024) not null,
- _item string(64) not null,
  date date,
  rate decimal(15,4)
 );
@@ -200,16 +175,13 @@ create table tallydb.mst_stockitem_standard_price
 create table tallydb.trn_voucher
 (
  guid string(64) not null,
- alterid int not null,
  date date not null,
  voucher_type string(1024) not null,
- _voucher_type string(64) not null,
  voucher_number string(64) not null,
  reference_number string(64) not null,
  reference_date date,
  narration string(4000) not null,
  party_name string(256) not null,
- _party_name string(64) not null,
  place_of_supply string(256) not null,
  is_invoice tinyint,
  is_accounting_voucher tinyint,
@@ -221,7 +193,6 @@ create table tallydb.trn_accounting
 (
  guid string(64) not null,
  ledger string(1024) not null,
- _ledger string(64) not null,
  amount decimal(17,2) not null,
  amount_forex decimal(17,2) not null,
  currency string(16) not null
@@ -231,14 +202,12 @@ create table tallydb.trn_inventory
 (
  guid string(64) not null,
  item string(1024) not null,
- _item string(64) not null,
  quantity decimal(15,4) not null,
  rate decimal(15,4) not null,
  amount decimal(17,2) not null,
  additional_amount decimal(17,2) not null,
  discount_amount decimal(17,2) not null,
  godown string(1024),
- _godown string(64) not null,
  tracking_number string(256),
  order_number string(256),
  order_duedate date
@@ -248,9 +217,7 @@ create table tallydb.trn_cost_centre
 (
  guid string(64) not null,
  ledger string(1024) not null,
- _ledger string(64) not null,
  costcentre string(1024) not null,
- _costcentre string(64) not null,
  amount decimal(17,2) not null
 );
 
@@ -258,7 +225,6 @@ create table tallydb.trn_bill
 (
  guid string(64) not null,
  ledger string(1024) not null,
- _ledger string(64) not null,
  name string(1024) not null,
  amount decimal(17,2) not null,
  billtype string(256) not null
@@ -268,7 +234,6 @@ create table tallydb.trn_bank
 (
  guid string(64) not null,
  ledger string(1024) not null,
- _ledger string(64) not null,
  transaction_type string(32) not null,
  instrument_date date,
  instrument_number string(1024) not null,
@@ -280,13 +245,10 @@ create table tallydb.trn_batch
 (
  guid string(64) not null,
  item string(1024) not null,
- _item string(64) not null,
  name string(1024) not null,
  quantity decimal(15,4) not null,
  amount decimal(17,2) not null,
  godown string(1024),
- _godown string(64) not null,
  destination_godown string(1024),
- _destination_godown string(64) not null,
  tracking_number string(1024)
 );

@@ -7,10 +7,8 @@ create table config
 create table mst_group
 (
  guid varchar(64) not null primary key,
- alterid int not null default 0,
  name varchar(1024) not null default '',
  parent varchar(1024) not null default '',
- _parent varchar(64) not null default '',
  primary_group varchar(1024) not null default '',
  is_revenue smallint,
  is_deemedpositive smallint,
@@ -22,10 +20,8 @@ create table mst_group
 create table mst_ledger
 (
  guid varchar(64) not null primary key,
- alterid int not null default 0,
  name varchar(1024) not null default '',
  parent varchar(1024) not null default '',
- _parent varchar(64) not null default '',
  alias varchar(256) not null default '',
  is_revenue smallint,
  is_deemedpositive smallint,
@@ -54,10 +50,8 @@ create table mst_ledger
 create table mst_vouchertype
 (
  guid varchar(64) not null primary key,
- alterid int not null default 0,
  name varchar(1024) not null default '',
  parent varchar(1024) not null default '',
- _parent varchar(64) not null default '',
  numbering_method varchar(64) not null default '',
  is_deemedpositive smallint,
  affects_stock smallint
@@ -66,7 +60,6 @@ create table mst_vouchertype
 create table mst_uom
 (
  guid varchar(64) not null primary key,
- alterid int not null default 0,
  name varchar(1024) not null default '',
  formalname varchar(256) not null default '',
  is_simple_unit smallint not null,
@@ -78,35 +71,27 @@ create table mst_uom
 create table mst_godown
 (
  guid varchar(64) not null primary key,
- alterid int not null default 0,
  name varchar(1024) not null default '',
  parent varchar(1024) not null default '',
- _parent varchar(64) not null default '',
  address varchar(1024) not null default ''
 );
 
 create table mst_stock_group
 (
  guid varchar(64) not null primary key,
- alterid int not null default 0,
  name varchar(1024) not null default '',
- parent varchar(1024) not null default '',
- _parent varchar(64) not null default ''
+ parent varchar(1024) not null default ''
 );
 
 create table mst_stock_item
 (
  guid varchar(64) not null primary key,
- alterid int not null default 0,
  name varchar(1024) not null default '',
  parent varchar(1024) not null default '',
- _parent varchar(64) not null default '',
  alias varchar(256) not null default '',
  part_number varchar(256) not null default '',
  uom varchar(32) not null default '',
- _uom varchar(64) not null default '',
  alternate_uom varchar(32) not null default '',
- _alternate_uom varchar(64) not null default '',
  conversion int not null default 0,
  opening_balance decimal(15,4) default 0,
  opening_rate decimal(15,4) default 0,
@@ -121,7 +106,6 @@ create table mst_stock_item
 create table mst_cost_category
 (
  guid varchar(64) not null primary key,
- alterid int not null default 0,
  name varchar(1024) not null default '',
  allocate_revenue smallint,
  allocate_non_revenue smallint
@@ -130,17 +114,14 @@ create table mst_cost_category
 create table mst_cost_centre
 (
  guid varchar(64) not null primary key,
- alterid int not null default 0,
  name varchar(1024) not null default '',
  parent varchar(1024) not null default '',
- _parent varchar(64) not null default '',
  category varchar(1024) not null default ''
 );
 
 create table mst_gst_effective_rate
 (
  item varchar(1024) not null default '',
- _item varchar(64) not null default '',
  applicable_from date,
  hsn_description varchar(256) not null default '',
  hsn_code varchar(64) not null default '',
@@ -155,19 +136,16 @@ create table mst_gst_effective_rate
 create table mst_opening_batch_allocation
 (
  item varchar(1024) not null default '',
- _item varchar(64) not null default '',
  opening_balance decimal(15,4) default 0,
  opening_rate decimal(15,4) default 0,
  opening_value decimal(17,2) default 0,
  godown varchar(1024) not null default '',
- _godown varchar(64) not null default '',
  manufactured_on date
 );
 
 create table mst_opening_bill_allocation
 (
  ledger varchar(1024) not null default '',
- _ledger varchar(64) not null default '',
  opening_balance decimal(17,4) default 0,
  bill_date date,
  name varchar(1024) not null default ''
@@ -176,7 +154,6 @@ create table mst_opening_bill_allocation
 create table trn_closingstock_ledger
 (
  ledger varchar(1024) not null default '',
- _ledger varchar(64) not null default '',
  stock_date date,
  stock_value decimal(17,2) not null default 0
 );
@@ -184,7 +161,6 @@ create table trn_closingstock_ledger
 create table mst_stockitem_standard_cost
 (
  item varchar(1024) not null default '',
- _item varchar(64) not null default '',
  date date,
  rate decimal(15,4) default 0
 );
@@ -192,7 +168,6 @@ create table mst_stockitem_standard_cost
 create table mst_stockitem_standard_price
 (
  item varchar(1024) not null default '',
- _item varchar(64) not null default '',
  date date,
  rate decimal(15,4) default 0
 );
@@ -200,16 +175,13 @@ create table mst_stockitem_standard_price
 create table trn_voucher
 (
  guid varchar(64) not null primary key,
- alterid int not null default 0,
  date date not null,
  voucher_type varchar(1024) not null,
- _voucher_type varchar(64) not null default '',
  voucher_number varchar(64) not null default '',
  reference_number varchar(64) not null default '',
  reference_date date,
  narration varchar(4000) not null default '',
  party_name varchar(256) not null,
- _party_name varchar(64) not null default '',
  place_of_supply varchar(256) not null,
  is_invoice smallint,
  is_accounting_voucher smallint,
@@ -221,7 +193,6 @@ create table trn_accounting
 (
  guid varchar(64) not null default '',
  ledger varchar(1024) not null default '',
- _ledger varchar(64) not null default '',
  amount decimal(17,2) not null default 0,
  amount_forex decimal(17,2) not null default 0,
  currency varchar(16) not null default ''
@@ -231,14 +202,12 @@ create table trn_inventory
 (
  guid varchar(64) not null default '',
  item varchar(1024) not null default '',
- _item varchar(64) not null default '',
  quantity decimal(15,4) not null default 0,
  rate decimal(15,4) not null default 0,
  amount decimal(17,2) not null default 0,
  additional_amount decimal(17,2) not null default 0,
  discount_amount decimal(17,2) not null default 0,
  godown varchar(1024),
- _godown varchar(64) not null default '',
  tracking_number varchar(256),
  order_number varchar(256),
  order_duedate date
@@ -248,7 +217,6 @@ create table trn_cost_centre
 (
  guid varchar(64) not null default '',
  ledger varchar(1024) not null default '',
- _ledger varchar(64) not null default '',
  costcentre varchar(1024) not null default '',
  _costcentre varchar(64) not null default '',
  amount decimal(17,2) not null default 0
@@ -258,7 +226,6 @@ create table trn_bill
 (
  guid varchar(64) not null default '',
  ledger varchar(1024) not null default '',
- _ledger varchar(64) not null default '',
  name varchar(1024) not null default '',
  amount decimal(17,2) not null default 0,
  billtype varchar(256) not null default ''
@@ -268,7 +235,6 @@ create table trn_bank
 (
  guid varchar(64) not null default '',
  ledger varchar(1024) not null default '',
- _ledger varchar(64) not null default '',
  transaction_type varchar(32) not null default '',
  instrument_date date,
  instrument_number varchar(1024) not null default '',
@@ -280,13 +246,10 @@ create table trn_batch
 (
  guid varchar(64) not null default '',
  item varchar(1024) not null default '',
- _item varchar(64) not null default '',
  name varchar(1024) not null default '',
  quantity decimal(15,4) not null default 0,
  amount decimal(17,2) not null default 0,
  godown varchar(1024),
- _godown varchar(64) not null default '',
  destination_godown varchar(1024),
- _destination_godown varchar(64) not null default '',
  tracking_number varchar(1024)
 );

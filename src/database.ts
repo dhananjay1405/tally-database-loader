@@ -657,7 +657,8 @@ class _database {
                         port: this.config.port,
                         trustServerCertificate: true,
                         encrypt: this.config.ssl,
-                        rowCollectionOnRequestCompletion: true
+                        rowCollectionOnRequestCompletion: true,
+                        requestTimeout: 0
                     }
                 });
                 connection.on('connect', (connErr) => {

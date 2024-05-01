@@ -69,7 +69,7 @@ class _tally {
         return new Promise<void>(async (resolve, reject) => {
             try {
 
-                logger.logMessage('Tally to Database | version: 1.0.25');
+                logger.logMessage('Tally to Database | version: 1.0.26');
 
                 if (this.config.sync == 'incremental') {
                     if (/^(mssql|postgres)$/g.test(database.config.technology)) {
@@ -336,7 +336,7 @@ class _tally {
                                     skipLeadingRows: 1,
                                     writeDisposition: 'WRITE_TRUNCATE'
                                 });
-                                logger.logMessage('  %s: imported', targetTable);
+                                logger.logMessage('  %s: imported %d rows', targetTable, parseInt(job.statistics?.load?.outputRows || '0'));
                             }
 
                         }

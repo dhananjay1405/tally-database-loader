@@ -1,5 +1,15 @@
 ## Release History
 
+**Version: 1.0.26 [01-May-2024]**<br>
+Fixed:
+* Count of rows imported now displayed for Google BigQuery.
+* Timeout error where query for SQL Server used to take more than 15000 ms.
+
+Added:
+* Documentation now enhanced.
+
+Note: As incremental sync is not stable &amp; very less users using it, so the default structure is reverted back to full sync version. Incremental sync compatible version of the file **database-structure.sql** and **tally-export-config.yaml** have been moved to folder **incremental**. Users interested in experimenting this feature should download and overwrite this folders files on the existing.
+
 **Version: 1.0.25 [21-Apr-2024]**<br>
 Fixed:
 * GST fields were not displaying correct value in **mst_stock_item** table, now fixed.
