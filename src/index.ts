@@ -27,14 +27,17 @@ let cmdConfig = parseCommandlineOptions();
 database.updateCommandlineConfig(cmdConfig);
 tally.updateCommandlineConfig(cmdConfig);
 
+let exitCode = 0;
 //start import process
 tally.importData()
     .then(() => {
         logger.logMessage('Import completed successfully [%s]', new Date().toLocaleString());
-        setTimeout(() => process.exit(0), 100); //exit process success code
-
     })
     .catch(() => {
         logger.logMessage('Error in importing data\r\nPlease check error-log.txt file for detailed errors [%s]', new Date().toLocaleString());
-        setTimeout(() => process.exit(1), 100); //exit process with error code
+        exitCode = 1;
+    })
+    .finally(() => {
+        logger.closeStreams();
+        setTimeout(() => process.exit(exitCode), 100); //exit process success/exit code
     });

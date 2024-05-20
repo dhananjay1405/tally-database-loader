@@ -38,10 +38,14 @@ Commandline utility to load data into Database Server from Tally software, inten
 <br><br>
 
 ## Version
-Latest Version: **1.0.26**<br>
-Updated on: **01-May-2024**
+Latest Version: **1.0.27**<br>
+Updated on: **20-May-2024**
 
-*Note: I keep on fixing utility and adding fields into database. So you are requested to re-create existing databases and re-download utility folder *
+Note:
+1. I keep on fixing utility and adding fields into database. So you are requested to re-create existing databases and re-download utility folder
+2. Incremental sync now works for SQL Server / MySQL / PostgreSQL. Going forward two separate version of **database-structure** and **tally-export-config** will be maintained. Files with suffix **incremental** are to be used for **incremental** sync &amp; other are for **full** sync.
+3. Structure of config.json file is changed slightly to introduce dynamic switching of tally-export-config file for mode of sync
+
 
 <br><br>
 
@@ -73,7 +77,7 @@ Preferred versions:
 
 Database Loader Utility is portable, and does not have a setup wizard like we find for software installation. Zip archive of utility can be downloaded from below link. Kindly use open-source &amp; free software [7-zip file archiver](https://www.7-zip.org/download.html) to un-compress utility archive.
 
-[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.26.7z)
+[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.27.7z)
 
 Also, it is a commandline utility having no window interface (to keep it minimal and faster)
 
@@ -186,8 +190,11 @@ Kindly override configurations, as per respective Database Server setup
 ### Tally Options
 Few of the options of Tally may need modification, if default settings of Tally are specifically over-ridden (due to port clashes). A sample configuration of tally is demonstrated as below
 
+## Full sync
+
 ```json
 "tally": {
+     "definition": "tally-export-config.yaml",
      "server": "localhost",
      "port": 9000,
      "fromdate" : "20230401",
@@ -197,8 +204,23 @@ Few of the options of Tally may need modification, if default settings of Tally 
 }
 ```
 
+## Incremental sync
+
+```json
+"tally": {
+     "definition": "tally-export-config-incremental.yaml",
+     "server": "localhost",
+     "port": 9000,
+     "fromdate" : "auto",
+     "todate" : "auto",
+     "sync": "incremental",
+     "company": ""
+}
+```
+
 | Setting | Value |
 | --- | --- |
+| definition | Name of export config file in the utility folder. This setting is to be used for easy switching between incremental and full sync, as both the files contains different structure  |
 | server | IP Address or Computer Name on which Tally XML Server is running (**localhost** is default value equivalent of IP Address 127.0.0.1). Change this if you need to capture data from a Tally running on different PC on your LAN |
 | port | By default Tally runs XML Server on port number **9000**. Modify this if you have assigned different port number in Tally XML Server settings (typically done when you want run Tally.ERP 9 and Tally Prime both at a same time parallely, where you will be changing this port number) |
 | master / transaction | **true** = Export master/transaction data from Tally (*default*) <br> **false** = Skip master/transaction data |

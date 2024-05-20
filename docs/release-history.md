@@ -1,5 +1,13 @@
 ## Release History
 
+**Version: 1.0.26 [20-May-2024]**<br>
+Fixed:
+* Field GSTN and GST Registration Type were populated as blank in few scenario. Extration expression fixed to handle those scenarios
+* Optimizations in incremental sync to speed it up
+
+Added:
+* Incremental Sync is not supported for PostgreSQL &amp; MySQL
+
 **Version: 1.0.26 [01-May-2024]**<br>
 Fixed:
 * Count of rows imported now displayed for Google BigQuery.

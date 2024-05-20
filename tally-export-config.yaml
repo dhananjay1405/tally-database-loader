@@ -80,10 +80,10 @@ master:
           field: IncomeTaxNumber
           type: text
         - name: gstn
-          field: Partygstin
+          field: if $$IsEmpty:$PartyGSTIN then $LedGSTRegDetails[Last].GSTIN else $PartyGSTIN
           type: text
         - name: gst_registration_type
-          field: Gstregistrationtype
+          field: if $$IsEmpty:$Gstregistrationtype then $LedGSTRegDetails[Last].Gstregistrationtype else $Gstregistrationtype
           type: text
         - name: gst_supply_type
           field: Gsttypeofsupply

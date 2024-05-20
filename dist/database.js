@@ -121,7 +121,7 @@ class _database {
             }
         }
         catch (err) {
-            logger_js_1.logger.logError('database.executeDb2()', err);
+            logger_js_1.logger.logError('database.csvToJsonArray()', err);
         }
         return retval;
     }

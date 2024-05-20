@@ -97,10 +97,10 @@ master:
           field: IncomeTaxNumber
           type: text
         - name: gstn
-          field: Partygstin
+          field: if $$IsEmpty:$PartyGSTIN then $LedGSTRegDetails[Last].GSTIN else $PartyGSTIN
           type: text
         - name: gst_registration_type
-          field: Gstregistrationtype
+          field: if $$IsEmpty:$Gstregistrationtype then $LedGSTRegDetails[Last].Gstregistrationtype else $Gstregistrationtype
           type: text
         - name: gst_supply_type
           field: Gsttypeofsupply
@@ -135,6 +135,8 @@ master:
         - table: trn_cost_centre
           field: ledger
         - table: trn_bill
+          field: ledger
+        - table: trn_bank
           field: ledger
       cascade_delete:
         - table: mst_opening_bill_allocation
@@ -333,10 +335,18 @@ master:
           field: item
         - table: trn_batch
           field: item
+        - table: mst_stockitem_standard_cost
+          field: item
+        - table: mst_stockitem_standard_price
+          field: item
       cascade_delete:
         - table: mst_gst_effective_rate
           field: _item
         - table: mst_opening_batch_allocation
+          field: _item
+        - table: mst_stockitem_standard_cost
+          field: _item
+        - table: mst_stockitem_standard_price
           field: _item
     - name: mst_cost_category
       collection: CostCategory

@@ -117,7 +117,7 @@ class _database {
                 retval.push(objRow);
             }
         } catch (err) {
-            logger.logError('database.executeDb2()', err);
+            logger.logError('database.csvToJsonArray()', err);
         }
         return retval;
     }

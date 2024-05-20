@@ -25,14 +25,18 @@ function parseCommandlineOptions() {
 let cmdConfig = parseCommandlineOptions();
 database_js_1.database.updateCommandlineConfig(cmdConfig);
 tally_js_1.tally.updateCommandlineConfig(cmdConfig);
+let exitCode = 0;
 //start import process
 tally_js_1.tally.importData()
     .then(() => {
     logger_js_1.logger.logMessage('Import completed successfully [%s]', new Date().toLocaleString());
-    setTimeout(() => process.exit(0), 100); //exit process success code
 })
     .catch(() => {
     logger_js_1.logger.logMessage('Error in importing data\r\nPlease check error-log.txt file for detailed errors [%s]', new Date().toLocaleString());
-    setTimeout(() => process.exit(1), 100); //exit process with error code
+    exitCode = 1;
+})
+    .finally(() => {
+    logger_js_1.logger.closeStreams();
+    setTimeout(() => process.exit(exitCode), 100); //exit process success/exit code
 });
 //# sourceMappingURL=index.js.map

@@ -10,6 +10,7 @@
         "loadmethod": "file"
     },
     "tally": {
+        "definition": "tally-export-config.yaml",
         "server": "localhost",
         "port": 9000,
         "fromdate": "20230401",

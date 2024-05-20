@@ -4,25 +4,28 @@
 Time to sync is dependent on the volumn of data in the Tally. In few scenario where data is huge, sync time can be very long.
 Utility supports 2 types of sync
 
-**Full**: Complete data is sync to database freshly
+**full**: Complete data is sync to database freshly
 
-**Incremental**: Only that portion of data is sync which got added / modified / deleted from the last sync point
+**incremental**: Only that portion of data is sync which got added / modified / deleted from the last sync point
 
-## Steps
-To perform incremental sync, it is a pre-requisite that a Full sync must be done as a starting point. After a successful Full sync, *config.json* can be edited and sync can be changed to Incremental for future.
+## Steps for incremental sync
+1. Delete and re-create database using file **database-structure-incremental.sql**
+1. In the **config.json** file, set *sync* setting value to **incremental** and *definition* to **tally-export-config-incremental.yaml** . From/To date is ignored and set to auto internally.
+1. Carefully set name of the target company of Tally in *company* setting, as it is not advisable to keep company name blank which picks data from active company which could cause mess if it points to incorrect database
+1. Run the **run.bat** file
+1. Schedule sync to run automatically using *Windows Task Schedular*
 
 ## Compatibility
 Incremental sync option is compatible only for RDBMS types of database i.e.
 1. SQL Server
+1. MySQL Server
 1. PostgreSQL Server
 
-MySQL / MariaDB, incremental sync is experience issues. So kindly use it at your own risk.
-
-Google BigQuery read operation incurs cost. So incremental sync might shoot billing compared to full sync. So, incremental sync option is delibarely not provided for BigQuery. CSV file mode too does not support incremental sync.
+Incremental sync for Google BigQuery is currently not introduced, as data loading in Google BigQuery incurs high cost beyond free usage limit.
 
 ## Incremental Sync - Known Limitations
 * Date From/To parameter of config.json is disabled during incremental sync (it is set to *auto* as a default), as utility cannot track if changes to data outside period were made or not.
 * During prelimnary Full sync required for subsequent incremental sync, period should be kept as *auto*
 * Existing data should not be deleted from database manually using DELETE / TRUNCATE SQL command when using incremental sync, as it may break sync and cause data ingegrity issues
 * Setting incorrect database name in subsequency incremental sync will cause data integrity issues.
-* **Incremental** sync option needs to be used judiciously when it is bare necessity. Prefer **Full** sync which is safe compared to incremental sync.
+* **incremental** sync option needs to be used judiciously when it is bare necessity. Prefer **full** sync which is safe compared to incremental sync.

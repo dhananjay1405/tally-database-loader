@@ -41,6 +41,10 @@ class _logger {
             this._console.error(errorLog); //file console
         }
     }
+    closeStreams() {
+        this.streamMessage.close();
+        this.streamError.close();
+    }
 }
 let logger = new _logger();
 exports.logger = logger;

@@ -18,6 +18,7 @@ class _logger {
         this.streamMessage = fs.createWriteStream('./import-log.txt', { encoding: 'utf-8' });
         this.streamError = fs.createWriteStream('./error-log.txt', { encoding: 'utf-8' });
         this._console = new console.Console(this.streamMessage, this.streamError);
+        
     }
 
     logMessage(message: string, ...params: any[]): void {
@@ -47,6 +48,11 @@ class _logger {
             console.error(errorLog); //graphical console
             this._console.error(errorLog); //file console
         }
+    }
+
+    closeStreams() {
+        this.streamMessage.close();
+        this.streamError.close();
     }
 }
 let logger = new _logger();

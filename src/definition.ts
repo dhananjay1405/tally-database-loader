@@ -15,6 +15,7 @@ interface queryResult {
 }
 
 interface tallyConfig {
+    definition: string;
     server: string;
     port: number;
     fromdate: string; // [ YYYYMMDD / auto ]
