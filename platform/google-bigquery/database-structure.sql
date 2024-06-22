@@ -238,7 +238,8 @@ create table tallydb.trn_bank
  instrument_date date,
  instrument_number string(1024) not null,
  bank_name string(64) not null,
- amount decimal(17,2) not null
+ amount decimal(17,2) not null,
+ instrument_date date
 );
 
 create table tallydb.trn_batch

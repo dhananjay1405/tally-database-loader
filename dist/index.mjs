@@ -1,9 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const process = require("process");
-const tally_js_1 = require("./tally.js");
-const database_js_1 = require("./database.js");
-const logger_js_1 = require("./logger.js");
+import process from 'process';
+import { tally } from './tally.mjs';
+import { database } from './database.mjs';
+import { logger } from './logger.mjs';
 function parseCommandlineOptions() {
     let retval = new Map();
     try {
@@ -17,26 +15,26 @@ function parseCommandlineOptions() {
             }
     }
     catch (err) {
-        logger_js_1.logger.logError('index.substituteTDLParameters()', err);
+        logger.logError('index.substituteTDLParameters()', err);
     }
     return retval;
 }
 //Update commandline overrides to configuration options
 let cmdConfig = parseCommandlineOptions();
-database_js_1.database.updateCommandlineConfig(cmdConfig);
-tally_js_1.tally.updateCommandlineConfig(cmdConfig);
+database.updateCommandlineConfig(cmdConfig);
+tally.updateCommandlineConfig(cmdConfig);
 let exitCode = 0;
 //start import process
-tally_js_1.tally.importData()
+tally.importData()
     .then(() => {
-    logger_js_1.logger.logMessage('Import completed successfully [%s]', new Date().toLocaleString());
+    logger.logMessage('Import completed successfully [%s]', new Date().toLocaleString());
 })
     .catch(() => {
-    logger_js_1.logger.logMessage('Error in importing data\r\nPlease check error-log.txt file for detailed errors [%s]', new Date().toLocaleString());
+    logger.logMessage('Error in importing data\r\nPlease check error-log.txt file for detailed errors [%s]', new Date().toLocaleString());
     exitCode = 1;
 })
     .finally(() => {
-    logger_js_1.logger.closeStreams();
+    logger.closeStreams();
     setTimeout(() => process.exit(exitCode), 100); //exit process success/exit code
 });
-//# sourceMappingURL=index.js.map
+//# sourceMappingURL=index.mjs.map

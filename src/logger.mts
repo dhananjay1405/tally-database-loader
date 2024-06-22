@@ -1,30 +1,37 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.logger = void 0;
-const fs = require("fs");
-const utility_js_1 = require("./utility.js");
+import fs from 'fs';
+import { utility } from './utility.mjs';
+
 class _logger {
+
+    private streamMessage: fs.WriteStream;
+    private streamError: fs.WriteStream;
+    private _console: Console;
+    private flgErrorLogged = false;
+
     constructor() {
-        this.flgErrorLogged = false;
         if (fs.existsSync('./import-log.txt'))
             fs.rmSync('./import-log.txt');
         if (fs.existsSync('./error-log.txt'))
             fs.rmSync('./error-log.txt');
+
         this.streamMessage = fs.createWriteStream('./import-log.txt', { encoding: 'utf-8' });
         this.streamError = fs.createWriteStream('./error-log.txt', { encoding: 'utf-8' });
         this._console = new console.Console(this.streamMessage, this.streamError);
+        
     }
-    logMessage(message, ...params) {
+
+    logMessage(message: string, ...params: any[]): void {
         console.log(message, ...params); //graphical console
         this._console.log(message, ...params); //file console
     }
-    logError(fnInfo, err) {
+
+    logError(fnInfo: string, err: any): void {
         if (!this.flgErrorLogged) {
             this.flgErrorLogged = true;
             let errorLog = '';
             if (!fnInfo.endsWith(')'))
                 fnInfo += '()';
-            errorLog += `Error from ${fnInfo} at ${utility_js_1.utility.Date.format(new Date(), 'yyyy-MM-dd HH:mm:ss')}\r\n`;
+            errorLog += `Error from ${fnInfo} at ${utility.Date.format(new Date(), 'yyyy-MM-dd HH:mm:ss')}\r\n`;
             if (typeof err == 'string')
                 errorLog += err + '\r\n';
             else {
@@ -41,11 +48,12 @@ class _logger {
             this._console.error(errorLog); //file console
         }
     }
+
     closeStreams() {
         this.streamMessage.close();
         this.streamError.close();
     }
 }
 let logger = new _logger();
-exports.logger = logger;
-//# sourceMappingURL=logger.js.map
+
+export { logger };

@@ -585,6 +585,9 @@ transaction:
         - name: amount
           field: Amount
           type: amount
+        - name: bankers_date
+          field: BankersDate
+          type: date
     - name: trn_batch
       collection: Voucher.AllInventoryEntries.BatchAllocations
       nature: Derived

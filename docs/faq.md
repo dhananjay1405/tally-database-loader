@@ -16,6 +16,13 @@
 1. Restart SQL Server: Task Manager > Services > MSSQLSERVER > right click > Restart<br>
 ![SQL Server Service restart](https://excelkida.com/image/github/task-manager-sql-server-service-restart.png)
 
+**Ques:** I am getting an error as below, how can I resolve it
+```
+Error from database() at
+SyntaxError: Bad control character in string literal in JSON at position xx
+```
+
+**Ans:** This error occurs when **config.json** file JSON structure breaks while modifying values in it. In such scenario, overwrite existing *config.json* file by re-extracting it from utility project zip file.
 
 **Ques:** MySQL gives error *Loading local data is disabled; this must be enabled on both the client and server sides*
 
@@ -23,3 +30,43 @@
 ```sql
 SET GLOBAL local_infile=1;
 ```
+If running after this query you end up with message as below
+
+*1227 (42000): Access denied; you need (at least one of) the SUPER or SYSTEM_VARIABLES_ADMIN privilege(s) for this operation*
+
+then only option left is to change **loadmethod** to **insert** as your database administrator does not allow you to enable local_infile due to security concerns.
+
+
+
+**Ques:** I am getting error as below. How to resolve it ?
+```
+Error from tally.postTallyXML() at
+AggregateError [ECONNREFUSED]:
+    at internalConnectMultiple (node:net:1117:18)
+    at afterConnectMultiple (node:net:1684:7)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+ECONNREFUSED
+```
+
+**Ans:** This error occurs when utility is unable to communicate with Tally. Ensure below things:
+* Tally must be running
+* Ensure XML port of Tally is enabled and is properly set in config.json &gt; tally &gt; port
+
+**Ques:** I am getting error as below. How to resolve it ?
+```
+Error from tally.importData() at
+Cannot detect First/Last voucher date from company
+```
+
+**Ans:** This error occurs when no company in Tally is selected or active.
+It even occurs when you specify incorrect company name in config.json &gt; tally &gt; company
+
+
+**Ques:** I get following error for PostgreSQL connection. What could be the issue
+```
+Error from database.executePostgres() at 
+error: no pg_hba.conf entry for host "0.0.0.0", user "postgres", database "tallydb", no encryption
+```
+
+**Ans:**
+You need to set **ssl** to **true** in config.json &gt; database. Also ensure, that your user and database is added in hostssl line in **pg_hba.conf**

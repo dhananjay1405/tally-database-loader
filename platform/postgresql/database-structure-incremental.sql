@@ -290,7 +290,8 @@ create table trn_bank
  instrument_date date,
  instrument_number varchar(1024) not null default '',
  bank_name varchar(64) not null default '',
- amount decimal(17,2) not null default 0
+ amount decimal(17,2) not null default 0,
+ bankers_date date
 );
 
 create table trn_batch

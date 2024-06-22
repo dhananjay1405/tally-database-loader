@@ -21,7 +21,7 @@ Incremental sync option is compatible only for RDBMS types of database i.e.
 1. MySQL Server
 1. PostgreSQL Server
 
-Incremental sync for Google BigQuery is currently not introduced, as data loading in Google BigQuery incurs high cost beyond free usage limit.
+Incremental sync for Google BigQuery is currently not introduced, as UPDATE query of SQL in Google BigQuery incurs high cost beyond free usage limit.
 
 ## Incremental Sync - Known Limitations
 * Date From/To parameter of config.json is disabled during incremental sync (it is set to *auto* as a default), as utility cannot track if changes to data outside period were made or not.

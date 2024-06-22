@@ -1,6 +1,15 @@
 ## Release History
 
-**Version: 1.0.26 [20-May-2024]**<br>
+**Version: 1.0.28 [22-Jun-2024]**<br>
+Fixed:
+* **config** table of database was not getting populated for Google BigQuery
+* Re-arranging steps of sync (for **full** sync mode), to reduce the time frame between older rows of database tables are cleared and fresh data is loaded
+
+Added:
+* **banker_date** field in table **trn_bank** required for preparing bank reconciliation report
+* CommonJS transition to ES Module to keep utility code aligned to new method of development. As a result, files with extension **.js** will now appear as **.mjs** in **dist** folder of utility. This change has no implication on functionality or performance of the utility.
+
+**Version: 1.0.27 [20-May-2024]**<br>
 Fixed:
 * Field GSTN and GST Registration Type were populated as blank in few scenario. Extration expression fixed to handle those scenarios
 * Optimizations in incremental sync to speed it up

@@ -13,7 +13,7 @@
             ],
             "preLaunchTask": "tsc: build - src/tsconfig.json",
             "cwd": "${workspaceFolder}",
-            "program": "${cwd}\\dist\\index.js",
+            "program": "${cwd}\\dist\\index.mjs",
             "args": []
         }
     ]

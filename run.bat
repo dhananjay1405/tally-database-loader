@@ -1,1 +1,1 @@
-node ./dist/index.js
+node ./dist/index.mjs

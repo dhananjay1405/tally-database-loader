@@ -1,33 +1,23 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.database = void 0;
-const fs = require("fs");
-const promises_1 = require("stream/promises");
-const mysql = require("mysql2");
-const mssql = require("tedious");
-const postgres = require("pg");
+import fs from 'fs';
+import { pipeline } from 'stream/promises';
+import mysql from 'mysql2';
+import mssql from 'tedious';
+import postgres from 'pg';
+import { BigQuery } from '@google-cloud/bigquery';
 //import * as db2 from 'ibm_db';
-const pg_copy_streams_1 = require("pg-copy-streams");
-const adls = require("@azure/storage-file-datalake");
-const logger_js_1 = require("./logger.js");
+import { from as pgLoadInto } from 'pg-copy-streams';
+import adls from '@azure/storage-file-datalake';
+import { logger } from './logger.mjs';
 const maxQuerySize = 50000;
 class _database {
+    config;
+    bigquery = new BigQuery();
     constructor() {
         try {
             this.config = JSON.parse(fs.readFileSync('./config.json', 'utf8'))['database'];
         }
         catch (err) {
-            this.config = {
-                technology: 'mssql',
-                server: 'localhost',
-                schema: 'tallydb',
-                username: 'sa',
-                password: 'admin',
-                port: 1433,
-                ssl: false,
-                loadmethod: 'insert'
-            };
-            logger_js_1.logger.logError('database()', err);
+            logger.logError('database()', err);
             throw err;
         }
     }
@@ -59,9 +49,13 @@ class _database {
                 else
                     ;
             }
+            // initialize Google BigQuery connection
+            if (this.config.technology.toLowerCase() == 'bigquery') {
+                this.bigquery = new BigQuery({ keyFilename: './bigquery-credentials.json' });
+            }
         }
         catch (err) {
-            logger_js_1.logger.logError('database.updateCommandlineConfig()', err);
+            logger.logError('database.updateCommandlineConfig()', err);
             throw err;
         }
     }
@@ -121,7 +115,7 @@ class _database {
             }
         }
         catch (err) {
-            logger_js_1.logger.logError('database.csvToJsonArray()', err);
+            logger.logError('database.csvToJsonArray()', err);
         }
         return retval;
     }
@@ -211,7 +205,7 @@ class _database {
                 reject(err);
                 if (typeof err == 'object')
                     err['targetQuery'] = sqlQuery;
-                logger_js_1.logger.logError('database.bulkLoad()', err);
+                logger.logError('database.bulkLoad()', err);
             }
         });
     }
@@ -287,7 +281,24 @@ class _database {
             }
             catch (err) {
                 reject(err);
-                logger_js_1.logger.logError('database.truncateTables()', err);
+                logger.logError('database.truncateTables()', err);
+            }
+        });
+    }
+    uploadGoogleBigQuery(targetTable) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const [job] = await this.bigquery.dataset(this.config.schema).table(targetTable).load(`./csv/${targetTable}.csv`, {
+                    sourceFormat: 'CSV',
+                    skipLeadingRows: 1,
+                    writeDisposition: 'WRITE_TRUNCATE'
+                });
+                let retval = parseInt(job.statistics?.load?.outputRows || '0');
+                resolve(retval);
+            }
+            catch (err) {
+                reject(err);
+                logger.logError('database.dumpDataBigQuery()', err);
             }
         });
     }
@@ -366,13 +377,13 @@ class _database {
                     await fileClientCSV.create();
                     await fileClientCSV.append(contentCSV, 0, contentCSV.byteLength);
                     await fileClientCSV.flush(contentCSV.byteLength);
-                    logger_js_1.logger.logMessage('  %s: uploaded', targetTable.name);
+                    logger.logMessage('  %s: uploaded', targetTable.name);
                 }
                 resolve();
             }
             catch (err) {
                 reject();
-                logger_js_1.logger.logError('database.uploadAzureDataLake()', err);
+                logger.logError('database.uploadAzureDataLake()', err);
             }
         });
     }
@@ -404,7 +415,7 @@ class _database {
                             errorMessage = 'Invalid MySQL username/password/Authentication';
                         else
                             ;
-                        logger_js_1.logger.logError('database.executeMysql()', errorMessage || connErr);
+                        logger.logError('database.executeMysql()', errorMessage || connErr);
                         reject('');
                     }
                     else {
@@ -438,7 +449,7 @@ class _database {
             }
             catch (err) {
                 reject(err);
-                logger_js_1.logger.logError('database.executeMysql()', err);
+                logger.logError('database.executeMysql()', err);
             }
         });
     }
@@ -473,7 +484,7 @@ class _database {
                             errorMessage = 'Invalid Database / Username / Password';
                         else
                             ;
-                        logger_js_1.logger.logError('database.executeMssql()', errorMessage || connErr);
+                        logger.logError('database.executeMssql()', errorMessage || connErr);
                         reject(connErr);
                     }
                     else {
@@ -507,7 +518,7 @@ class _database {
             }
             catch (err) {
                 reject(err);
-                logger_js_1.logger.logError('database.executeMssql()', err);
+                logger.logError('database.executeMssql()', err);
             }
         });
     }
@@ -560,7 +571,7 @@ class _database {
                 else
                     ;
                 reject(err);
-                logger_js_1.logger.logError('database.executePostgres()', errorMessage || err);
+                logger.logError('database.executePostgres()', errorMessage || err);
             }
         });
     }
@@ -579,15 +590,15 @@ class _database {
                     },
                 });
                 await connection.connect();
-                let ptrCopyQueryStream = (0, pg_copy_streams_1.from)(`copy ${targetTable} from stdin csv header;`);
+                let ptrCopyQueryStream = pgLoadInto(`copy ${targetTable} from stdin csv header;`);
                 const targetStream = connection.query(ptrCopyQueryStream);
-                await (0, promises_1.pipeline)(sourceStream, targetStream);
+                await pipeline(sourceStream, targetStream);
                 await connection.end();
                 resolve(ptrCopyQueryStream.rowCount || 0);
             }
             catch (err) {
                 reject(err);
-                logger_js_1.logger.logError('database.dumpDataPostges()', err);
+                logger.logError('database.dumpDataPostges()', err);
             }
         });
     }
@@ -620,7 +631,7 @@ class _database {
                             errorMessage = 'Invalid MySQL username/password/Authentication';
                         else
                             ;
-                        logger_js_1.logger.logError('database.executeMysql()', errorMessage || connErr);
+                        logger.logError('database.executeMysql()', errorMessage || connErr);
                         reject('');
                     }
                     else {
@@ -639,7 +650,7 @@ class _database {
             }
             catch (err) {
                 reject(err);
-                logger_js_1.logger.logError('database.dumpDataMysql()', err);
+                logger.logError('database.dumpDataMysql()', err);
             }
         });
     }
@@ -681,7 +692,7 @@ class _database {
                             errorMessage = 'Invalid Database / Username / Password';
                         else
                             ;
-                        logger_js_1.logger.logError('database.executeMssql()', errorMessage || connErr);
+                        logger.logError('database.executeMssql()', errorMessage || connErr);
                         reject(connErr);
                     }
                     else {
@@ -733,7 +744,7 @@ class _database {
             }
             catch (err) {
                 reject(err);
-                logger_js_1.logger.logError('database.dumpDataMssql()', err);
+                logger.logError('database.dumpDataMssql()', err);
             }
         });
     }
@@ -784,11 +795,11 @@ class _database {
             }
         }
         catch (err) {
-            logger_js_1.logger.logError('database.populateDatabaseTableInfo()', err);
+            logger.logError('database.populateDatabaseTableInfo()', err);
         }
         return retval;
     }
 }
 let database = new _database();
-exports.database = database;
-//# sourceMappingURL=database.js.map
+export { database };
+//# sourceMappingURL=database.mjs.map
