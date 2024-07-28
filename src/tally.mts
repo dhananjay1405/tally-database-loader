@@ -10,7 +10,10 @@ import { tallyConfig, tableConfigYAML } from './definition.mjs';
 
 class _tally {
 
-    private config: tallyConfig;
+    config: tallyConfig;
+    lastAlterIdMaster: number = 0
+    lastAlterIdTransaction: number = 0
+
     private lstTableMaster: tableConfigYAML[] = [];
     private lstTableTransaction: tableConfigYAML[] = [];
 
@@ -30,6 +33,7 @@ class _tally {
                 company: '',
                 fromdate: 'auto',
                 todate: 'auto',
+                frequency: 0,
                 sync: 'full'
             };
             logger.logError('tally()', err);
@@ -49,6 +53,7 @@ class _tally {
                 this.config.todate = /^\d{4}\d{2}\d{2}$/g.test(toDate) ? toDate : 'auto';
             }
             if (lstConfigs.has('tally-sync')) this.config.sync = lstConfigs.get('tally-sync') || 'full';
+            if (lstConfigs.has('tally-frequency')) this.config.frequency = parseInt(lstConfigs.get('tally-sync') || '0');
             if (lstConfigs.has('tally-company')) this.config.company = lstConfigs.get('tally-company') || '';
 
             //flags
@@ -65,7 +70,7 @@ class _tally {
         return new Promise<void>(async (resolve, reject) => {
             try {
 
-                logger.logMessage('Tally to Database | version: 1.0.28');
+                logger.logMessage('Tally to Database | version: 1.0.29');
 
                 //Load YAML export definition file
                 let pathTallyExportDefinition = this.config.definition
@@ -105,11 +110,9 @@ class _tally {
 
                         logger.logMessage('Performing incremental sync [%s]', new Date().toLocaleString());
 
-                        //acquire last AlterID of master & transaction from Tally (for current company)
-                        let contentLastAlterIdTally = await this.postTallyXML('<?xml version="1.0" encoding="utf-8"?><ENVELOPE><HEADER><VERSION>1</VERSION><TALLYREQUEST>Export</TALLYREQUEST><TYPE>Data</TYPE><ID>MyReport</ID></HEADER><BODY><DESC><STATICVARIABLES><SVEXPORTFORMAT>ASCII (Comma Delimited)</SVEXPORTFORMAT></STATICVARIABLES><TDL><TDLMESSAGE><REPORT NAME="MyReport"><FORMS>MyForm</FORMS></REPORT><FORM NAME="MyForm"><PARTS>MyPart</PARTS></FORM><PART NAME="MyPart"><LINES>MyLine</LINES><REPEAT>MyLine : MyCollection</REPEAT><SCROLLED>Vertical</SCROLLED></PART><LINE NAME="MyLine"><FIELDS>FldAlterMaster,FldAlterTransaction</FIELDS></LINE><FIELD NAME="FldAlterMaster"><SET>$AltMstId</SET></FIELD><FIELD NAME="FldAlterTransaction"><SET>$AltVchId</SET></FIELD><COLLECTION NAME="MyCollection"><TYPE>Company</TYPE><FILTER>FilterActiveCompany</FILTER></COLLECTION><SYSTEM TYPE="Formulae" NAME="FilterActiveCompany">$$IsEqual:##SVCurrentCompany:$Name</SYSTEM></TDLMESSAGE></TDL></DESC></BODY></ENVELOPE>;');
-                        let lstAltId = contentLastAlterIdTally.replace(/\"/g, '').split(',');
-                        let lastAlterIdMasterTally = parseInt(lstAltId[0]);
-                        let lastAlterIdTransactionTally = parseInt(lstAltId[1]);
+                        await this.updateLastAlterId(); //Update last alter ID
+                        let lastAlterIdMasterTally = this.lastAlterIdMaster;
+                        let lastAlterIdTransactionTally = this.lastAlterIdTransaction;
 
                         //acquire last AlterID of master & transaction from database
                         let lstPrimaryMasterTableNames = this.lstTableMaster.filter(p => p.nature == 'Primary').map(p => p.name);
@@ -400,6 +403,48 @@ class _tally {
         });
     }
 
+    updateLastAlterId(): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            try {
+                //acquire last AlterID of master & transaction from Tally (for current company)
+                let xmlPayLoad = '<?xml version="1.0" encoding="utf-8"?><ENVELOPE><HEADER><VERSION>1</VERSION><TALLYREQUEST>Export</TALLYREQUEST><TYPE>Data</TYPE><ID>MyReport</ID></HEADER><BODY><DESC><STATICVARIABLES><SVEXPORTFORMAT>ASCII (Comma Delimited)</SVEXPORTFORMAT></STATICVARIABLES><TDL><TDLMESSAGE><REPORT NAME="MyReport"><FORMS>MyForm</FORMS></REPORT><FORM NAME="MyForm"><PARTS>MyPart</PARTS></FORM><PART NAME="MyPart"><LINES>MyLine</LINES><REPEAT>MyLine : MyCollection</REPEAT><SCROLLED>Vertical</SCROLLED></PART><LINE NAME="MyLine"><FIELDS>FldAlterMaster,FldAlterTransaction</FIELDS></LINE><FIELD NAME="FldAlterMaster"><SET>$AltMstId</SET></FIELD><FIELD NAME="FldAlterTransaction"><SET>$AltVchId</SET></FIELD><COLLECTION NAME="MyCollection"><TYPE>Company</TYPE><FILTER>FilterActiveCompany</FILTER></COLLECTION><SYSTEM TYPE="Formulae" NAME="FilterActiveCompany">$$IsEqual:##SVCurrentCompany:$Name</SYSTEM></TDLMESSAGE></TDL></DESC></BODY></ENVELOPE>'
+                if(tally.config.company) { // substitute company name if found
+                    xmlPayLoad = xmlPayLoad.replace('##SVCurrentCompany', `"${ utility.String.escapeHTML(tally.config.company)}"`);    
+                }
+                let contentLastAlterIdTally = await this.postTallyXML(xmlPayLoad);
+                if(contentLastAlterIdTally == '') { //target company is closed
+                    this.lastAlterIdMaster = -1;
+                    this.lastAlterIdTransaction - 1;
+                    if(!tally.config.company) {
+                        logger.logMessage('No company open in Tally');
+                        return reject('Please select one or more company in Tally to sync data');
+                    }
+                    else {
+                        logger.logMessage(`Specified company "${tally.config.company}" is closed in Tally`);
+                        return reject('Please select target company in Tally to sync data');
+                    }
+                }
+                else {
+                    let lstAltId = contentLastAlterIdTally.replace(/\"/g, '').split(',');
+                    this.lastAlterIdMaster = lstAltId.length >= 2 ? parseInt(lstAltId[0]) : 0;
+                    this.lastAlterIdTransaction = lstAltId.length >= 2 ? parseInt(lstAltId[1]) : 0;
+    
+                    // fill-up invalid alterID with zero
+                    if(isNaN(this.lastAlterIdMaster)) {
+                        this.lastAlterIdMaster = 0;
+                    }
+                    if(isNaN(this.lastAlterIdTransaction)) {
+                        this.lastAlterIdTransaction = 0;
+                    }
+                }
+                resolve();
+            } catch (err) {
+                logger.logError('tally.importData()', err);
+                resolve();
+            }
+        });
+    }
+
     private postTallyXML(msg: string): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             try {
@@ -425,20 +470,21 @@ class _tally {
                                 resolve(data);
                             })
                             .on('error', (httpErr) => {
-                                logger.logMessage('Unable to connect with Tally');
+                                logger.logMessage('Unable to connect with Tally. Ensure tally XML port is enabled');
+                                logger.logError('tally.postTallyXML()', httpErr['message'] || '');
                                 reject(httpErr);
-                                logger.logError('tally.postTallyXML()', httpErr);
                             });
                     });
                 req.on('error', (reqError) => {
+                    logger.logMessage('Unable to connect with Tally. Ensure tally XML port is enabled');
+                    logger.logError('tally.postTallyXML()', reqError['message'] || '');
                     reject(reqError);
-                    logger.logError('tally.postTallyXML()', reqError);
                 });
                 req.write(msg, 'utf16le');
                 req.end();
             } catch (err) {
-                reject(err);
                 logger.logError('tally.postTallyXML()', err);
+                reject(err);
             }
         });
     };
@@ -516,11 +562,10 @@ class _tally {
     private saveCompanyInfo(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             try {
-                let xmlCompany = `<?xml version="1.0" encoding="utf-8"?><ENVELOPE><HEADER><VERSION>1</VERSION><TALLYREQUEST>Export</TALLYREQUEST><TYPE>Data</TYPE><ID>MyReport</ID></HEADER><BODY><DESC><STATICVARIABLES><SVEXPORTFORMAT>ASCII (Comma Delimited)</SVEXPORTFORMAT><SVCURRENTCOMPANY>{targetCompany}</SVCURRENTCOMPANY></STATICVARIABLES><TDL><TDLMESSAGE><REPORT NAME="MyReport"><FORMS>MyForm</FORMS></REPORT><FORM NAME="MyForm"><PARTS>MyPart</PARTS></FORM><PART NAME="MyPart"><LINES>MyLine</LINES><REPEAT>MyLine : MyCollection</REPEAT><SCROLLED>Vertical</SCROLLED></PART><LINE NAME="MyLine"><FIELDS>FldGuid,FldName,FldBooksFrom,FldLastVoucherDate,FldEOL</FIELDS></LINE><FIELD NAME="FldGuid"><SET>$Guid</SET></FIELD><FIELD NAME="FldName"><SET>$$StringFindAndReplace:$Name:'"':'""'</SET></FIELD><FIELD NAME="FldBooksFrom"><SET>(($$YearOfDate:$BooksFrom)*10000)+(($$MonthOfDate:$BooksFrom)*100)+(($$DayOfDate:$BooksFrom)*1)</SET></FIELD><FIELD NAME="FldLastVoucherDate"><SET>(($$YearOfDate:$LastVoucherDate)*10000)+(($$MonthOfDate:$LastVoucherDate)*100)+(($$DayOfDate:$LastVoucherDate)*1)</SET></FIELD><FIELD NAME="FldEOL"><SET>†</SET></FIELD><COLLECTION NAME="MyCollection"><TYPE>Company</TYPE><FILTER>FilterActiveCompany</FILTER></COLLECTION><SYSTEM TYPE="Formulae" NAME="FilterActiveCompany">$$IsEqual:##SVCurrentCompany:$Name</SYSTEM></TDLMESSAGE></TDL></DESC></BODY></ENVELOPE>`;
-                if (!this.config.company) //remove complete SVCURRENTCOMPANY tag if no target company is specified
-                    xmlCompany = xmlCompany.replace('<SVCURRENTCOMPANY>{targetCompany}</SVCURRENTCOMPANY>', '');
-                else
-                    xmlCompany = xmlCompany.replace('{targetCompany}', this.config.company);
+                let xmlCompany = `<?xml version="1.0" encoding="utf-8"?><ENVELOPE><HEADER><VERSION>1</VERSION><TALLYREQUEST>Export</TALLYREQUEST><TYPE>Data</TYPE><ID>MyReport</ID></HEADER><BODY><DESC><STATICVARIABLES><SVEXPORTFORMAT>ASCII (Comma Delimited)</SVEXPORTFORMAT></STATICVARIABLES><TDL><TDLMESSAGE><REPORT NAME="MyReport"><FORMS>MyForm</FORMS></REPORT><FORM NAME="MyForm"><PARTS>MyPart</PARTS></FORM><PART NAME="MyPart"><LINES>MyLine</LINES><REPEAT>MyLine : MyCollection</REPEAT><SCROLLED>Vertical</SCROLLED></PART><LINE NAME="MyLine"><FIELDS>FldGuid,FldName,FldBooksFrom,FldLastVoucherDate,FldEOL</FIELDS></LINE><FIELD NAME="FldGuid"><SET>$Guid</SET></FIELD><FIELD NAME="FldName"><SET>$$StringFindAndReplace:$Name:'"':'""'</SET></FIELD><FIELD NAME="FldBooksFrom"><SET>(($$YearOfDate:$BooksFrom)*10000)+(($$MonthOfDate:$BooksFrom)*100)+(($$DayOfDate:$BooksFrom)*1)</SET></FIELD><FIELD NAME="FldLastVoucherDate"><SET>(($$YearOfDate:$LastVoucherDate)*10000)+(($$MonthOfDate:$LastVoucherDate)*100)+(($$DayOfDate:$LastVoucherDate)*1)</SET></FIELD><FIELD NAME="FldEOL"><SET>†</SET></FIELD><COLLECTION NAME="MyCollection"><TYPE>Company</TYPE><FILTER>FilterActiveCompany</FILTER></COLLECTION><SYSTEM TYPE="Formulae" NAME="FilterActiveCompany">$$IsEqual:##SVCurrentCompany:$Name</SYSTEM></TDLMESSAGE></TDL></DESC></BODY></ENVELOPE>`;
+                if (this.config.company) //replce active company with specific company name if specified
+                    xmlCompany = xmlCompany.replace('##SVCurrentCompany', `"${utility.String.escapeHTML(this.config.company)}"`);
+                
                 let strCompanyInfo = await this.postTallyXML(xmlCompany); //extract active company information
                 if (strCompanyInfo.endsWith(',"†",\r\n')) {
                     strCompanyInfo = strCompanyInfo.replace(/\",\"†\",\r\n/g, '').substr(1);
@@ -544,17 +589,23 @@ class _tally {
                             await database.uploadGoogleBigQuery('config');
                         }
                     }
-                    else {}
+                    else {
+                        return reject('Invalid platform selected');
+                    }
                 }
                 else {
-                    reject('Cannot detect First/Last voucher date from company');
+                    if(!tally.config.company) {
+                        logger.logMessage('No company open in Tally');
+                        return reject('Please select one or more company in Tally to sync data');
+                    }
+                    else {
+                        logger.logMessage(`Specified company "${tally.config.company}" is closed in Tally`);
+                        return reject('Please select target company in Tally to sync data');
+                    }
                 }
                 resolve();
             } catch (err: any) {
-                let errorMessage = '';
-                if (err['code'] == 'ECONNREFUSED') errorMessage = 'Unable to communicate with Tally of specified port';
-
-                logger.logError(`tally.saveCompanyInfo()`, errorMessage || err);
+                logger.logError(`tally.saveCompanyInfo()`, err['message']);
                 reject('');
             }
         });

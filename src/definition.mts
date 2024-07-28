@@ -21,6 +21,7 @@ interface tallyConfig {
     fromdate: string; // [ YYYYMMDD / auto ]
     todate: string; // [ YYYYMMDD / auto ]
     sync: string; // [ full / incremental ]
+    frequency: number; // in minutes
     company: string;
 }
 

@@ -10,8 +10,8 @@ Commandline utility to load data into Database Server from Tally software, inten
 
 ## Index
 * [Version](version)
-* [Requirements](#requirements)
 * [Download](#download)
+* [Requirements](#requirements)
 * [Tally XML Server](#tally-xml-server)
 * [Database Creation](#database-creation)
 * [Utility Installation](#utility-installation)
@@ -38,17 +38,26 @@ Commandline utility to load data into Database Server from Tally software, inten
 <br><br>
 
 ## Version
-Latest Version: **1.0.28**<br>
-Updated on: **22-Jun-2024**
+Latest Version: **1.0.29**<br>
+Updated on: **28-Jul-2024**
 
 Note:
 1. I keep on fixing utility and adding fields into database. So you are requested to re-create existing databases and re-download utility folder
 2. Incremental sync now works for SQL Server / MySQL / PostgreSQL. Going forward two separate version of **database-structure** and **tally-export-config** will be maintained. Files with suffix **incremental** are to be used for **incremental** sync &amp; other are for **full** sync.
-3. Structure of config.json file is changed slightly to introduce dynamic switching of tally-export-config file for mode of sync
+3. Structure of config.json file is changed. Ensure to download fresh version of utility
 
 
 <br><br>
 
+## Download
+
+Database Loader Utility is portable, and does not have a setup wizard like we find for software installation. Zip archive of utility can be downloaded from below link. Kindly use open-source &amp; free software [7-zip file archiver](https://www.7-zip.org/download.html) to un-compress utility archive.
+
+[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.29.7z)
+
+Also, it is a command-line utility having no window interface (to keep it minimal and faster)
+
+<br><br>
 
 ## Requirements
 Utility requires installation of following as a pre-requisite (along with download link)
@@ -73,15 +82,7 @@ Preferred versions:
 
 <br><br>
 
-## Download
 
-Database Loader Utility is portable, and does not have a setup wizard like we find for software installation. Zip archive of utility can be downloaded from below link. Kindly use open-source &amp; free software [7-zip file archiver](https://www.7-zip.org/download.html) to un-compress utility archive.
-
-[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.28.7z)
-
-Also, it is a commandline utility having no window interface (to keep it minimal and faster)
-
-<br><br>
 
 ## Tally XML Server
 Tally has in-built XML Server capability, which can import/export data in/out of Tally. This utility sends export command to Tally along with report specification written in TDL (Tally Developer Language) in XML format. In response, Tally returns back the requested data (in XML format), which is then imported into Database Server. 
@@ -200,6 +201,7 @@ Few of the options of Tally may need modification, if default settings of Tally 
      "fromdate" : "20230401",
      "todate" : "20240331",
      "sync": "full",
+     "frequency": 0,
      "company": ""
 }
 ```
@@ -214,6 +216,7 @@ Few of the options of Tally may need modification, if default settings of Tally 
      "fromdate" : "auto",
      "todate" : "auto",
      "sync": "incremental",
+     "frequency": 5,
      "company": ""
 }
 ```
@@ -226,6 +229,7 @@ Few of the options of Tally may need modification, if default settings of Tally 
 | master / transaction | **true** = Export master/transaction data from Tally (*default*) <br> **false** = Skip master/transaction data |
 | fromdate / todate | **YYYYMMDD** = Period from/to for export of transaction and opening balance (in 8 digit format) <br> **auto** = This will export complete transactions (irrespective of selected Financial Year) from Tally by auto-detection of First & Last date of transaction |
 | sync | **full** = Sync complete data from Tally to Database Server (*default*)<br> **incremental** = Sync only that data which was added/modified/delete from last sync |
+| frequency | ping frequency in minutes to Tally to monitor changes in data and trigger sync (0 = off i.e. just run sync once and close it) |
 | company | Name of the company from which to export data or leave it blank to export from Active company of Tally (this parameter is intended for use when user needs to export data from specific company irrespective of it is active or not. Setup a powershell script to run a loop when multiple companies needs to be targeted one-by-one) |
 
 <br><br>

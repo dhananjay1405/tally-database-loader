@@ -1,11 +1,11 @@
 import fs from 'fs';
+import util from 'util'
 import { utility } from './utility.mjs';
 
 class _logger {
 
     private streamMessage: fs.WriteStream;
     private streamError: fs.WriteStream;
-    private _console: Console;
     private flgErrorLogged = false;
 
     constructor() {
@@ -16,13 +16,11 @@ class _logger {
 
         this.streamMessage = fs.createWriteStream('./import-log.txt', { encoding: 'utf-8' });
         this.streamError = fs.createWriteStream('./error-log.txt', { encoding: 'utf-8' });
-        this._console = new console.Console(this.streamMessage, this.streamError);
-        
     }
 
     logMessage(message: string, ...params: any[]): void {
         console.log(message, ...params); //graphical console
-        this._console.log(message, ...params); //file console
+        this.streamMessage.write(util.format(message, ...params) + '\r\n');
     }
 
     logError(fnInfo: string, err: any): void {
@@ -45,7 +43,7 @@ class _logger {
             }
             errorLog += '-'.repeat(80) + '\r\n\r\n\r\n';
             console.error(errorLog); //graphical console
-            this._console.error(errorLog); //file console
+            this.streamError.write(errorLog);
         }
     }
 

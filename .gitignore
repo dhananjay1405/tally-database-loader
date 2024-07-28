@@ -3,7 +3,7 @@ private/
 csv/
 ssl/
 sync/
-dist/*.js.map
+dist/*.mjs.map
 import-log.txt
 error-log.txt
 *.zip

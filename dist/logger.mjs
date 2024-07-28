@@ -1,9 +1,9 @@
 import fs from 'fs';
+import util from 'util';
 import { utility } from './utility.mjs';
 class _logger {
     streamMessage;
     streamError;
-    _console;
     flgErrorLogged = false;
     constructor() {
         if (fs.existsSync('./import-log.txt'))
@@ -12,11 +12,10 @@ class _logger {
             fs.rmSync('./error-log.txt');
         this.streamMessage = fs.createWriteStream('./import-log.txt', { encoding: 'utf-8' });
         this.streamError = fs.createWriteStream('./error-log.txt', { encoding: 'utf-8' });
-        this._console = new console.Console(this.streamMessage, this.streamError);
     }
     logMessage(message, ...params) {
         console.log(message, ...params); //graphical console
-        this._console.log(message, ...params); //file console
+        this.streamMessage.write(util.format(message, ...params) + '\r\n');
     }
     logError(fnInfo, err) {
         if (!this.flgErrorLogged) {
@@ -38,7 +37,7 @@ class _logger {
             }
             errorLog += '-'.repeat(80) + '\r\n\r\n\r\n';
             console.error(errorLog); //graphical console
-            this._console.error(errorLog); //file console
+            this.streamError.write(errorLog);
         }
     }
     closeStreams() {

@@ -1,5 +1,15 @@
 ## Release History
 
+
+**Version: 1.0.28 [28-Jul-2024]**<br>
+Fixed:
+* Better and easily understandable error messages.
+* Minor code refinement.
+
+Added:
+* Introduced setting named **frequency** in config.json which when enabled (i.e. set to greater than zero), will keep on monitoring Tally company for changes continuously every *n* minute. If any changes are found, then it will trigger sync.
+
+
 **Version: 1.0.28 [22-Jun-2024]**<br>
 Fixed:
 * **config** table of database was not getting populated for Google BigQuery
