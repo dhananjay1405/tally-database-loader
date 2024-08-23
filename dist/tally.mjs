@@ -46,13 +46,13 @@ class _tally {
             if (lstConfigs.has('tally-fromdate') && lstConfigs.has('tally-todate')) {
                 let fromDate = lstConfigs.get('tally-fromdate') || '';
                 let toDate = lstConfigs.get('tally-todate') || '';
-                this.config.fromdate = /^\d{4}\d{2}\d{2}$/g.test(fromDate) ? fromDate : 'auto';
-                this.config.todate = /^\d{4}\d{2}\d{2}$/g.test(toDate) ? toDate : 'auto';
+                this.config.fromdate = /^\d{4}-?\d{2}-?\d{2}$/g.test(fromDate) ? fromDate : 'auto';
+                this.config.todate = /^\d{4}-?\d{2}-?\d{2}$/g.test(toDate) ? toDate : 'auto';
             }
             if (lstConfigs.has('tally-sync'))
                 this.config.sync = lstConfigs.get('tally-sync') || 'full';
             if (lstConfigs.has('tally-frequency'))
-                this.config.frequency = parseInt(lstConfigs.get('tally-sync') || '0');
+                this.config.frequency = parseInt(lstConfigs.get('tally-frequency') || '0');
             if (lstConfigs.has('tally-company'))
                 this.config.company = lstConfigs.get('tally-company') || '';
             //flags
@@ -71,7 +71,7 @@ class _tally {
     importData() {
         return new Promise(async (resolve, reject) => {
             try {
-                logger.logMessage('Tally to Database | version: 1.0.29');
+                logger.logMessage('Tally to Database | version: 1.0.30');
                 //Load YAML export definition file
                 let pathTallyExportDefinition = this.config.definition;
                 if (fs.existsSync(`./${pathTallyExportDefinition}`)) {

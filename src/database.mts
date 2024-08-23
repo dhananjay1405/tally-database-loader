@@ -4,11 +4,10 @@ import mysql from 'mysql2';
 import mssql from 'tedious';
 import postgres from 'pg';
 import { BigQuery } from '@google-cloud/bigquery';
-//import * as db2 from 'ibm_db';
 import { from as pgLoadInto } from 'pg-copy-streams';
 import adls from '@azure/storage-file-datalake';
 import { logger } from './logger.mjs';
-import { connectionConfig, queryResult, tableConfigYAML, databaseFieldInfo, cdmModel, cdmEntity, cdmPartition, cdmAttribute, cdmFileFormatSetting } from './definition.mjs';
+import { connectionConfig, queryResult, tableConfigYAML, databaseFieldInfo, cdmModel, cdmEntity } from './definition.mjs';
 
 const maxQuerySize = 50000;
 
@@ -496,7 +495,7 @@ class _database {
                                     if (queryErr)
                                         _reject(queryErr);
                                     else
-                                        _resolve({ rowCount, data: rows });
+                                        _resolve({ rowCount: rowCount || 0 , data: rows });
                                 }));
                             });
                         };
@@ -692,17 +691,17 @@ class _database {
                                 return reject(err);
                             }
                             else {
-                                resolve(rowCount);
+                                resolve(rowCount || 0);
                             }
                         });
 
                         for (const col of lstColumnInfo) {
-                            let oColOpts: mssql.BulkLoadColumnOpts = {
+                            let oColOpts: any = {
                                 nullable: col.isNullable
                             };
 
                             //set datatype
-                            let oColDataType: mssql.TediousType;
+                            let oColDataType: any;
                             if (col.dataType == 'varchar') oColDataType = mssql.TYPES.VarChar;
                             else if (col.dataType == 'nvarchar') oColDataType = mssql.TYPES.NVarChar;
                             else if (col.dataType == 'int') oColDataType = mssql.TYPES.Int;
@@ -789,35 +788,6 @@ class _database {
         }
         return retval;
     }
-
-    /*
-    private executeDb2(sqlQuery: string | string[]): Promise<queryResult> {
-        return new Promise<queryResult>((resolve, reject) => {
-            try {
-                let connString = `DATABASE=${this.config.schema};HOSTNAME=${this.config.server};PORT=${this.config.port};PROTOCOL=TCPIP;UID=${this.config.username};PWD=${this.config.password};`;
-                if (this.config.ssl) {
-                    connString += 'SECURITY=SSL;';
-                }
-                let connection = db2.openSync(connString);
-                let rowCount = 0
-                if(Array.isArray(sqlQuery)) { //multiple query
-                    for(const qry of sqlQuery) {
-                        connection.querySync(qry);
-                    }
-                }
-                else { //single query
-                    let stmt = connection.prepareSync(sqlQuery);
-                    rowCount = stmt.executeNonQuerySync();
-                }
-                connection.closeSync();
-                resolve({ rowCount, data: [] });
-            } catch (err) {
-                reject(err);
-                logger.logError('database.executeDb2()', err);
-            }
-        });
-    }
-    */
 
 }
 let database = new _database();

@@ -4,7 +4,6 @@ import mysql from 'mysql2';
 import mssql from 'tedious';
 import postgres from 'pg';
 import { BigQuery } from '@google-cloud/bigquery';
-//import * as db2 from 'ibm_db';
 import { from as pgLoadInto } from 'pg-copy-streams';
 import adls from '@azure/storage-file-datalake';
 import { logger } from './logger.mjs';
@@ -494,7 +493,7 @@ class _database {
                                     if (queryErr)
                                         _reject(queryErr);
                                     else
-                                        _resolve({ rowCount, data: rows });
+                                        _resolve({ rowCount: rowCount || 0, data: rows });
                                 }));
                             });
                         };
@@ -703,7 +702,7 @@ class _database {
                                 return reject(err);
                             }
                             else {
-                                resolve(rowCount);
+                                resolve(rowCount || 0);
                             }
                         });
                         for (const col of lstColumnInfo) {

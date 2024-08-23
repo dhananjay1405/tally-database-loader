@@ -12,6 +12,7 @@ Commandline utility to load data into Database Server from Tally software, inten
 * [Version](version)
 * [Download](#download)
 * [Requirements](#requirements)
+* [Graphical User Interface](#graphical-user-interface)
 * [Tally XML Server](#tally-xml-server)
 * [Database Creation](#database-creation)
 * [Utility Installation](#utility-installation)
@@ -38,8 +39,8 @@ Commandline utility to load data into Database Server from Tally software, inten
 <br><br>
 
 ## Version
-Latest Version: **1.0.29**<br>
-Updated on: **28-Jul-2024**
+Latest Version: **1.0.30**<br>
+Updated on: **23-Aug-2024**
 
 Note:
 1. I keep on fixing utility and adding fields into database. So you are requested to re-create existing databases and re-download utility folder
@@ -53,7 +54,7 @@ Note:
 
 Database Loader Utility is portable, and does not have a setup wizard like we find for software installation. Zip archive of utility can be downloaded from below link. Kindly use open-source &amp; free software [7-zip file archiver](https://www.7-zip.org/download.html) to un-compress utility archive.
 
-[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.29.7z)
+[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.30.7z)
 
 Also, it is a command-line utility having no window interface (to keep it minimal and faster)
 
@@ -82,7 +83,19 @@ Preferred versions:
 
 <br><br>
 
+## Graphical User Interface
+Utility is available in 2 types of interfaces
+1. Command-line based which can be invoked using **run.bat** file
+1. Browser-based interface which can be invoked using **run-gui.bat** file
 
+Both use the same back-end. File **run-gui.bat** uses browser-based interface which offers following features:
+* Ease of editing config.json values (without requiring Notepad)
+* Automatic default value setting based on dropdown to minimize invalid configuration values
+* Option to send configuration to utility without requiring it to save (suggested when user do no wish to save &amp; reveal password in config.json file)
+
+**Note:** *Please do not close the command-line window which acts as temporary webserver to interact with browser. Close it only after you close the browser tab of the utility.*
+
+<br><br>
 
 ## Tally XML Server
 Tally has in-built XML Server capability, which can import/export data in/out of Tally. This utility sends export command to Tally along with report specification written in TDL (Tally Developer Language) in XML format. In response, Tally returns back the requested data (in XML format), which is then imported into Database Server. 

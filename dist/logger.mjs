@@ -1,5 +1,6 @@
 import fs from 'fs';
 import util from 'util';
+import process from 'process';
 import { utility } from './utility.mjs';
 class _logger {
     streamMessage;
@@ -16,6 +17,9 @@ class _logger {
     logMessage(message, ...params) {
         console.log(message, ...params); //graphical console
         this.streamMessage.write(util.format(message, ...params) + '\r\n');
+        if (process.send) { // GUI thread based invoke
+            process.send(util.format(message, ...params) + '\r\n');
+        }
     }
     logError(fnInfo, err) {
         if (!this.flgErrorLogged) {

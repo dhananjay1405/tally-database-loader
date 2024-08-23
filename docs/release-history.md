@@ -1,7 +1,14 @@
 ## Release History
 
+**Version: 1.0.30 [23-Aug-2024]**<br>
+Fixed:
+* Commandline parameter --tally-fromdate and --tally-todate now accepting date in YYYY-MM-DD and YYYYMMDD both format
+* Commandline parameter --tally-frequency now accepts number perfectly
 
-**Version: 1.0.28 [28-Jul-2024]**<br>
+Added:
+* Introduced browser based page for Graphical User Interface (GUI) capability by floating a lite-weight web-server to interact with the utility instead of command-line based method. This approach provides better control on the utility with automatic handling of configuration values.
+
+**Version: 1.0.29 [28-Jul-2024]**<br>
 Fixed:
 * Better and easily understandable error messages.
 * Minor code refinement.
