@@ -1,5 +1,12 @@
 ## Release History
 
+**Version: 1.0.31 [05-Sep-2024]**<br>
+Fixed:
+* Few extra / missing fields related to incremental sync tracking
+
+Added:
+* Two tables **trn_cost_category_centre** and **trn_cost_inventory_category_centre** incorporated for cost category + cost centre wise breakup of ledger and stock item in voucher entry
+
 **Version: 1.0.30 [23-Aug-2024]**<br>
 Fixed:
 * Commandline parameter --tally-fromdate and --tally-todate now accepting date in YYYY-MM-DD and YYYYMMDD both format

@@ -221,6 +221,25 @@ create table trn_cost_centre
  amount decimal(17,2) not null default 0
 );
 
+create table trn_cost_category_centre
+(
+ guid varchar(64) not null default '',
+ ledger varchar(1024) not null default '',
+ costcategory varchar(1024) not null default '',
+ costcentre varchar(1024) not null default '',
+ amount decimal(17,2) not null default 0
+);
+
+create table trn_cost_inventory_category_centre
+(
+ guid varchar(64) not null default '',
+ ledger varchar(1024) not null default '',
+ item varchar(1024) not null default '',
+ costcategory varchar(1024) not null default '',
+ costcentre varchar(1024) not null default '',
+ amount decimal(17,2) not null default 0
+);
+
 create table trn_bill
 (
  guid varchar(64) not null default '',

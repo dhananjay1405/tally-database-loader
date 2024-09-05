@@ -134,6 +134,10 @@ master:
           field: ledger
         - table: trn_cost_centre
           field: ledger
+        - table: trn_cost_category_centre
+          field: ledger
+        - table: trn_cost_inventory_category_centre
+          field: ledger
         - table: trn_bill
           field: ledger
         - table: trn_bank
@@ -335,6 +339,8 @@ master:
           field: item
         - table: trn_batch
           field: item
+        - table: trn_cost_inventory_category_centre
+          field: item
         - table: mst_stockitem_standard_cost
           field: item
         - table: mst_stockitem_standard_price
@@ -370,6 +376,10 @@ master:
       cascade_update:
         - table: mst_cost_centre
           field: parent
+        - table: trn_cost_category_centre
+          field: costcentre
+        - table: trn_cost_inventory_category_centre
+          field: costcentre
     - name: mst_cost_centre
       collection: CostCentre
       nature: Primary
@@ -394,6 +404,10 @@ master:
           type: text
       cascade_update:
         - table: trn_cost_centre
+          field: costcentre
+        - table: trn_cost_category_centre
+          field: costcentre
+        - table: trn_cost_inventory_category_centre
           field: costcentre
     - name: mst_gst_effective_rate
       collection: StockItem.GstDetails
@@ -602,6 +616,10 @@ transaction:
           field: guid
         - table: trn_cost_centre
           field: guid
+        - table: trn_cost_category_centre
+          field: guid
+        - table: trn_cost_inventory_category_centre
+          field: guid
         - table: trn_bill
           field: guid
         - table: trn_bank
@@ -700,6 +718,78 @@ transaction:
           type: text
         - name: _ledger
           field: $Guid:Ledger:$LedgerName
+          type: text
+        - name: costcentre
+          field: Name
+          type: text
+        - name: _costcentre
+          field: $Guid:CostCentre:$Name
+          type: text
+        - name: amount
+          field: Amount
+          type: amount
+    - name: trn_cost_category_centre
+      collection: Voucher.AllLedgerEntries.CategoryAllocations.CostCentreAllocations
+      nature: Derived
+      fetch:
+        - AllLedgerEntries
+      filters:
+        - NOT $IsCancelled
+        - NOT $IsOptional
+      fields:
+        - name: guid
+          field: Guid
+          type: text
+        - name: ledger
+          field: LedgerName
+          type: text
+        - name: _ledger
+          field: $Guid:Ledger:$LedgerName
+          type: text
+        - name: costcategory
+          field: Category
+          type: text
+        - name: _costcategory
+          field: $Guid:CostCategory:$Name
+          type: text
+        - name: costcentre
+          field: Name
+          type: text
+        - name: _costcentre
+          field: $Guid:CostCentre:$Name
+          type: text
+        - name: amount
+          field: Amount
+          type: amount
+    - name: trn_cost_inventory_category_centre
+      collection: Voucher.AllLedgerEntries.InventoryAllocations.CategoryAllocations.CostCentreAllocations
+      nature: Derived
+      fetch:
+        - AllLedgerEntries
+      filters:
+        - NOT $IsCancelled
+        - NOT $IsOptional
+      fields:
+        - name: guid
+          field: Guid
+          type: text
+        - name: ledger
+          field: LedgerName
+          type: text
+        - name: _ledger
+          field: $Guid:Ledger:$LedgerName
+          type: text
+        - name: item
+          field: StockItemName
+          type: text
+        - name: _item
+          field: $Guid:StockItem:$StockItemName
+          type: text
+        - name: costcategory
+          field: Category
+          type: text
+        - name: _costcategory
+          field: $Guid:CostCategory:$Name
           type: text
         - name: costcentre
           field: Name

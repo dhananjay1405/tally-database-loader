@@ -531,6 +531,57 @@ transaction:
         - name: amount
           field: Amount
           type: amount
+    - name: trn_cost_category_centre
+      collection: Voucher.AllLedgerEntries.CategoryAllocations.CostCentreAllocations
+      nature: Derived
+      fetch:
+        - AllLedgerEntries
+      filters:
+        - NOT $IsCancelled
+        - NOT $IsOptional
+      fields:
+        - name: guid
+          field: Guid
+          type: text
+        - name: ledger
+          field: LedgerName
+          type: text
+        - name: costcategory
+          field: Category
+          type: text
+        - name: costcentre
+          field: Name
+          type: text
+        - name: amount
+          field: Amount
+          type: amount
+    - name: trn_cost_inventory_category_centre
+      collection: Voucher.AllLedgerEntries.InventoryAllocations.CategoryAllocations.CostCentreAllocations
+      nature: Derived
+      fetch:
+        - AllLedgerEntries
+      filters:
+        - NOT $IsCancelled
+        - NOT $IsOptional
+      fields:
+        - name: guid
+          field: Guid
+          type: text
+        - name: ledger
+          field: LedgerName
+          type: text
+        - name: item
+          field: StockItemName
+          type: text
+        - name: costcategory
+          field: Category
+          type: text
+        - name: costcentre
+          field: Name
+          type: text
+        - name: amount
+          field: Amount
+          type: amount
     - name: trn_bill
       collection: Voucher.AllLedgerEntries.BillAllocations
       nature: Derived

@@ -288,5 +288,62 @@ Tally does not create any voucher entry for the closing stock. Value of closing 
 1. If any information is found in Ledger Closing Balance for Stock-in-Hand type of Ledgers, then respective value for that date or nearest earlier date is used. Table **trn_closingstock_ledger** captures rows for the same.
 1. Otherwise, Tally calculates closing value for individual stock item based on Weighted Average or FIFO (First In First Out) method as configured for individual stock items.
 
+## Bill-by-Bill tracking
+For all the vouchers, where bill-wise breakup is recorded in the voucher entry, corresponding row in the table **trn_bill** will be present. Technically, **trn_bill** table is a subset of **trn_accounting** with breakup of bill names for individual line items of trn_accounting. Both tables are bound by composite key comprising of fields **guid** and **ledger** . Field **name** of table *trn_bill* uniquely identifies a bill. To track bill status, we need to track event chain of any bill. Field **billtype** denotes event of any bill. Values of this billtype field can be:
+* New Ref
+* Agst Ref
+* Advance
+* On Account
+
+Generally chain of events can be as below:
+
+### Regular Invoice
+
+```mermaid
+flowchart LR
+	id1[New Ref] --> id2[Agst Ref]
+```
+**New Ref** when creating *Purchase* or *Sales* voucher. And then adjusting that invoice fully / partially with *Receipt* or *Payment* voucher using **Agst Ref** .
+
+
+### Invoice with Advance
+
+```mermaid
+flowchart LR
+	id1[Advance] --> id2[Agst Ref]
+```
+**Advance** when creating *Receipt* or *Payment* voucher of advance received or paid. And then adjusting that advance fully / partially with respective *Purchase* or *Sales* voucher using **Agst Ref** .
+
+To track the bill status, **trn_bill** table needs to be split into two. Let us call them as left and right table to understand the logic. **Left table** comprises of rows with **billtype** equal to **New Ref** or **Advance** and **Right Table** comprising rows with **billtype** equal to **Agst Ref**. Field **name** connects both Left and Right table. In the Left table, field **name** would be unique, as ERP cannot create a bill twice. But in Right table, duplicate rows for the field **name** might be found when multiple partial payments / receipts are made against the bill. So before comparing both table, right table needs to be aggregated based on **name** field by sum totaling **amount** column. Also, it is possible that for few rows in left table, corresponding rows might not be found in the right table, when no payment or receipt is made for specific bill. So, the logic of tracking needs to be take into account all the mentioned possibilities when tracking. The end result of tracking would be that for corresponding bill in left table, how much amount is found adjusted in the right table. Values with **billtype** as **On Account** needs to be excluded from the entire logic, since it represents vouchers where bill tracking needs to be excluded. Below is the SQL query for reference purpose:
+
+```sql
+WITH tblBill AS
+(
+	SELECT trn_bill.name, trn_bill.amount, trn_bill.billtype
+	FROM trn_bill
+	JOIN trn_voucher ON trn_voucher.guid = trn_bill.guid
+	WHERE (trn_voucher.is_order_voucher = 0) AND (trn_voucher.is_inventory_voucher = 0) AND trn_bill.billtype <> 'On Account'
+)
+SELECT
+	lt.name AS bill_name,
+	lt.amount AS bill_amount,
+	COALESCE(rt.amount, 0) AS adjusted_amount,
+	(lt.amount + COALESCE(rt.amount, 0)) AS pending_amount
+FROM
+(
+	SELECT tblBill.name, tblBill.amount
+	FROM tblBill
+	WHERE tblBill.billtype IN ('New Ref', 'Advance')
+) AS lt
+LEFT JOIN
+(
+	SELECT tblBill.name, SUM(tblBill.amount) AS amount
+	FROM tblBill
+	WHERE tblBill.billtype = 'Agst Ref'
+	GROUP BY tblBill.name
+) AS rt ON lt.name = rt.name
+```
+
+
 ## Physical Stock voucher anamoly
 Tally contains special voucher type named **Physical Stock**. This voucher applys overriding effects to closing stock item inventory balances, breaking down mathematical way of calculating closing stock. Users are advised to refrain from using such unprofessional approach and instead favour booking of stock journal voucher for shortfall / excess founding during physical stock verification process. This will help to maintain analytical system simple and manageable, which provides accurate result.

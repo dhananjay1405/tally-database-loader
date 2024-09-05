@@ -271,6 +271,32 @@ create table trn_cost_centre
  amount decimal(17,2) not null default 0
 );
 
+create table trn_cost_category_centre
+(
+ guid varchar(64) not null default '',
+ ledger nvarchar(1024) not null default '',
+ _ledger varchar(64) not null default '',
+ costcategory nvarchar(1024) not null default '',
+ _costcategory varchar(64) not null default '',
+ costcentre nvarchar(1024) not null default '',
+ _costcentre varchar(64) not null default '',
+ amount decimal(17,2) not null default 0
+);
+
+create table trn_cost_inventory_category_centre
+(
+ guid varchar(64) not null default '',
+ ledger nvarchar(1024) not null default '',
+ _ledger varchar(64) not null default '',
+ item nvarchar(1024) not null default '',
+ _item varchar(64) not null default '',
+ costcategory nvarchar(1024) not null default '',
+ _costcategory varchar(64) not null default '',
+ costcentre nvarchar(1024) not null default '',
+ _costcentre varchar(64) not null default '',
+ amount decimal(17,2) not null default 0
+);
+
 create table trn_bill
 (
  guid varchar(64) not null default '',

@@ -221,6 +221,25 @@ create table tallydb.trn_cost_centre
  amount decimal(17,2) not null
 );
 
+create table tallydb.trn_cost_category_centre
+(
+ guid string(64) not null,
+ ledger string(1024) not null,
+ costcategory string(1024) not null,
+ costcentre string(1024) not null,
+ amount decimal(17,2) not null
+);
+
+create table tallydb.trn_cost_inventory_category_centre
+(
+ guid string(64) not null,
+ ledger string(1024) not null,
+ item string(1024) not null,
+ costcategory string(1024) not null,
+ costcentre string(1024) not null,
+ amount decimal(17,2) not null
+);
+
 create table tallydb.trn_bill
 (
  guid string(64) not null,
