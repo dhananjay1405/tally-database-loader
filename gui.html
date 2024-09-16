@@ -42,7 +42,7 @@
          * @return {string}
          */
         function convertDateObjectToText(iDate) {
-            return `${iDate.getFullYear()}-${(iDate.getMonth() + 1).toString().padStart(2, '0')}-${iDate.getDay().toString().padStart(2, '0')}`;
+            return `${iDate.getFullYear()}-${(iDate.getMonth() + 1).toString().padStart(2, '0')}-${iDate.getDate().toString().padStart(2, '0')}`;
         }
 
         function toggleDatabaseRelatedInputs(state = true) {
