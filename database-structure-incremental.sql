@@ -44,10 +44,12 @@ create table mst_ledger
  parent nvarchar(1024) not null default '',
  _parent varchar(64) not null default '',
  alias nvarchar(256) not null default '',
+ description nvarchar(64) not null default '',
+ notes nvarchar(64) not null default '',
  is_revenue tinyint,
  is_deemedpositive tinyint,
  opening_balance decimal(17,2) default 0,
- description nvarchar(256) not null default '',
+ closing_balance decimal(17,2) default 0,
  mailing_name nvarchar(256) not null default '',
  mailing_address nvarchar(1024) not null default '',
  mailing_state nvarchar(256) not null default '',
@@ -65,7 +67,8 @@ create table mst_ledger
  bank_ifsc nvarchar(64) not null default '',
  bank_swift nvarchar(64) not null default '',
  bank_name nvarchar(64) not null default '',
- bank_branch nvarchar(64) not null default ''
+ bank_branch nvarchar(64) not null default '',
+ bill_credit_period int not null default 0
 );
 
 create table mst_vouchertype
@@ -119,6 +122,8 @@ create table mst_stock_item
  parent nvarchar(1024) not null default '',
  _parent varchar(64) not null default '',
  alias nvarchar(256) not null default '',
+ description nvarchar(64) not null default '',
+ notes nvarchar(64) not null default '',
  part_number nvarchar(256) not null default '',
  uom nvarchar(32) not null default '',
  _uom varchar(64) not null default '',
@@ -128,6 +133,10 @@ create table mst_stock_item
  opening_balance decimal(15,4) default 0,
  opening_rate decimal(15,4) default 0,
  opening_value decimal(17,2) default 0,
+ closing_balance decimal(15,4) default 0,
+ closing_rate decimal(15,4) default 0,
+ closing_value decimal(17,2) default 0,
+ costing_method nvarchar(32) not null default '',
  gst_type_of_supply nvarchar(32) default '',
  gst_hsn_code nvarchar(64) default '',
  gst_hsn_description nvarchar(256) default '',
@@ -171,6 +180,7 @@ create table mst_gst_effective_rate
 
 create table mst_opening_batch_allocation
 (
+ name nvarchar(1024) not null default '',
  item nvarchar(1024) not null default '',
  _item varchar(64) not null default '',
  opening_balance decimal(15,4) default 0,

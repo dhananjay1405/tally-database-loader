@@ -1,5 +1,14 @@
 ## Release History
 
+**Version: 1.0.32 [16-Oct-2024]**<br>
+Fixed:
+* Configuration loadmethod with value insert was not getting assigned when passed through command-line
+
+Added:
+* Notes / Description field into mst_ledger and mst_stock_item tables
+* Closing Balance field into mst_ledger and mst_stock_item tables for displaying static closing values
+* Credit Period days into mst_ledger table for useful for calculation of overdue days
+
 **Version: 1.0.31 [05-Sep-2024]**<br>
 Fixed:
 * Few extra / missing fields related to incremental sync tracking

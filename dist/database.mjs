@@ -34,6 +34,8 @@ class _database {
                 this.config.username = lstConfigs.get('database-username') || '';
             if (lstConfigs.has('database-password'))
                 this.config.password = lstConfigs.get('database-password') || '';
+            if (lstConfigs.has('database-loadmethod'))
+                this.config.loadmethod = lstConfigs.get('database-loadmethod') || 'insert';
             if (lstConfigs.has('database-ssl'))
                 this.config.ssl = lstConfigs.get('database-ssl') == 'true';
             this.config.technology = this.config.technology.toLowerCase(); //convert technology to lowercase

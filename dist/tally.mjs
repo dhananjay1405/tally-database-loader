@@ -71,7 +71,7 @@ class _tally {
     importData() {
         return new Promise(async (resolve, reject) => {
             try {
-                logger.logMessage('Tally to Database | version: 1.0.31');
+                logger.logMessage('Tally to Database | version: 1.0.32');
                 //Load YAML export definition file
                 let pathTallyExportDefinition = this.config.definition;
                 if (fs.existsSync(`./${pathTallyExportDefinition}`)) {

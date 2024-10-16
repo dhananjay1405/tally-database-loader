@@ -44,10 +44,12 @@ create table mst_ledger
  parent varchar(1024) not null default '',
  _parent varchar(64) not null default '',
  alias varchar(256) not null default '',
+ description varchar(64) not null default '',
+ notes varchar(64) not null default '',
  is_revenue tinyint,
  is_deemedpositive tinyint,
  opening_balance decimal(17,2) default 0,
- description varchar(256) not null default '',
+ closing_balance decimal(17,2) default 0,
  mailing_name varchar(256) not null default '',
  mailing_address varchar(1024) not null default '',
  mailing_state varchar(256) not null default '',
@@ -65,7 +67,8 @@ create table mst_ledger
  bank_ifsc varchar(64) not null default '',
  bank_swift varchar(64) not null default '',
  bank_name varchar(64) not null default '',
- bank_branch varchar(64) not null default ''
+ bank_branch varchar(64) not null default '',
+ bill_credit_period int not null default 0
 );
 
 create table mst_vouchertype
@@ -119,6 +122,8 @@ create table mst_stock_item
  parent varchar(1024) not null default '',
  _parent varchar(64) not null default '',
  alias varchar(256) not null default '',
+ description varchar(64) not null default '',
+ notes varchar(64) not null default '',
  part_number varchar(256) not null default '',
  uom varchar(32) not null default '',
  _uom varchar(64) not null default '',
@@ -128,6 +133,10 @@ create table mst_stock_item
  opening_balance decimal(15,4) default 0,
  opening_rate decimal(15,4) default 0,
  opening_value decimal(17,2) default 0,
+ closing_balance decimal(15,4) default 0,
+ closing_rate decimal(15,4) default 0,
+ closing_value decimal(17,2) default 0,
+ costing_method varchar(32) not null default '',
  gst_type_of_supply varchar(32) default '',
  gst_hsn_code varchar(64) default '',
  gst_hsn_description varchar(256) default '',
@@ -171,6 +180,7 @@ create table mst_gst_effective_rate
 
 create table mst_opening_batch_allocation
 (
+ name varchar(1024) not null default '',
  item varchar(1024) not null default '',
  _item varchar(64) not null default '',
  opening_balance decimal(15,4) default 0,

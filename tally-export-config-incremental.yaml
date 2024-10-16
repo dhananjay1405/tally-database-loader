@@ -63,6 +63,12 @@ master:
         - name: alias
           field: OnlyAlias
           type: text
+        - name: description
+          field: Description
+          type: text
+        - name: notes
+          field: Narration
+          type: text
         - name: is_revenue
           field: IsRevenue
           type: logical
@@ -72,9 +78,9 @@ master:
         - name: opening_balance
           field: OpeningBalance
           type: amount
-        - name: description
-          field: Description
-          type: text
+        - name: closing_balance
+          field: ClosingBalance
+          type: amount
         - name: mailing_name
           field: MailingName
           type: text
@@ -129,6 +135,9 @@ master:
         - name: bank_branch
           field: BankBranchname
           type: text
+        - name: bill_credit_period
+          field: $$Number:$BillCreditPeriod
+          type: number
       cascade_update:
         - table: trn_accounting
           field: ledger
@@ -292,6 +301,12 @@ master:
         - name: alias
           field: OnlyAlias
           type: text
+        - name: description
+          field: Description
+          type: text
+        - name: notes
+          field: Narration
+          type: text
         - name: part_number
           field: PartNo
           type: text
@@ -319,6 +334,18 @@ master:
         - name: opening_value
           field: OpeningValue
           type: amount
+        - name: closing_balance
+          field: $$StringFindAndReplace:($$Number:$$String:$ClosingBalance):"(-)":"-"
+          type: number
+        - name: closing_rate
+          field: ClosingRate
+          type: rate
+        - name: closing_value
+          field: ClosingValue
+          type: amount
+        - name: costing_method
+          field: CostingMethod
+          type: text
         - name: gst_type_of_supply
           field: GSTMSTTypeofSupply
           type: text
@@ -452,6 +479,9 @@ master:
       collection: StockItem.BatchAllocations
       nature: Derived
       fields:
+        - name: name
+          field: BatchName
+          type: text
         - name: item
           field: ..Name
           type: text
