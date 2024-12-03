@@ -128,6 +128,56 @@ create table mst_cost_centre
  category varchar(1024) not null default ''
 );
 
+create table mst_attendance_type
+(
+ guid varchar(64) not null primary key,
+ name varchar(1024) not null default '',
+ parent varchar(1024) not null default '',
+ uom varchar(32) not null default '',
+ attendance_type varchar(64) not null default '',
+ attendance_period varchar(64) not null default ''
+);
+
+create table mst_employee
+(
+ guid varchar(64) not null primary key,
+ name varchar(1024) not null default '',
+ parent varchar(1024) not null default '',
+ id_number varchar(256) not null default '',
+ date_of_joining date,
+ date_of_release date,
+ designation varchar(64) not null default '',
+ function_role varchar(64) not null default '',
+ location varchar(256) not null default '',
+ gender varchar(32) not null default '',
+ date_of_birth date,
+ blood_group varchar(32) not null default '',
+ father_mother_name varchar(256) not null default '',
+ spouse_name varchar(256) not null default '',
+ address varchar(256) not null default '',
+ mobile varchar(32) not null default '',
+ email varchar(64) not null default '',
+ pan varchar(32) not null default '',
+ aadhar varchar(32) not null default '',
+ uan varchar(32) not null default '',
+ pf_number varchar(32) not null default '',
+ pf_joining_date date,
+ pf_relieving_date date,
+ pr_account_number varchar(32) not null default ''
+);
+
+create table mst_payhead
+(
+ guid varchar(64) not null primary key,
+ name varchar(1024) not null default '',
+ parent varchar(1024) not null default '',
+ pay_type varchar(64) not null default '',
+ income_type varchar(64) not null default '',
+ calculation_type varchar(32) not null default '',
+ leave_type varchar(64) not null default '',
+ calculation_period varchar(32) not null default ''
+);
+
 create table mst_gst_effective_rate
 (
  item varchar(1024) not null default '',
@@ -281,4 +331,32 @@ create table trn_batch
  godown varchar(1024),
  destination_godown varchar(1024),
  tracking_number varchar(1024)
+);
+
+create table trn_inventory_accounting
+(
+ guid varchar(64) not null default '',
+ ledger varchar(1024) not null default '',
+ amount decimal(17,2) not null default 0,
+ additional_allocation_type varchar(32) not null default ''
+);
+
+create table trn_employee
+(
+ guid varchar(64) not null default '',
+ category varchar(1024) not null default '',
+ employee_name varchar(1024) not null default '',
+ amount decimal(17,2) not null default 0,
+ employee_sort_order int not null default 0
+);
+
+create table trn_payhead
+(
+ guid varchar(64) not null default '',
+ category varchar(1024) not null default '',
+ employee_name varchar(1024) not null default '',
+ employee_sort_order int not null default 0,
+ payhead_name varchar(1024) not null default '',
+ payhead_sort_order int not null default 0,
+ amount decimal(17,2) not null default 0
 );

@@ -128,6 +128,56 @@ create table mst_cost_centre
  category nvarchar(1024) not null default ''
 );
 
+create table mst_attendance_type
+(
+ guid varchar(64) not null primary key,
+ name nvarchar(1024) not null default '',
+ parent nvarchar(1024) not null default '',
+ uom nvarchar(32) not null default '',
+ attendance_type nvarchar(64) not null default '',
+ attendance_period nvarchar(64) not null default ''
+);
+
+create table mst_employee
+(
+ guid varchar(64) not null primary key,
+ name nvarchar(1024) not null default '',
+ parent nvarchar(1024) not null default '',
+ id_number nvarchar(256) not null default '',
+ date_of_joining date,
+ date_of_release date,
+ designation nvarchar(64) not null default '',
+ function_role nvarchar(64) not null default '',
+ location nvarchar(256) not null default '',
+ gender nvarchar(32) not null default '',
+ date_of_birth date,
+ blood_group nvarchar(32) not null default '',
+ father_mother_name nvarchar(256) not null default '',
+ spouse_name nvarchar(256) not null default '',
+ address nvarchar(256) not null default '',
+ mobile nvarchar(32) not null default '',
+ email nvarchar(64) not null default '',
+ pan nvarchar(32) not null default '',
+ aadhar nvarchar(32) not null default '',
+ uan nvarchar(32) not null default '',
+ pf_number nvarchar(32) not null default '',
+ pf_joining_date date,
+ pf_relieving_date date,
+ pr_account_number nvarchar(32) not null default ''
+);
+
+create table mst_payhead
+(
+ guid varchar(64) not null primary key,
+ name nvarchar(1024) not null default '',
+ parent nvarchar(1024) not null default '',
+ pay_type nvarchar(64) not null default '',
+ income_type nvarchar(64) not null default '',
+ calculation_type nvarchar(32) not null default '',
+ leave_type nvarchar(64) not null default '',
+ calculation_period nvarchar(32) not null default ''
+);
+
 create table mst_gst_effective_rate
 (
  item nvarchar(1024) not null default '',
@@ -281,4 +331,32 @@ create table trn_batch
  godown nvarchar(1024),
  destination_godown nvarchar(1024),
  tracking_number nvarchar(1024)
+);
+
+create table trn_inventory_accounting
+(
+ guid varchar(64) not null default '',
+ ledger nvarchar(1024) not null default '',
+ amount decimal(17,2) not null default 0,
+ additional_allocation_type nvarchar(32) not null default ''
+);
+
+create table trn_employee
+(
+ guid varchar(64) not null default '',
+ category nvarchar(1024) not null default '',
+ employee_name nvarchar(1024) not null default '',
+ amount decimal(17,2) not null default 0,
+ employee_sort_order int not null default 0
+);
+
+create table trn_payhead
+(
+ guid varchar(64) not null default '',
+ category nvarchar(1024) not null default '',
+ employee_name nvarchar(1024) not null default '',
+ employee_sort_order int not null default 0,
+ payhead_name nvarchar(1024) not null default '',
+ payhead_sort_order int not null default 0,
+ amount decimal(17,2) not null default 0
 );

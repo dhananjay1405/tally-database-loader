@@ -151,6 +151,10 @@ master:
           field: ledger
         - table: trn_bank
           field: ledger
+        - table: trn_inventory_accounting
+          field: ledger
+        - table: trn_payhead
+          field: payhead_name
       cascade_delete:
         - table: mst_opening_bill_allocation
           field: _ledger
@@ -404,9 +408,13 @@ master:
         - table: mst_cost_centre
           field: parent
         - table: trn_cost_category_centre
-          field: costcentre
+          field: costcategory
         - table: trn_cost_inventory_category_centre
-          field: costcentre
+          field: costcategory
+        - table: trn_employee
+          field: category
+        - table: trn_payhead
+          field: category
     - name: mst_cost_centre
       collection: CostCentre
       nature: Primary
@@ -436,6 +444,161 @@ master:
           field: costcentre
         - table: trn_cost_inventory_category_centre
           field: costcentre
+        - table: trn_employee
+          field: employee_name
+        - table: trn_payhead
+          field: employee_name
+    - name: mst_attendance_type
+      collection: AttendanceType
+      nature: Primary
+      fields:
+        - name: guid
+          field: Guid
+          type: text
+        - name: alterid
+          field: AlterId
+          type: number
+        - name: name
+          field: Name
+          type: text
+        - name: parent
+          field: if $$IsEqual:$Parent:$$SysName:Primary then "" else $Parent
+          type: text
+        - name: _parent
+          field: if $$IsEqual:$Parent:$$SysName:Primary then "" else $Guid:AttendanceType:$Parent
+          type: text
+        - name: uom
+          field: if $$IsNotApplicable:$BaseUnits then "" else $BaseUnits
+          type: text
+        - name: _uom
+          field: $Guid:Unit:$BaseUnits
+          type: text
+        - name: attendance_type
+          field: AttendanceProductionType
+          type: text
+        - name: attendance_period
+          field: AttendancePeriod
+          type: text
+    - name: mst_employee
+      collection: CostCentre
+      nature: Primary
+      filters:
+        - $ForPayroll
+      fields:
+        - name: guid
+          field: Guid
+          type: text
+        - name: alterid
+          field: AlterId
+          type: number
+        - name: name
+          field: Name
+          type: text
+        - name: parent
+          field: if $$IsEqual:$Parent:$$SysName:Primary then "" else $Parent
+          type: text
+        - name: _parent
+          field: if $$IsEqual:$Parent:$$SysName:Primary then "" else $Guid:CostCategory:$Parent
+          type: text
+        - name: id_number
+          field: MailingName
+          type: text
+        - name: date_of_joining
+          field: DateOfJoin
+          type: date
+        - name: date_of_release
+          field: DeactivationDate
+          type: date
+        - name: designation
+          field: Designation
+          type: text
+        - name: function_role
+          field: Function
+          type: text
+        - name: location
+          field: Location
+          type: text
+        - name: gender
+          field: if $$IsSysNameEqual:Unknown:$Gender then "" else $Gender
+          type: text
+        - name: date_of_birth
+          field: DateOfBirth
+          type: date
+        - name: blood_group
+          field: BloodGroup
+          type: text
+        - name: father_mother_name
+          field: FatherName
+          type: text
+        - name: spouse_name
+          field: SpouseName
+          type: text
+        - name: address
+          field: if $$IsEmpty:$Address then "" else $$FullList:Address:$Address
+          type: text
+        - name: mobile
+          field: MobileNumber
+          type: text
+        - name: email
+          field: EmailId
+          type: text
+        - name: pan
+          field: PanNumber
+          type: text
+        - name: aadhar
+          field: AadharNumber
+          type: text
+        - name: uan
+          field: UanNumber
+          type: text
+        - name: pf_number
+          field: PfAccountNumber
+          type: text
+        - name: pf_joining_date
+          field: PfJoiningDate
+          type: date
+        - name: pf_relieving_date
+          field: PfRelievingDate
+          type: date
+        - name: pr_account_number
+          field: PRAccountNumber
+          type: text
+    - name: mst_payhead
+      collection: Ledger
+      nature: Primary
+      filters:
+        - $ForPayroll
+      fields:
+        - name: guid
+          field: Guid
+          type: text
+        - name: alterid
+          field: AlterId
+          type: number
+        - name: name
+          field: Name
+          type: text
+        - name: parent
+          field: if $$IsEqual:$Parent:$$SysName:Primary then "" else $Parent
+          type: text
+        - name: _parent
+          field: if $$IsEqual:$Parent:$$SysName:Primary then "" else $Guid:Ledger:$Parent
+          type: text
+        - name: pay_type
+          field: if $$IsNotApplicable:$PayType then "" else $PayType
+          type: text
+        - name: income_type
+          field: if $$IsNotApplicable:$PayStatType then "" else $PayStatType
+          type: text
+        - name: calculation_type
+          field: CalculationType
+          type: text
+        - name: leave_type
+          field: LeaveType
+          type: text
+        - name: calculation_period
+          field: CalculationPeriod
+          type: text
     - name: mst_gst_effective_rate
       collection: StockItem.GstDetails
       nature: Derived
@@ -655,6 +818,12 @@ transaction:
         - table: trn_bank
           field: guid
         - table: trn_batch
+          field: guid
+        - table: trn_inventory_accounting
+          field: guid
+        - table: trn_employee
+          field: guid
+        - table: trn_payhead
           field: guid
     - name: trn_accounting
       collection: Voucher.AllLedgerEntries
@@ -935,3 +1104,96 @@ transaction:
         - name: tracking_number
           field: if ($$IsEmpty:$TrackingNumber or $$IsNotApplicable:$TrackingNumber) then "" else $TrackingNumber
           type: text
+    - name: trn_inventory_accounting
+      collection: Voucher.LedgerEntries
+      nature: Derived
+      fetch:
+        - LedgerEntries
+      filters:
+        - NOT $IsCancelled
+        - NOT $IsOptional
+      fields:
+        - name: guid
+          field: Guid
+          type: text
+        - name: ledger
+          field: LedgerName
+          type: text
+        - name: _ledger
+          field: $Guid:Ledger:$LedgerName
+          type: text
+        - name: amount
+          field: Amount
+          type: amount
+        - name: additional_allocation_type
+          field: AddlAllocType
+          type: text
+    - name: trn_employee
+      collection: Voucher.CategoryEntry.EmployeeEntry
+      nature: Derived
+      fetch:
+        - CategoryEntry
+      filters:
+        - NOT $IsCancelled
+        - NOT $IsOptional
+      fields:
+        - name: guid
+          field: Guid
+          type: text
+        - name: category
+          field: Category
+          type: text
+        - name: _category
+          field: $Guid:CostCategory:$Category
+          type: text
+        - name: employee_name
+          field: EmployeeName
+          type: text
+        - name: _employee_name
+          field: $Guid:CostCentre:$EmployeeName
+          type: text
+        - name: amount
+          field: Amount
+          type: amount
+        - name: employee_sort_order
+          field: EmployeeSortOrder
+          type: number
+    - name: trn_payhead
+      collection: Voucher.CategoryEntry.EmployeeEntry.PayheadAllocations
+      nature: Derived
+      fetch:
+        - CategoryEntry
+      filters:
+        - NOT $IsCancelled
+        - NOT $IsOptional
+      fields:
+        - name: guid
+          field: Guid
+          type: text
+        - name: category
+          field: Category
+          type: text
+        - name: _category
+          field: $Guid:CostCategory:$Category
+          type: text
+        - name: employee_name
+          field: EmployeeName
+          type: text
+        - name: _employee_name
+          field: $Guid:CostCentre:$EmployeeName
+          type: text
+        - name: employee_sort_order
+          field: EmployeeSortOrder
+          type: number
+        - name: payhead_name
+          field: PayheadName
+          type: text
+        - name: _payhead_name
+          field: $Guid:Ledger:$PayheadName
+          type: text
+        - name: payhead_sort_order
+          field: PayheadSortOrder
+          type: number
+        - name: amount
+          field: Amount
+          type: amount

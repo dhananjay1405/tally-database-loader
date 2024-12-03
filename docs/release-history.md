@@ -1,5 +1,11 @@
 ## Release History
 
+**Version: 1.0.33 [03-Dec-2024]**<br>
+Added:
+* Table **trn_inventory_accounting** for capturing additional costs of manufacturing
+* Table **mst_attendance_type** , **mst_employee** and **mst_payhead** to capture master data related to payroll
+* Table **trn_employee** and **trn_payhead** to capture transaction / voucher data related to payroll
+
 **Version: 1.0.32 [16-Oct-2024]**<br>
 Fixed:
 * Configuration loadmethod with value insert was not getting assigned when passed through command-line

@@ -9,6 +9,9 @@
   },
   "author": "",
   "license": "ISC",
+  "overrides": {
+    "whatwg-url": "^14.0.0"
+  },
   "dependencies": {
     "@azure/storage-file-datalake": "^12.24.0",
     "@google-cloud/bigquery": "^7.9.0",

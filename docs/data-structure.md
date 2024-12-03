@@ -97,8 +97,13 @@ All the tables are related to each other with **one-to-many** relationship. The 
 |mst_ledger(name)|trn_accounting(ledger)|
 |mst_ledger(name)|trn_cost_centre(ledger)|
 |mst_ledger(name)|trn_bill(ledger)|
+|mst_ledger(name)|trn_bank(ledger)|
+|mst_ledger(name)|trn_inventory_accounting(ledger)|
+|mst_ledger(name)|trn_cost_category_centre(ledger)|
+|mst_ledger(name)|trn_cost_inventory_category_centre(ledger)|
 |mst_vouchertype(name)|trn_voucher(voucher_type)|
 |mst_uom(name)|mst_stock_item(uom)|
+|mst_uom(name)|mst_attendance_type(uom)|
 |mst_godown(name)|mst_opening_batch_allocation(godown)|
 |mst_godown(name)|trn_inventory(godown)|
 |mst_godown(name)|trn_batch(godown)|
@@ -108,14 +113,27 @@ All the tables are related to each other with **one-to-many** relationship. The 
 |mst_stock_item(name)|mst_opening_batch_allocation(item)|
 |mst_stock_item(name)|trn_inventory(item)|
 |mst_stock_item(name)|trn_batch(item)|
+|mst_stock_item(name)|trn_cost_inventory_category_centre(item)|
 |mst_cost_category(name)|mst_cost_centre(parent)|
+|mst_cost_category(name)|trn_cost_category_centre(costcategory)|
+|mst_cost_category(name)|trn_cost_inventory_category_centre(costcategory)|
+|mst_cost_category(name)|trn_employee(category)|
+|mst_cost_category(name)|trn_payhead(category)|
 |mst_cost_centre(name)|trn_cost_centre(costcentre)|
+|mst_cost_centre(name)|trn_cost_category_centre(costcentre)|
+|mst_cost_centre(name)|trn_cost_inventory_category_centre(costcentre)|
+|mst_employee(name)|trn_employee(employee_name)|
+|mst_employee(name)|trn_payhead(employee_name)|
+|mst_payhead(name)|trn_payhead(payhead_name)|
 |trn_voucher(guid)|trn_accounting(guid)|
 |trn_voucher(guid)|trn_inventory(guid)|
 |trn_voucher(guid)|trn_cost_centre(guid)|
 |trn_voucher(guid)|trn_bill(guid)|
 |trn_voucher(guid)|trn_bank(guid)|
 |trn_voucher(guid)|trn_batch(guid)|
+|trn_voucher(guid)|trn_inventory_accounting(guid)|
+|trn_voucher(guid)|trn_cost_category_centre(guid)|
+|trn_voucher(guid)|trn_cost_inventory_category_centre(guid)|
 
 ## Relationship Diagram
 Below is the ER (Entity Relationship) diagram for better understanding

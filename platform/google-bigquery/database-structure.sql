@@ -107,8 +107,8 @@ create table tallydb.mst_stock_item
  costing_method string(32) not null,
  gst_type_of_supply string(32),
  gst_hsn_code string(64),
- gst_hsn_description string(256) default '',
- gst_rate int default 0,
+ gst_hsn_description string(256),
+ gst_rate int,
  gst_taxability string(32)
 );
 
@@ -126,6 +126,56 @@ create table tallydb.mst_cost_centre
  name string(1024) not null,
  parent string(1024) not null,
  category string(1024) not null
+);
+
+create table tallydb.mst_attendance_type
+(
+ guid string(64) not null,
+ name string(1024) not null,
+ parent string(1024) not null,
+ uom string(32) not null,
+ attendance_type string(64) not null,
+ attendance_period string(64) not null
+);
+
+create table tallydb.mst_employee
+(
+ guid string(64) not null,
+ name string(1024) not null,
+ parent string(1024) not null,
+ id_number string(256) not null,
+ date_of_joining date,
+ date_of_release date,
+ designation string(64) not null,
+ function_role string(64) not null,
+ location string(256) not null,
+ gender string(32) not null,
+ date_of_birth date,
+ blood_group string(32) not null,
+ father_mother_name string(256) not null,
+ spouse_name string(256) not null,
+ address string(256) not null,
+ mobile string(32) not null,
+ email string(64) not null,
+ pan string(32) not null,
+ aadhar string(32) not null,
+ uan string(32) not null,
+ pf_number string(32) not null,
+ pf_joining_date date,
+ pf_relieving_date date,
+ pr_account_number string(32) not null
+);
+
+create table tallydb.mst_payhead
+(
+ guid string(64) not null,
+ name string(1024) not null,
+ parent string(1024) not null,
+ pay_type string(64) not null,
+ income_type string(64) not null,
+ calculation_type string(32) not null,
+ leave_type string(64) not null,
+ calculation_period string(32) not null
 );
 
 create table tallydb.mst_gst_effective_rate
@@ -281,4 +331,32 @@ create table tallydb.trn_batch
  godown string(1024),
  destination_godown string(1024),
  tracking_number string(1024)
+);
+
+create table tallydb.trn_inventory_accounting
+(
+ guid string(64) not null,
+ ledger string(1024) not null,
+ amount decimal(17,2) not null,
+ additional_allocation_type string(32) not null
+);
+
+create table tallydb.trn_employee
+(
+ guid string(64) not null,
+ category string(1024) not null,
+ employee_name string(1024) not null,
+ amount decimal(17,2) not null,
+ employee_sort_order int not null
+);
+
+create table tallydb.trn_payhead
+(
+ guid string(64) not null,
+ category string(1024) not null,
+ employee_name string(1024) not null,
+ employee_sort_order int not null,
+ payhead_name string(1024) not null,
+ payhead_sort_order int not null,
+ amount decimal(17,2) not null
 );

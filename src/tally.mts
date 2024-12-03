@@ -70,7 +70,7 @@ class _tally {
         return new Promise<void>(async (resolve, reject) => {
             try {
 
-                logger.logMessage('Tally to Database | version: 1.0.32');
+                logger.logMessage('Tally to Database | version: 1.0.33');
 
                 //Load YAML export definition file
                 let pathTallyExportDefinition = this.config.definition
