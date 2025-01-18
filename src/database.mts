@@ -187,7 +187,7 @@ class _database {
                     else if (this.config.technology == 'mssql') { //SQL Server
                         let fileContent = fs.readFileSync(csvFile, 'utf-8');
                         fileContent = fileContent.replace(/ñ/g, ''); //substitute NULL with placeholder
-                        fileContent = fileContent.replace(/\"/g, '""'); //escape double quotes
+                        //fileContent = fileContent.replace(/\"/g, '""'); //escape double quotes
                         fs.writeFileSync(csvFile, '\ufeff' + fileContent + '\r\n'); //write desired changes to file
                     }
                     else;
@@ -572,6 +572,59 @@ class _database {
         });
     }
 
+    private readMssql(sqlQuery: string): Promise<any[]> {
+        return new Promise<any[]>(async (resolve, reject) => {
+            try {
+                let connection = new mssql.Connection({
+                    server: this.config.server,
+                    authentication: {
+                        options: {
+                            userName: this.config.username,
+                            password: this.config.password
+                        },
+                        type: 'default'
+                    },
+                    options: {
+                        database: this.config.schema,
+                        port: this.config.port,
+                        trustServerCertificate: true,
+                        encrypt: this.config.ssl,
+                        rowCollectionOnRequestCompletion: true
+                    }
+                });
+                connection.on('connect', async (connErr) => {
+                    if (connErr) {
+                        let errorMessage = '';
+                        if (connErr.message.includes('getaddrinfo ENOTFOUND')) errorMessage = 'Unable to make SQL Server connection to specified servername or IP address';
+                        else if (connErr.message.includes('Could not connect (sequence)')) errorMessage = 'Unable to make SQL Server connection to specified port';
+                        else if (connErr.message.includes('Login failed for user')) errorMessage = 'Invalid Database / Username / Password';
+                        else;
+
+                        logger.logError('database.readMssql()', errorMessage || connErr);
+                        reject(connErr);
+                    }
+                    else {
+                        let data: any[] = [];
+                        connection.execSql(new mssql.Request(sqlQuery, (queryErr, rowCount, rows) => {
+                            if (queryErr) {
+                                reject(queryErr);
+                            }
+                            else {
+                                data = rows;
+                                connection.close();
+                                resolve(data);
+                            }
+                        }));
+                    }
+                });
+                connection.connect();
+            } catch (err) {
+                reject(err);
+                logger.logError('database.readMssql()', err);
+            }
+        });
+    }
+
     private dumpDataPostges(targetTable: string): Promise<number> {
         return new Promise<number>(async (resolve, reject) => {
             try {
@@ -654,7 +707,7 @@ class _database {
                 if (!lstData.length) { //skip bulk insert if no rows are found
                     return resolve(0);
                 }
-                let lstColumnInfo = this.populateDatabaseTableInfo(targetTable);
+                let lstColumnInfo = await this.populateDatabaseTableInfo(targetTable);
                 let connection = new mssql.Connection({
                     server: this.config.server,
                     authentication: {
@@ -739,55 +792,39 @@ class _database {
 
 
 
-    private populateDatabaseTableInfo(targetTable: string): databaseFieldInfo[] {
+    private populateDatabaseTableInfo(targetTable: string): Promise<databaseFieldInfo[]> {
         let retval: databaseFieldInfo[] = [];
-        try {
-            let flgStart = false;
-            let contentDatabaseStructure = fs.readFileSync('./database-structure.sql', 'utf-8');
-            let lstLines = contentDatabaseStructure.split(/\r\n/g) || [];
-            for (let i = lstLines.length - 1; i >= 0; i--) {
-                if (lstLines[i] == '(' || lstLines[i] == ');') {
-                    lstLines.splice(i, 1);
+        return new Promise<databaseFieldInfo[]>(async (resolve, reject) => {
+            try {
+                let sqlQuery = `select COLUMN_NAME, DATA_TYPE, IS_NULLABLE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, NUMERIC_SCALE from INFORMATION_SCHEMA.COLUMNS where TABLE_CATALOG = '${this.config.schema}' and TABLE_NAME = '${targetTable}' order by ORDINAL_POSITION`;
+                let result = await this.readMssql(sqlQuery);
+                for (const row of result) {
+                    let fieldName = row[0].value;
+                    let dataType = row[1].value;
+                    let isNullable = row[2].value == 'YES';
+                    let fieldLength = row[3].value !== null ? parseInt(row[3].value) : 0;
+                    let fieldPrecision = row[4].value !== null ? parseInt(row[4].value) : 0;
+                    let fieldScale = row[5].value !== null ? parseInt(row[5].value) : 0;
+                    let itemFieldInfo: databaseFieldInfo = {
+                        fieldName,
+                        dataType,
+                        isNullable
+                    };
+                    if (fieldLength) {
+                        itemFieldInfo.length = fieldLength
+                    }
+                    if (fieldPrecision) {
+                        itemFieldInfo.precision = fieldPrecision;
+                        itemFieldInfo.scale = fieldScale;
+                    }
+                    retval.push(itemFieldInfo);
                 }
+                resolve(retval)
+            } catch (err) {
+                reject(err);
+                logger.logError('database.populateDatabaseTableInfo()', err);
             }
-            for (const line of lstLines) {
-                if (!flgStart) {
-                    if (line == `create table ${targetTable}`) {
-                        flgStart = true;
-                    }
-                }
-                else {
-                    if (line == '') { // end of table info
-                        break;
-                    }
-                    else {
-                        let isNullable = !line.includes('not null');
-                        let lstParts = line.trim().match(/([a-z0-9_]+)/g);
-                        let fieldName = lstParts ? lstParts[0] : '';
-                        let dataType = lstParts ? lstParts[1] : ''
-                        let fieldLength = lstParts && dataType.includes('char') ? parseInt(lstParts[2]) : 0;
-                        let fieldPrecision = lstParts && dataType == 'decimal' ? parseInt(lstParts[2]) : 0;
-                        let fieldScale = lstParts && dataType == 'decimal' ? parseInt(lstParts[3]) : 0;
-                        let itemFieldInfo: databaseFieldInfo = {
-                            fieldName,
-                            dataType,
-                            isNullable
-                        };
-                        if (fieldLength) {
-                            itemFieldInfo.length = fieldLength
-                        }
-                        if (fieldPrecision) {
-                            itemFieldInfo.precision = fieldPrecision;
-                            itemFieldInfo.scale = fieldScale;
-                        }
-                        retval.push(itemFieldInfo);
-                    }
-                }
-            }
-        } catch (err) {
-            logger.logError('database.populateDatabaseTableInfo()', err);
-        }
-        return retval;
+        });
     }
 
 }

@@ -254,7 +254,9 @@ create table mst_opening_bill_allocation
  _ledger varchar(64) not null default '',
  opening_balance decimal(17,4) default 0,
  bill_date date,
- name nvarchar(1024) not null default ''
+ name nvarchar(1024) not null default '',
+ bill_credit_period int not null default 0,
+ is_advance tinyint
 );
 
 create table trn_closingstock_ledger
@@ -371,7 +373,8 @@ create table trn_bill
  _ledger varchar(64) not null default '',
  name nvarchar(1024) not null default '',
  amount decimal(17,2) not null default 0,
- billtype nvarchar(256) not null default ''
+ billtype nvarchar(256) not null default '',
+ bill_credit_period int not null default 0
 );
 
 create table trn_bank
@@ -434,4 +437,15 @@ create table trn_payhead
  _payhead_name varchar(64) not null default '',
  payhead_sort_order int not null default 0,
  amount decimal(17,2) not null default 0
+);
+
+create table trn_attendance
+(
+ guid varchar(64) not null default '',
+ employee_name nvarchar(1024) not null default '',
+ _employee_name varchar(64) not null default '',
+ attendancetype_name nvarchar(1024) not null default '',
+ _attendancetype_name varchar(64) not null default '',
+ time_value decimal(17,2) not null default 0,
+ type_value decimal(17,2) not null default 0
 );

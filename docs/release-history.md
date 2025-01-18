@@ -1,5 +1,16 @@
 ## Release History
 
+**Version: 1.0.34 [18-Jan-2025]**<br>
+Fixed:
+* 2 instances of double quotes for every single quote were appearing for Microsoft SQL Server with **file** loadmethod, now corrected
+* Extra filters added in few tables to determine if sub-collection in Tally schema exists in the main collection, to optimize export of data from Tally
+* Database column / field infortion for Microsoft SQL Server **file** loadmethod was being populated from database-structure.sql file. This approach failed to address scenario, where multiple companies with different custom TDL fields were maintained, since column information was being derived from hard-coded SQL file name. This limitation is now removed by reading INFORMATION_SCHEMA table of respective database to retrive the same information instead of hard-coded file
+
+Added:
+* Table **trn_attendance** added to capture attendance voucher details
+* Field **bill_credit_period** is added into respective tables to capture data where credit period is entered (or overriden) in individual voucher
+* Few reports SQL added
+
 **Version: 1.0.33 [03-Dec-2024]**<br>
 Added:
 * Table **trn_inventory_accounting** for capturing additional costs of manufacturing

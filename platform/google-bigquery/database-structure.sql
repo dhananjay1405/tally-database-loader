@@ -208,7 +208,9 @@ create table tallydb.mst_opening_bill_allocation
  ledger string(1024) not null,
  opening_balance decimal(17,4),
  bill_date date,
- name string(1024) not null
+ name string(1024) not null,
+ bill_credit_period int not null,
+ is_advance tinyint
 );
 
 create table tallydb.trn_closingstock_ledger
@@ -306,7 +308,8 @@ create table tallydb.trn_bill
  ledger string(1024) not null,
  name string(1024) not null,
  amount decimal(17,2) not null,
- billtype string(256) not null
+ billtype string(256) not null,
+ bill_credit_period int not null
 );
 
 create table tallydb.trn_bank
@@ -359,4 +362,13 @@ create table tallydb.trn_payhead
  payhead_name string(1024) not null,
  payhead_sort_order int not null,
  amount decimal(17,2) not null
+);
+
+create table tallydb.trn_attendance
+(
+ guid string(64) not null,
+ employee_name string(1024) not null,
+ attendancetype_name string(1024) not null,
+ time_value decimal(17,2) not null,
+ type_value decimal(17,2) not null
 );

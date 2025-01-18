@@ -436,6 +436,7 @@ master:
       nature: Derived
       filters:
         - NOT $$IsEmpty:$GstApplicable
+        - $$NumItems:GstDetails > 0
       fields:
         - name: item
           field: Name
@@ -470,6 +471,8 @@ master:
     - name: mst_opening_batch_allocation
       collection: StockItem.BatchAllocations
       nature: Derived
+      filters:
+        - $$NumItems:BatchAllocations > 0
       fields:
         - name: name
           field: BatchName
@@ -495,6 +498,8 @@ master:
     - name: mst_opening_bill_allocation
       collection: Ledger.BillAllocations
       nature: Derived
+      filters:
+        - $$NumItems:BillAllocations > 0
       fields:
         - name: ledger
           field: ..Name
@@ -508,6 +513,12 @@ master:
         - name: name
           field: Name
           type: text
+        - name: bill_credit_period
+          field: $$Number:$BillCreditPeriod
+          type: number
+        - name: is_advance
+          field: IsAdvance
+          type: logical
     - name: trn_closingstock_ledger
       collection: Ledger.LedgerClosingValues
       nature: Derived
@@ -530,6 +541,8 @@ master:
       nature: Derived
       fetch:
         - StandardCostList
+      filters:
+        - $$NumItems:StandardCostList > 0
       fields:
         - name: item
           field: Name
@@ -545,6 +558,8 @@ master:
       nature: Derived
       fetch:
         - StandardPriceList
+      filters:
+        - $$NumItems:StandardPriceList > 0
       fields:
         - name: item
           field: Name
@@ -612,6 +627,7 @@ transaction:
       filters:
         - NOT $IsCancelled
         - NOT $IsOptional
+        - $$NumItems:AllLedgerEntries > 0
       fields:
         - name: guid
           field: Guid
@@ -636,6 +652,7 @@ transaction:
       filters:
         - NOT $IsCancelled
         - NOT $IsOptional
+        - $$NumItems:AllInventoryEntries > 0
       fields:
         - name: guid
           field: Guid
@@ -678,6 +695,7 @@ transaction:
       filters:
         - NOT $IsCancelled
         - NOT $IsOptional
+        - $$NumItems:AllLedgerEntries > 0
       fields:
         - name: guid
           field: Guid
@@ -699,6 +717,7 @@ transaction:
       filters:
         - NOT $IsCancelled
         - NOT $IsOptional
+        - $$NumItems:AllLedgerEntries > 0
       fields:
         - name: guid
           field: Guid
@@ -723,6 +742,7 @@ transaction:
       filters:
         - NOT $IsCancelled
         - NOT $IsOptional
+        - $$NumItems:AllLedgerEntries > 0
       fields:
         - name: guid
           field: Guid
@@ -750,6 +770,7 @@ transaction:
       filters:
         - NOT $IsCancelled
         - NOT $IsOptional
+        - $$NumItems:AllLedgerEntries > 0
       fields:
         - name: guid
           field: Guid
@@ -766,6 +787,9 @@ transaction:
         - name: billtype
           field: BillType
           type: text
+        - name: bill_credit_period
+          field: $$Number:$BillCreditPeriod
+          type: number
     - name: trn_bank
       collection: Voucher.AllLedgerEntries.BankAllocations
       nature: Derived
@@ -774,6 +798,7 @@ transaction:
       filters:
         - NOT $IsCancelled
         - NOT $IsOptional
+        - $$NumItems:AllLedgerEntries > 0
       fields:
         - name: guid
           field: Guid
@@ -807,6 +832,7 @@ transaction:
       filters:
         - NOT $IsCancelled
         - NOT $IsOptional
+        - $$NumItems:AllInventoryEntries > 0
       fields:
         - name: guid
           field: Guid
@@ -840,6 +866,7 @@ transaction:
       filters:
         - NOT $IsCancelled
         - NOT $IsOptional
+        - $$NumItems:LedgerEntries > 0
       fields:
         - name: guid
           field: Guid
@@ -861,6 +888,7 @@ transaction:
       filters:
         - NOT $IsCancelled
         - NOT $IsOptional
+        - $$NumItems:CategoryEntry > 0
       fields:
         - name: guid
           field: Guid
@@ -885,6 +913,7 @@ transaction:
       filters:
         - NOT $IsCancelled
         - NOT $IsOptional
+        - $$NumItems:CategoryEntry > 0
       fields:
         - name: guid
           field: Guid
@@ -907,3 +936,28 @@ transaction:
         - name: amount
           field: Amount
           type: amount
+    - name: trn_attendance
+      collection: Voucher.AttendanceEntries
+      nature: Derived
+      fetch:
+        - AttendanceEntries
+      filters:
+        - NOT $IsCancelled
+        - NOT $IsOptional
+        - $$NumItems:AttendanceEntries > 0
+      fields:
+        - name: guid
+          field: Guid
+          type: text
+        - name: employee_name
+          field: Name
+          type: text
+        - name: attendancetype_name
+          field: AttendanceType
+          type: text
+        - name: time_value
+          field: AttdTypeTimeValue
+          type: amount
+        - name: type_value
+          field: AttdTypeValue
+          type: quantity

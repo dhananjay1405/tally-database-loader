@@ -122,8 +122,10 @@ All the tables are related to each other with **one-to-many** relationship. The 
 |mst_cost_centre(name)|trn_cost_centre(costcentre)|
 |mst_cost_centre(name)|trn_cost_category_centre(costcentre)|
 |mst_cost_centre(name)|trn_cost_inventory_category_centre(costcentre)|
+|mst_attendance_type(name)|trn_attendance(attendancetype_name)|
 |mst_employee(name)|trn_employee(employee_name)|
 |mst_employee(name)|trn_payhead(employee_name)|
+|mst_employee(name)|trn_attendance(employee_name)|
 |mst_payhead(name)|trn_payhead(payhead_name)|
 |trn_voucher(guid)|trn_accounting(guid)|
 |trn_voucher(guid)|trn_inventory(guid)|
@@ -134,6 +136,9 @@ All the tables are related to each other with **one-to-many** relationship. The 
 |trn_voucher(guid)|trn_inventory_accounting(guid)|
 |trn_voucher(guid)|trn_cost_category_centre(guid)|
 |trn_voucher(guid)|trn_cost_inventory_category_centre(guid)|
+|trn_voucher(guid)|trn_employee(guid)|
+|trn_voucher(guid)|trn_payhead(guid)|
+|trn_voucher(guid)|trn_attendance(guid)|
 
 ## Relationship Diagram
 Below is the ER (Entity Relationship) diagram for better understanding
