@@ -108,7 +108,7 @@ create table mst_stock_item
  gst_type_of_supply varchar(32) default '',
  gst_hsn_code varchar(64) default '',
  gst_hsn_description varchar(256) default '',
- gst_rate int default 0,
+ gst_rate decimal(9,4) default 0,
  gst_taxability varchar(32) default ''
 );
 
@@ -184,7 +184,7 @@ create table mst_gst_effective_rate
  applicable_from date,
  hsn_description varchar(256) not null default '',
  hsn_code varchar(64) not null default '',
- rate decimal(17,2) not null default 0,
+ rate decimal(9,4) default 0,
  is_rcm_applicable smallint,
  nature_of_transaction varchar(64) not null default '',
  nature_of_goods varchar(64) not null default '',

@@ -268,7 +268,7 @@ master:
           type: text
         - name: gst_taxability
           field: InfGSTTaxablility
-          type: text
+          type: number
     - name: mst_cost_category
       collection: CostCategory
       nature: Primary

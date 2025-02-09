@@ -31,8 +31,8 @@
          */
         function convertDateYYYYMMDD(dateStr) {
             let partYear = dateStr.substring(0, 4);
-            let partMonth = dateStr.substring(4, 2);
-            let partDay = dateStr.substring(6, 2);
+            let partMonth = dateStr.substring(4, 6);
+            let partDay = dateStr.substring(6);
             return partYear + '-' + partMonth + '-' + partDay;
         }
 
@@ -59,7 +59,6 @@
                 tally_sync_onchange(document.getElementById('tally_sync'));
             }
             document.getElementById('tally_sync').disabled = !state;
-
         }
 
         function showhideTallyDatabasePanel(state = true) {
@@ -89,8 +88,8 @@
             let tallyDefinition = document.getElementById('tally_definition').value;
             let tallyServer = document.getElementById('tally_server').value;
             let tallyPort = parseInt(document.getElementById('tally_port').value);
-            let tallyFromdate = document.getElementById('tally_fromdate').value;
-            let tallyTodate = document.getElementById('tally_todate').value;
+            let tallyFromdate = document.getElementById('tally_period_auto').checked === true ? 'auto' : document.getElementById('tally_fromdate').value;
+            let tallyTodate = document.getElementById('tally_period_auto').checked === true ? 'auto' : document.getElementById('tally_todate').value;
             let tallySync = document.getElementById('tally_sync').value;
             let tallyFrequency = parseInt(document.getElementById('tally_sync').value);
             let tallyCompany = document.getElementById('tally_company').value;
@@ -167,12 +166,15 @@
             if (objConfig['tally']['port'] < 0 || objConfig['tally']['port'] > 65535) {
                 retval += 'Tally Port value is invalid\r\n';
             }
-            if (isNaN(Date.parse(objConfig['tally']['fromdate']))) {
-                retval += 'Invalid From Date\r\n';
+            if (objConfig['tally']['fromdate'] != 'auto' && objConfig['tally']['todate'] != 'auto') {
+                if (isNaN(Date.parse(objConfig['tally']['fromdate']))) {
+                    retval += 'Invalid From Date\r\n';
+                }
+                if (isNaN(Date.parse(objConfig['tally']['todate']))) {
+                    retval += 'Invalid To Date\r\n';
+                }
             }
-            if (isNaN(Date.parse(objConfig['tally']['todate']))) {
-                retval += 'Invalid To Date\r\n';
-            }
+
             return retval;
         }
 
@@ -226,6 +228,17 @@
             document.getElementById('tally_definition').value = targetDefinitionFile;
         }
 
+        function tally_period_onchange(e) {
+            if (e.value === 'auto') {
+                document.getElementById('tally_fromdate').disabled = true;
+                document.getElementById('tally_todate').disabled = true;
+            }
+            else {
+                document.getElementById('tally_fromdate').disabled = false;
+                document.getElementById('tally_todate').disabled = false;
+            }
+        }
+
         async function loadConfig() {
             let resp = await fetch('http://localhost:8997/loadconfig');
             let respData = await resp.json();
@@ -253,7 +266,7 @@
             document.getElementById('tally_sync').value = respData.tally.sync;
             document.getElementById('tally_frequency').value = parseInt(respData.tally.frequency);
             document.getElementById('tally_company').value = respData.tally.company;
-            if (respData.tally.fromdate !== 'auto') {
+            if (respData.tally.fromdate !== 'auto' && respData.tally.todate !== 'auto') {
                 if (/^\d{8}$/g.test(respData.tally.fromdate)) {
                     respData.tally.fromdate = convertDateYYYYMMDD(respData.tally.fromdate);
                 }
@@ -262,8 +275,17 @@
                 }
                 document.getElementById('tally_fromdate').value = respData.tally.fromdate;
                 document.getElementById('tally_todate').value = respData.tally.todate;
+                document.getElementById('tally_period_custom').checked = true;
+                document.getElementById('tally_period_auto').checked = false;
+                document.getElementById('tally_period_custom').dispatchEvent(new Event('change'));
+            }
+            else {
+                document.getElementById('tally_period_auto').checked = true;
+                document.getElementById('tally_period_custom').removeAttribute('checked');
+                document.getElementById('tally_period_auto').dispatchEvent(new Event('change'));
             }
             document.getElementById('database_technology').dispatchEvent(new Event('change'));
+
         }
 
         async function saveConfig() {
@@ -281,7 +303,7 @@
 
         async function sync() {
             let msg = validateConfig();
-            if(msg) {
+            if (msg) {
                 alert(msg);
                 return;
             }
@@ -381,7 +403,8 @@
 </head>
 
 <body>
-    <div class="text-center text-danger mt-2" id="txtServerError">Unable to communicate with backend server. Kindly close this browser tab and re-launch run-gui.bat file</div>
+    <div class="text-center text-danger mt-2" id="txtServerError">Unable to communicate with backend server. Kindly
+        close this browser tab and re-launch run-gui.bat file</div>
     <div class="container my-app">
         <h3 class="text-center text-primary mt-5">Tally to Database Sync</h2>
             <div id="pnlActions" class="mt-5">
@@ -428,7 +451,7 @@
                     </div>
                 </div>
                 <div class="mb-2 form-group row">
-                    <label for="database_ssl" class="col-sm-3 col-form-label">SSL</label>
+                    <label for="database_ssl_true" class="col-sm-3 col-form-label">SSL</label>
                     <div class="col-sm-9">
                         <div class="form-check form-check-inline">
                             <input class="form-check-input" type="radio" name="database_ssl" id="database_ssl_true"
@@ -490,6 +513,21 @@
                     <label for="tally_port" class="col-sm-3 col-form-label">Port</label>
                     <div class="col-sm-9">
                         <input type="number" class="form-control" id="tally_port" value="9000">
+                    </div>
+                </div>
+                <div class="mb-2 form-group row">
+                    <label for="tally_period_auto" class="col-sm-3 col-form-label">Period</label>
+                    <div class="col-sm-9">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="tally_period" id="tally_period_auto"
+                                value="auto" onchange="tally_period_onchange(this)">
+                            <label class="form-check-label" for="tally_period_auto">Auto</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="tally_period" id="tally_period_custom"
+                                value="custom" onchange="tally_period_onchange(this)" checked>
+                            <label class="form-check-label" for="tally_period_custom">Custom</label>
+                        </div>
                     </div>
                 </div>
                 <div class="mb-2 form-group row">

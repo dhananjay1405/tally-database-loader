@@ -609,7 +609,6 @@ master:
       nature: Derived
       filters:
         - NOT $$IsEmpty:$GstApplicable
-        - $$NumItems:GstDetails > 0
       fields:
         - name: item
           field: Name
@@ -647,8 +646,6 @@ master:
     - name: mst_opening_batch_allocation
       collection: StockItem.BatchAllocations
       nature: Derived
-      filters:
-        - $$NumItems:BatchAllocations > 0
       fields:
         - name: name
           field: BatchName
@@ -680,8 +677,6 @@ master:
     - name: mst_opening_bill_allocation
       collection: Ledger.BillAllocations
       nature: Derived
-      filters:
-        - $$NumItems:BillAllocations > 0
       fields:
         - name: ledger
           field: ..Name
@@ -729,8 +724,6 @@ master:
       nature: Derived
       fetch:
         - StandardCostList
-      filters:
-        - $$NumItems:StandardCostList > 0
       fields:
         - name: item
           field: Name
@@ -749,8 +742,6 @@ master:
       nature: Derived
       fetch:
         - StandardPriceList
-      filters:
-        - $$NumItems:StandardPriceList > 0
       fields:
         - name: item
           field: Name
@@ -855,7 +846,6 @@ transaction:
       filters:
         - NOT $IsCancelled
         - NOT $IsOptional
-        - $$NumItems:AllLedgerEntries > 0
       fields:
         - name: guid
           field: Guid
@@ -883,7 +873,6 @@ transaction:
       filters:
         - NOT $IsCancelled
         - NOT $IsOptional
-        - $$NumItems:AllInventoryEntries > 0
       fields:
         - name: guid
           field: Guid
@@ -932,7 +921,6 @@ transaction:
       filters:
         - NOT $IsCancelled
         - NOT $IsOptional
-        - $$NumItems:AllLedgerEntries > 0
       fields:
         - name: guid
           field: Guid
@@ -960,7 +948,6 @@ transaction:
       filters:
         - NOT $IsCancelled
         - NOT $IsOptional
-        - $$NumItems:AllLedgerEntries > 0
       fields:
         - name: guid
           field: Guid
@@ -994,7 +981,6 @@ transaction:
       filters:
         - NOT $IsCancelled
         - NOT $IsOptional
-        - $$NumItems:AllLedgerEntries > 0
       fields:
         - name: guid
           field: Guid
@@ -1034,7 +1020,6 @@ transaction:
       filters:
         - NOT $IsCancelled
         - NOT $IsOptional
-        - $$NumItems:AllLedgerEntries > 0
       fields:
         - name: guid
           field: Guid
@@ -1065,7 +1050,6 @@ transaction:
       filters:
         - NOT $IsCancelled
         - NOT $IsOptional
-        - $$NumItems:AllLedgerEntries > 0
       fields:
         - name: guid
           field: Guid
@@ -1102,7 +1086,6 @@ transaction:
       filters:
         - NOT $IsCancelled
         - NOT $IsOptional
-        - $$NumItems:AllInventoryEntries > 0
       fields:
         - name: guid
           field: Guid
@@ -1145,7 +1128,6 @@ transaction:
       filters:
         - NOT $IsCancelled
         - NOT $IsOptional
-        - $$NumItems:LedgerEntries > 0
       fields:
         - name: guid
           field: Guid
@@ -1170,7 +1152,6 @@ transaction:
       filters:
         - NOT $IsCancelled
         - NOT $IsOptional
-        - $$NumItems:CategoryEntry > 0
       fields:
         - name: guid
           field: Guid
@@ -1201,7 +1182,6 @@ transaction:
       filters:
         - NOT $IsCancelled
         - NOT $IsOptional
-        - $$NumItems:CategoryEntry > 0
       fields:
         - name: guid
           field: Guid
@@ -1241,7 +1221,6 @@ transaction:
       filters:
         - NOT $IsCancelled
         - NOT $IsOptional
-        - $$NumItems:AttendanceEntries > 0
       fields:
         - name: guid
           field: Guid

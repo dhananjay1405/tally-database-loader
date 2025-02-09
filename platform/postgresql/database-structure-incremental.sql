@@ -227,7 +227,7 @@ create table mst_gst_effective_rate
  applicable_from date,
  hsn_description varchar(256) not null default '',
  hsn_code varchar(64) not null default '',
- rate decimal(17,2) not null default 0,
+ rate decimal(9,4) default 0,
  is_rcm_applicable smallint,
  nature_of_transaction varchar(64) not null default '',
  nature_of_goods varchar(64) not null default '',

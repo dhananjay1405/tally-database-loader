@@ -108,7 +108,7 @@ create table tallydb.mst_stock_item
  gst_type_of_supply string(32),
  gst_hsn_code string(64),
  gst_hsn_description string(256),
- gst_rate int,
+ gst_rate decimal(9,4),
  gst_taxability string(32)
 );
 
@@ -184,7 +184,7 @@ create table tallydb.mst_gst_effective_rate
  applicable_from date,
  hsn_description string(256) not null,
  hsn_code string(64) not null,
- rate decimal(17,2) not null,
+ rate decimal(9,4) not null,
  is_rcm_applicable tinyint,
  nature_of_transaction string(64) not null,
  nature_of_goods string(64) not null,

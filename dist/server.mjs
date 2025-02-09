@@ -153,5 +153,11 @@ httpServer.listen(httpPort, 'localhost', () => {
     console.log(`Server started on http://localhost:${httpPort}`);
     console.log('Launching utility GUI page on default browser...');
     child_process.exec(`start http://localhost:${httpPort}`);
+    setInterval(() => {
+        if (wsServer.clients.size == 0 && !isSyncRunning) {
+            console.log('No webpage connected. Closing utility...');
+            process.exit(0); //shutdown utility
+        }
+    }, 5000);
 });
 //# sourceMappingURL=server.mjs.map

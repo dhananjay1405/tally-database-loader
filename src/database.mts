@@ -10,11 +10,13 @@ import { logger } from './logger.mjs';
 import { connectionConfig, queryResult, tableConfigYAML, databaseFieldInfo, cdmModel, cdmEntity } from './definition.mjs';
 
 const maxQuerySize = 50000;
+let connectionPoolMysql: mysql.Pool;
 
 class _database {
 
     config: connectionConfig;
     bigquery: BigQuery = new BigQuery();
+    connectionPoolPostgres: postgres.Pool = new postgres.Pool({});
 
     constructor() {
         try {
@@ -56,6 +58,91 @@ class _database {
             throw err;
         }
 
+    }
+
+    async openConnectionPool(): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            try {
+                if (this.config.technology == 'postgres') {
+                    this.connectionPoolPostgres = new postgres.Pool({
+                        host: this.config.server,
+                        port: this.config.port,
+                        database: this.config.schema,
+                        user: this.config.username,
+                        password: this.config.password,
+                        ssl: !this.config.ssl ? false : {
+                            rejectUnauthorized: false
+                        },
+                    });
+                    //validate the credentials by making a connection
+                    try {
+                        let connection = await this.connectionPoolPostgres.connect();
+                        connection.release();
+                    } catch (err: any) {
+                        let errorMessage = '';
+                        let errSystemMessage = typeof err['message'] == 'string' ? err['message'] : '';
+                        if (errSystemMessage.startsWith('getaddrinfo ENOTFOUND')) errorMessage = 'Unable to make PostgreSQL connection to servername or IP address';
+                        else if (errSystemMessage.startsWith('connect ECONNREFUSED')) errorMessage = 'Unable to make PostgreSQL connection on specified port';
+                        else if (errSystemMessage.startsWith('database') && errSystemMessage.endsWith('does not exist')) errorMessage = 'Invalid PostgreSQL database';
+                        else if (errSystemMessage.startsWith('password authentication failed for user') || errSystemMessage.includes('There is no user')) errorMessage = 'Invalid PostgreSQL username or password';
+                        else if (errSystemMessage == 'The server does not support SSL connections') errorMessage = 'Specified PostgreSQL Database Server does not support secure connection';
+                        else if (errSystemMessage.includes('connection is insecure (try using')) errorMessage = 'Database Server does not accept insecure connection. Please set "ssl" as true in config.json';
+                        else;
+                        throw (errorMessage || err);
+                    }
+                }
+                else if (this.config.technology == 'mysql') {
+                    connectionPoolMysql = mysql.createPool({
+                        host: this.config.server,
+                        port: this.config.port,
+                        database: this.config.schema,
+                        user: this.config.username,
+                        password: this.config.password,
+                        ssl: !this.config.ssl ? undefined : {
+                            rejectUnauthorized: false
+                        }
+                    });
+                    try {
+                        let connection = await connectionPoolMysql.promise().getConnection();
+                        connection.release();    
+                    } catch (connErr: any) {
+                        let errorMessage = '';
+                        if (connErr.code == 'ECONNREFUSED') errorMessage = 'Unable to make MySQL connection on specified port';
+                        else if (connErr.code == 'ENOTFOUND') errorMessage = 'Unable to make MySQL connection to servername or IP address';
+                        else if (connErr.code == 'ER_BAD_DB_ERROR') errorMessage = 'Invalid MySQL database name';
+                        else if (connErr.code == 'ER_ACCESS_DENIED_ERROR') errorMessage = 'Invalid MySQL password';
+                        else if (connErr.code == 'ER_NOT_SUPPORTED_AUTH_MODE') errorMessage = 'Invalid MySQL username/password/Authentication';
+                        else;
+                        throw errorMessage || connErr;
+                    }
+                    
+                }
+                else;
+                resolve();
+            } catch (err) {
+                reject(err);
+                logger.logError('database.openConnectionPool()', err);
+            }
+        });
+
+    };
+
+    async closeConnectionPool(): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            try {
+                if (this.config.technology == 'postgres') {
+                    await this.connectionPoolPostgres.end();
+                }
+                else if (this.config.technology == 'mysql') {
+                    await connectionPoolMysql.promise().end();
+                }
+                else;
+                resolve();
+            } catch (err) {
+                reject(err);
+                logger.logError('database.closeConnectionPool()', err);
+            }
+        });
     }
 
     convertCSV(content: string, lstFieldType: string[], doubleQuote: boolean = false): string {
@@ -205,10 +292,10 @@ class _database {
                 }
                 resolve(rowCount);
             } catch (err: any) {
+                // if (typeof err == 'object')
+                //     err['targetQuery'] = sqlQuery;
+                logger.logError(`database.bulkLoad(${targetTable})`, err);
                 reject(err);
-                if (typeof err == 'object')
-                    err['targetQuery'] = sqlQuery;
-                logger.logError('database.bulkLoad()', err);
             }
         });
     }
@@ -398,63 +485,48 @@ class _database {
     }
 
     private executeMysql(sqlQuery: string | string[]): Promise<queryResult> {
-        return new Promise<queryResult>((resolve, reject) => {
-            try {
-                let connection = mysql.createConnection({
-                    host: this.config.server,
-                    port: this.config.port,
-                    database: this.config.schema,
-                    user: this.config.username,
-                    password: this.config.password,
-                    ssl: !this.config.ssl ? undefined : {
-                        rejectUnauthorized: false
-                    }
-                });
-                connection.connect(async (connErr) => {
-                    if (connErr) {
-                        let errorMessage = '';
-                        if (connErr.code == 'ECONNREFUSED') errorMessage = 'Unable to make MySQL connection on specified port';
-                        else if (connErr.code == 'ENOTFOUND') errorMessage = 'Unable to make MySQL connection to servername or IP address';
-                        else if (connErr.code == 'ER_BAD_DB_ERROR') errorMessage = 'Invalid MySQL database name';
-                        else if (connErr.code == 'ER_ACCESS_DENIED_ERROR') errorMessage = 'Invalid MySQL password';
-                        else if (connErr.code == 'ER_NOT_SUPPORTED_AUTH_MODE') errorMessage = 'Invalid MySQL username/password/Authentication';
-                        else;
-
-                        logger.logError('database.executeMysql()', errorMessage || connErr);
-                        reject('');
+        const executeQuery = (connection: mysql.PoolConnection, qry: string): Promise<queryResult> => {
+            return new Promise<queryResult>((_resolve, _reject) => {
+                connection.query(qry, (queryErr, results: any[] | any) => {
+                    if (queryErr) {
+                        connection.release();
+                        _reject(queryErr);
                     }
                     else {
-                        const executeQuery = (qry: string): Promise<queryResult> => {
-                            return new Promise<queryResult>((_resolve, _reject) => {
-                                connection.query(qry, (queryErr, results: any[] | any) => {
-                                    if (queryErr) {
-                                        _reject(queryErr);
-                                    }
-                                    else
-                                        _resolve({ rowCount: results['affectedRows'] || 0, data: results });
-                                });
-                            });
-                        }
+                        connection.release();
+                        _resolve({ rowCount: results['affectedRows'] || 0, data: results });
+                    }
+                        
+                });
+            });
+        }
+        return new Promise<queryResult>((resolve, reject) => {
+            connectionPoolMysql.getConnection(async (connErr, connection) => {
+                try {
+                    if (connErr) {
+                        throw connErr;
+                    }
+                    else {
                         let rowCount = 0;
                         let data: any[] = [];
                         if (Array.isArray(sqlQuery)) { //multiple query
                             for (const qry of sqlQuery) {
-                                await executeQuery(qry);
+                                await executeQuery(connection, qry);
                             }
+                            resolve({ rowCount, data });
                         }
                         else { //single query
-                            let result = await executeQuery(sqlQuery);
-                            rowCount = result.rowCount;
-                            data = result.data;
+                            let result = await executeQuery(connection, sqlQuery);
+                                rowCount = result.rowCount;
+                                data = result.data;
                         }
-                        connection.end();
                         resolve({ rowCount, data });
                     }
-                });
-            } catch (err) {
-                reject(err);
-                logger.logError('database.executeMysql()', err);
-            }
+                } catch (err) {
+                    logger.logError('database.executeMysql()', err);
+                    reject(err);
+                }
+            });
         });
     }
 
@@ -496,7 +568,7 @@ class _database {
                                     if (queryErr)
                                         _reject(queryErr);
                                     else
-                                        _resolve({ rowCount: rowCount || 0 , data: rows });
+                                        _resolve({ rowCount: rowCount || 0, data: rows });
                                 }));
                             });
                         };
@@ -527,18 +599,8 @@ class _database {
 
     private executePostgres(sqlQuery: string | string[]): Promise<queryResult> {
         return new Promise<queryResult>(async (resolve, reject) => {
+            let connection = await this.connectionPoolPostgres.connect();
             try {
-                let connection = new postgres.Client({
-                    host: this.config.server,
-                    port: this.config.port,
-                    database: this.config.schema,
-                    user: this.config.username,
-                    password: this.config.password,
-                    ssl: !this.config.ssl ? false : {
-                        rejectUnauthorized: false
-                    },
-                });
-                await connection.connect();
                 let rowCount = 0;
                 let data: any[] = [];
                 if (Array.isArray(sqlQuery)) { //multiple query
@@ -555,19 +617,12 @@ class _database {
                     rowCount = result.rowCount || 0;
                     data = result.rows;
                 }
-                await connection.end();
                 resolve({ rowCount, data });
-            } catch (err: any) {
-                let errorMessage = '';
-                let errSystemMessage = typeof err['message'] == 'string' ? err['message'] : '';
-                if (errSystemMessage.startsWith('getaddrinfo ENOTFOUND')) errorMessage = 'Unable to make PostgreSQL connection to servername or IP address';
-                else if (errSystemMessage.startsWith('connect ECONNREFUSED')) errorMessage = 'Unable to make PostgreSQL connection on specified port';
-                else if (errSystemMessage.startsWith('database') && errSystemMessage.endsWith('does not exist')) errorMessage = 'Invalid PostgreSQL database';
-                else if (errSystemMessage.startsWith('password authentication failed for user')) errorMessage = 'Invalid PostgreSQL username or password';
-                else if (errSystemMessage == 'The server does not support SSL connections') errorMessage = 'Specified PostgreSQL Database Server does not support secure connection';
-                else;
+            } catch (err) {
                 reject(err);
-                logger.logError('database.executePostgres()', errorMessage || err);
+                logger.logError('database.executePostgres()', err);
+            } finally {
+                connection.release();
             }
         });
     }
@@ -627,45 +682,36 @@ class _database {
 
     private dumpDataPostges(targetTable: string): Promise<number> {
         return new Promise<number>(async (resolve, reject) => {
+            let connection = await this.connectionPoolPostgres.connect();
             try {
                 const sourceStream = fs.createReadStream(`./csv/${targetTable}.data`, 'utf-8');
-                let connection = new postgres.Client({
-                    host: this.config.server,
-                    port: this.config.port,
-                    database: this.config.schema,
-                    user: this.config.username,
-                    password: this.config.password,
-                    ssl: !this.config.ssl ? false : {
-                        rejectUnauthorized: false
-                    },
-                });
-                await connection.connect();
                 let ptrCopyQueryStream = pgLoadInto(`copy ${targetTable} from stdin csv header;`);
                 const targetStream = connection.query(ptrCopyQueryStream);
                 await pipeline(sourceStream, targetStream);
-                await connection.end();
                 resolve(ptrCopyQueryStream.rowCount || 0);
             } catch (err) {
                 reject(err);
                 logger.logError('database.dumpDataPostges()', err);
+            } finally {
+                connection.release();
             }
         });
     }
 
     private dumpDataMysql(targetTable: string, lstFieldType: string[]): Promise<number> {
-        return new Promise<number>((resolve, reject) => {
+        return new Promise<number>(async (resolve, reject) => {
+            let connection = mysql.createConnection({
+                host: this.config.server,
+                port: this.config.port,
+                database: this.config.schema,
+                user: this.config.username,
+                password: this.config.password,
+                ssl: !this.config.ssl ? undefined : {
+                    rejectUnauthorized: false
+                },
+                infileStreamFactory: p => fs.createReadStream(p)
+            });
             try {
-                let connection = mysql.createConnection({
-                    host: this.config.server,
-                    port: this.config.port,
-                    database: this.config.schema,
-                    user: this.config.username,
-                    password: this.config.password,
-                    ssl: !this.config.ssl ? undefined : {
-                        rejectUnauthorized: false
-                    },
-                    infileStreamFactory: p => fs.createReadStream(p)
-                });
                 connection.connect(async (connErr) => {
                     if (connErr) {
                         let errorMessage = '';
@@ -681,10 +727,11 @@ class _database {
                     }
                     else {
                         let sqlQuery = `load data local infile './csv/${targetTable}.data' into table ${targetTable} fields terminated by ',' enclosed by '"' escaped by '' lines terminated by '\r\n' ignore 1 lines ;`;
-                        connection.query(sqlQuery, (queryErr, results: any[] | any) => {
-                            connection.end();
+                        connection.query(sqlQuery, async (queryErr, results: any[] | any) => {
+                            await connection.promise().end();
                             if (queryErr) {
-                                reject(queryErr);
+                                //reject(queryErr);
+                                throw queryErr;
                             }
                             else {
                                 resolve(results['affectedRows'] || 0);
@@ -701,13 +748,14 @@ class _database {
 
     private dumpDataMssql(targetTable: string, lstFieldType: string[]): Promise<number> {
         return new Promise<number>(async (resolve, reject) => {
+            let lstColumnInfo: databaseFieldInfo[] = [];
             try {
                 let content = fs.readFileSync(`./csv/${targetTable}.data`, 'utf-8');
                 let lstData = this.csvToJsonArray(content, targetTable, lstFieldType);
                 if (!lstData.length) { //skip bulk insert if no rows are found
                     return resolve(0);
                 }
-                let lstColumnInfo = await this.populateDatabaseTableInfo(targetTable);
+                lstColumnInfo = await this.populateDatabaseTableInfo(targetTable);
                 let connection = new mssql.Connection({
                     server: this.config.server,
                     authentication: {
@@ -727,6 +775,17 @@ class _database {
                     }
                 });
                 connection.on('connect', (connErr) => {
+                    connection.on('errorMessage', (msg) => {
+                        let errorDescription = '';
+                        if (msg.message.includes('invalid column length')) {
+                            let regCol = msg.message.match(/\d+/g);
+                            let fieldIndex = regCol?.length == 1 ? parseInt(regCol[0]) : -1;
+                            let fieldName = lstColumnInfo[fieldIndex].fieldName;
+                            errorDescription = `\r\nText value in the field "${fieldName}" is too long to accomodate in database.\r\nConsider increasing the field length in database.`;
+                        }
+                        logger.logError(`database.dumpDataMssql(${targetTable})`, msg.message + errorDescription);
+                        reject(msg);
+                    });
                     if (connErr) {
                         let errorMessage = '';
                         if (connErr.message.includes('getaddrinfo ENOTFOUND')) errorMessage = 'Unable to make SQL Server connection to specified servername or IP address';
@@ -734,7 +793,7 @@ class _database {
                         else if (connErr.message.includes('Login failed for user')) errorMessage = 'Invalid Database / Username / Password';
                         else;
 
-                        logger.logError('database.executeMssql()', errorMessage || connErr);
+                        logger.logError('database.dumpDataMssql()', errorMessage || connErr);
                         reject(connErr);
                     }
                     else {
@@ -779,6 +838,17 @@ class _database {
                         }
                         connection.execBulkLoad(oBulkLoad, lstData);
                     }
+                });
+                connection.on('errorMessage', (msg) => {
+                    let errorDescription = '';
+                    if (msg.message.includes('invalid column length')) {
+                        let regCol = msg.message.match(/\d+/g);
+                        let fieldIndex = regCol?.length == 1 ? parseInt(regCol[0]) : -1;
+                        let fieldName = lstColumnInfo[fieldIndex].fieldName;
+                        errorDescription = `\r\nText value in the field "${fieldName}" is too long to accomodate in database.\r\nConsider increasing the field length in database.`;
+                    }
+                    logger.logError(`database.dumpDataMssql(${targetTable})`, msg.message + errorDescription);
+                    reject(msg);
                 });
                 connection.connect();
             } catch (err) {

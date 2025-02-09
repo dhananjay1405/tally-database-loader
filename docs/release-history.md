@@ -1,5 +1,19 @@
 ## Release History
 
+**Version: 1.0.35 [09-Feb-2025]**<br>
+Fixed:
+* GST rate field in mst_stock_item now modified to decimal from int, to accommodate fractional GST rates.
+* Database connection pooling implemented to reduce database connection handshake time, due to which data load time reduced. MySQL data load optimzed a lot due to this method.
+* Database connection remained in open state in few scenario of errors, due to which utility was unable to close.
+* Improvements of error messages for troubleshooting.
+* Full load method was not detecting the auto value in from/to date range, which now fixed.
+* For Incremental load, utility was unable to detect AlterID changes for the Master nature Collections of Tally, which are not defined in export configuration YAML file. Now mechanism is put into place to detect the same via inserting AlterID into the database and check for the changes based on that value, instead of scanning AlterID column of individual tables.
+* Few misc optimization of incremental load, by reducing filters in tally-export-config-incremental.yaml version of file.
+* GUI version, backend webserver of utility remained open even after webpage was closed from browser. Due to this, user had to manually close the utility. Mechanism is put into place to monitor if browser webpage is open/close, and utility is shutdown when browser does not communicate to utility upon closing it.
+
+Added:
+* Option to select period as **custom** or **auto** introduced to make it consistent with command-line version of utility.
+
 **Version: 1.0.34 [18-Jan-2025]**<br>
 Fixed:
 * 2 instances of double quotes for every single quote were appearing for Microsoft SQL Server with **file** loadmethod, now corrected

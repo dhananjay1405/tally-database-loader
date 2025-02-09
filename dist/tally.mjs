@@ -71,7 +71,7 @@ class _tally {
     importData() {
         return new Promise(async (resolve, reject) => {
             try {
-                logger.logMessage('Tally to Database | version: 1.0.34');
+                logger.logMessage('Tally to Database | version: 1.0.35');
                 //Load YAML export definition file
                 let pathTallyExportDefinition = this.config.definition;
                 if (fs.existsSync(`./${pathTallyExportDefinition}`)) {
@@ -84,19 +84,23 @@ class _tally {
                     resolve();
                     return;
                 }
+                await database.openConnectionPool();
                 if (this.config.sync == 'incremental') {
                     if (/^(mssql|mysql|postgres)$/g.test(database.config.technology)) {
                         //set mandatory config required for incremental sync
                         this.config.fromdate = 'auto';
                         this.config.todate = 'auto';
-                        database.config.loadmethod = 'insert';
-                        //update active company information before starting import
-                        logger.logMessage('Updating company information configuration table [%s]', new Date().toLocaleDateString());
-                        await this.saveCompanyInfo();
                         //delete and re-create CSV folder
                         if (fs.existsSync('./csv'))
                             fs.rmSync('./csv', { recursive: true });
                         fs.mkdirSync('./csv');
+                        //acquire last AlterID of master & transaction from last sync version of Database
+                        logger.logMessage('Acquiring last AlterID from database');
+                        let lastAlterIdMasterDatabase = await database.executeScalar(`select coalesce(max(cast(value as int)),0) x from config where name = 'Last AlterID Master'`);
+                        let lastAlterIdTransactionDatabase = await database.executeScalar(`select coalesce(max(cast(value as int)),0) x from config where name = 'Last AlterID Transaction'`);
+                        //update active company information before starting import
+                        logger.logMessage('Updating company information configuration table [%s]', new Date().toLocaleDateString());
+                        await this.saveCompanyInfo();
                         //prepare substitution list of runtime values to reflected in TDL XML
                         let configTallyXML = new Map();
                         configTallyXML.set('fromDate', utility.Date.parse(this.config.fromdate, 'yyyy-MM-dd'));
@@ -107,13 +111,13 @@ class _tally {
                         let lastAlterIdMasterTally = this.lastAlterIdMaster;
                         let lastAlterIdTransactionTally = this.lastAlterIdTransaction;
                         //acquire last AlterID of master & transaction from database
-                        let lstPrimaryMasterTableNames = this.lstTableMaster.filter(p => p.nature == 'Primary').map(p => p.name);
-                        let sqlQuery = 'select max(coalesce(t.alterid,0)) from (';
-                        lstPrimaryMasterTableNames.forEach(p => sqlQuery += ` select max(alterid) as alterid from ${p} union`);
-                        sqlQuery = utility.String.strip(sqlQuery, 5);
-                        sqlQuery += ') as t';
-                        let lastAlterIdMasterDatabase = await database.executeScalar(sqlQuery) || 0;
-                        let lastAlterIdTransactionDatabase = await database.executeScalar('select max(coalesce(alterid,0)) from trn_voucher') || 0;
+                        // let lstPrimaryMasterTableNames = this.lstTableMaster.filter(p => p.nature == 'Primary').map(p => p.name);
+                        // let sqlQuery = 'select max(coalesce(t.alterid,0)) from (';
+                        // lstPrimaryMasterTableNames.forEach(p => sqlQuery += ` select max(alterid) as alterid from ${p} union`);
+                        // sqlQuery = utility.String.strip(sqlQuery, 5);
+                        // sqlQuery += ') as t';
+                        // let lastAlterIdMasterDatabase = await database.executeScalar<number>(sqlQuery) || 0;
+                        // let lastAlterIdTransactionDatabase = await database.executeScalar<number>('select max(coalesce(alterid,0)) from trn_voucher') || 0;
                         //calculate flags to determine what changed
                         let flgIsMasterChanged = lastAlterIdMasterTally != lastAlterIdMasterDatabase;
                         let flgIsTransactionChanged = lastAlterIdTransactionTally != lastAlterIdTransactionDatabase;
@@ -288,11 +292,6 @@ class _tally {
                     if (this.importTransaction) {
                         lstTables.push(...this.lstTableTransaction);
                     }
-                    //prepare substitution list of runtime values to reflected in TDL XML
-                    let configTallyXML = new Map();
-                    configTallyXML.set('fromDate', utility.Date.parse(this.config.fromdate, 'yyyy-MM-dd'));
-                    configTallyXML.set('toDate', utility.Date.parse(this.config.todate, 'yyyy-MM-dd'));
-                    configTallyXML.set('targetCompany', this.config.company ? utility.String.escapeHTML(this.config.company) : '##SVCurrentCompany');
                     //delete and re-create CSV folder
                     if (fs.existsSync('./csv')) {
                         fs.rmSync('./csv', { recursive: true });
@@ -303,6 +302,11 @@ class _tally {
                         logger.logMessage('Updating company information configuration table [%s]', new Date().toLocaleDateString());
                         await this.saveCompanyInfo();
                     }
+                    //prepare substitution list of runtime values to reflected in TDL XML
+                    let configTallyXML = new Map();
+                    configTallyXML.set('fromDate', utility.Date.parse(this.config.fromdate, 'yyyy-MM-dd'));
+                    configTallyXML.set('toDate', utility.Date.parse(this.config.todate, 'yyyy-MM-dd'));
+                    configTallyXML.set('targetCompany', this.config.company ? utility.String.escapeHTML(this.config.company) : '##SVCurrentCompany');
                     //dump data exported from Tally to CSV file required for bulk import
                     logger.logMessage('Generating CSV files from Tally [%s]', new Date().toLocaleString());
                     for (let i = 0; i < lstTables.length; i++) {
@@ -364,6 +368,9 @@ class _tally {
             catch (err) {
                 logger.logError('tally.importData()', err);
                 reject(err);
+            }
+            finally {
+                await database.closeConnectionPool();
             }
         });
     }
@@ -521,7 +528,13 @@ class _tally {
     saveCompanyInfo() {
         return new Promise(async (resolve, reject) => {
             try {
-                let xmlCompany = `<?xml version="1.0" encoding="utf-8"?><ENVELOPE><HEADER><VERSION>1</VERSION><TALLYREQUEST>Export</TALLYREQUEST><TYPE>Data</TYPE><ID>MyReport</ID></HEADER><BODY><DESC><STATICVARIABLES><SVEXPORTFORMAT>ASCII (Comma Delimited)</SVEXPORTFORMAT></STATICVARIABLES><TDL><TDLMESSAGE><REPORT NAME="MyReport"><FORMS>MyForm</FORMS></REPORT><FORM NAME="MyForm"><PARTS>MyPart</PARTS></FORM><PART NAME="MyPart"><LINES>MyLine</LINES><REPEAT>MyLine : MyCollection</REPEAT><SCROLLED>Vertical</SCROLLED></PART><LINE NAME="MyLine"><FIELDS>FldGuid,FldName,FldBooksFrom,FldLastVoucherDate,FldEOL</FIELDS></LINE><FIELD NAME="FldGuid"><SET>$Guid</SET></FIELD><FIELD NAME="FldName"><SET>$$StringFindAndReplace:$Name:'"':'""'</SET></FIELD><FIELD NAME="FldBooksFrom"><SET>(($$YearOfDate:$BooksFrom)*10000)+(($$MonthOfDate:$BooksFrom)*100)+(($$DayOfDate:$BooksFrom)*1)</SET></FIELD><FIELD NAME="FldLastVoucherDate"><SET>(($$YearOfDate:$LastVoucherDate)*10000)+(($$MonthOfDate:$LastVoucherDate)*100)+(($$DayOfDate:$LastVoucherDate)*1)</SET></FIELD><FIELD NAME="FldEOL"><SET>†</SET></FIELD><COLLECTION NAME="MyCollection"><TYPE>Company</TYPE><FILTER>FilterActiveCompany</FILTER></COLLECTION><SYSTEM TYPE="Formulae" NAME="FilterActiveCompany">$$IsEqual:##SVCurrentCompany:$Name</SYSTEM></TDLMESSAGE></TDL></DESC></BODY></ENVELOPE>`;
+                const convertDateYYYYMMDD = (dateStr) => {
+                    let partYear = dateStr.substring(0, 4);
+                    let partMonth = dateStr.substring(4, 6);
+                    let partDay = dateStr.substring(6);
+                    return partYear + '-' + partMonth + '-' + partDay;
+                };
+                let xmlCompany = `<?xml version="1.0" encoding="utf-8"?><ENVELOPE><HEADER><VERSION>1</VERSION><TALLYREQUEST>Export</TALLYREQUEST><TYPE>Data</TYPE><ID>MyReport</ID></HEADER><BODY><DESC><STATICVARIABLES><SVEXPORTFORMAT>ASCII (Comma Delimited)</SVEXPORTFORMAT></STATICVARIABLES><TDL><TDLMESSAGE><REPORT NAME="MyReport"><FORMS>MyForm</FORMS></REPORT><FORM NAME="MyForm"><PARTS>MyPart</PARTS></FORM><PART NAME="MyPart"><LINES>MyLine</LINES><REPEAT>MyLine : MyCollection</REPEAT><SCROLLED>Vertical</SCROLLED></PART><LINE NAME="MyLine"><FIELDS>FldGuid,FldName,FldBooksFrom,FldLastVoucherDate,FldLastAlterIdMaster,FldLastAlterIdTransaction,FldEOL</FIELDS></LINE><FIELD NAME="FldGuid"><SET>$Guid</SET></FIELD><FIELD NAME="FldName"><SET>$$StringFindAndReplace:$Name:'"':'""'</SET></FIELD><FIELD NAME="FldBooksFrom"><SET>(($$YearOfDate:$BooksFrom)*10000)+(($$MonthOfDate:$BooksFrom)*100)+(($$DayOfDate:$BooksFrom)*1)</SET></FIELD><FIELD NAME="FldLastVoucherDate"><SET>(($$YearOfDate:$LastVoucherDate)*10000)+(($$MonthOfDate:$LastVoucherDate)*100)+(($$DayOfDate:$LastVoucherDate)*1)</SET></FIELD><FIELD NAME="FldLastAlterIdMaster"><SET>$AltMstId</SET></FIELD><FIELD NAME="FldLastAlterIdTransaction"><SET>$AltVchId</SET></FIELD><FIELD NAME="FldEOL"><SET>†</SET></FIELD><COLLECTION NAME="MyCollection"><TYPE>Company</TYPE><FILTER>FilterActiveCompany</FILTER></COLLECTION><SYSTEM TYPE="Formulae" NAME="FilterActiveCompany">$$IsEqual:##SVCurrentCompany:$Name</SYSTEM></TDLMESSAGE></TDL></DESC></BODY></ENVELOPE>`;
                 if (this.config.company) //replce active company with specific company name if specified
                     xmlCompany = xmlCompany.replace('##SVCurrentCompany', `"${utility.String.escapeHTML(this.config.company)}"`);
                 let strCompanyInfo = await this.postTallyXML(xmlCompany); //extract active company information
@@ -531,16 +544,18 @@ class _tally {
                     let companyName = lstCompanyInfoParts[1];
                     companyName = companyName.replace(/'/g, '\\"');
                     if (this.config.fromdate == 'auto' || this.config.todate == 'auto') { //auto assign from/to from company info for detection mode
-                        this.config.fromdate = lstCompanyInfoParts[2];
-                        this.config.todate = lstCompanyInfoParts[3];
+                        this.config.fromdate = convertDateYYYYMMDD(lstCompanyInfoParts[2]);
+                        this.config.todate = convertDateYYYYMMDD(lstCompanyInfoParts[3]);
                     }
+                    let altIdMaster = parseInt(lstCompanyInfoParts[4]);
+                    let altIdTransaction = parseInt(lstCompanyInfoParts[5]);
                     //clear config table of database and insert active company info to config table
                     if (/^(mssql|mysql|postgres)$/g.test(database.config.technology)) {
                         await database.executeNonQuery('truncate table config;');
-                        await database.executeNonQuery(`insert into config(name,value) values('Update Timestamp','${new Date().toLocaleString()}'),('Company Name','${companyName}'),('Period From','${this.config.fromdate}'),('Period To','${this.config.todate}');`);
+                        await database.executeNonQuery(`insert into config(name,value) values('Update Timestamp','${new Date().toLocaleString()}'),('Company Name','${companyName}'),('Period From','${this.config.fromdate}'),('Period To','${this.config.todate}'),('Last AlterID Master','${altIdMaster}'),('Last AlterID Transaction','${altIdTransaction}');`);
                     }
                     else if (/^(csv|bigquery)$/g.test(database.config.technology)) {
-                        let csvContent = `name,value\r\nUpdate Timestamp,${new Date().toLocaleString().replace(',', '')}\r\nCompany Name,${companyName}\r\nPeriod From,${this.config.fromdate}\r\nPeriod To,${this.config.todate}`;
+                        let csvContent = `name,value\r\nUpdate Timestamp,${new Date().toLocaleString().replace(',', '')}\r\nCompany Name,${companyName}\r\nPeriod From,${this.config.fromdate}\r\nPeriod To,${this.config.todate}\r\Last AlterID nMaster,${altIdMaster}\r\Last AlterID nTransaction,${altIdTransaction}`;
                         fs.writeFileSync('./csv/config.csv', csvContent, { encoding: 'utf-8' });
                         if (database.config.technology == 'bigquery') {
                             await database.uploadGoogleBigQuery('config');
