@@ -171,6 +171,7 @@ create table mst_payhead
  guid varchar(64) not null primary key,
  name varchar(1024) not null default '',
  parent varchar(1024) not null default '',
+ payslip_name varchar(1024) not null default '',
  pay_type varchar(64) not null default '',
  income_type varchar(64) not null default '',
  calculation_type varchar(32) not null default '',

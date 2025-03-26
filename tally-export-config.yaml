@@ -264,11 +264,11 @@ master:
           field: InfGSTHSNDescription
           type: text
         - name: gst_rate
-          field: InfGSTIGSTRate
-          type: text
+          field: if $$IsEmpty:InfGSTIGSTRate then "" else $InfGSTIGSTRate
+          type: number
         - name: gst_taxability
           field: InfGSTTaxablility
-          type: number
+          type: text
     - name: mst_cost_category
       collection: CostCategory
       nature: Primary
@@ -415,6 +415,9 @@ master:
           type: text
         - name: parent
           field: if $$IsEqual:$Parent:$$SysName:Primary then "" else $Parent
+          type: text
+        - name: payslip_name
+          field: PaySlipName
           type: text
         - name: pay_type
           field: if $$IsNotApplicable:$PayType then "" else $PayType

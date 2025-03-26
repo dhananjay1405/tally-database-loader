@@ -171,6 +171,7 @@ create table tallydb.mst_payhead
  guid string(64) not null,
  name string(1024) not null,
  parent string(1024) not null,
+ payslip_name string(1024) not null,
  pay_type string(64) not null,
  income_type string(64) not null,
  calculation_type string(32) not null,

@@ -1,5 +1,12 @@
 ## Release History
 
+**Version: 1.0.36 [26-Mar-2025]**<br>
+Fixed:
+* gst_rate field in table mst_stock_item generated error in database for scenario where GST rates are not applicable (like foreign companies or Indian companies where no GST is applicable). This scenario is handled by checking GST rate for blank value and inserting null into database
+
+Added:
+* payslip name field in table mst_payhead table
+
 **Version: 1.0.35 [09-Feb-2025]**<br>
 Fixed:
 * GST rate field in mst_stock_item now modified to decimal from int, to accommodate fractional GST rates.

@@ -27,8 +27,14 @@ tbl_outstanding as
     coalesce(max(nr.amount), 0) as billed_amount,
     coalesce(sum(ar.amount), 0) as adjusted_amount,
     (coalesce(max(nr.amount), 0) + coalesce(sum(ar.amount), 0)) as outstanding_amount,
+    /* (CURRENT_DATE - MAX(nr.date))::INTEGER - MAX(nr.bill_credit_period) AS overdue_days, --PostgreSQL */
+    /* (DATEDIFF(CURDATE(), MAX(nr.date)) - MAX(nr.bill_credit_period)) AS overdue_days, --MySQL */
     (datediff(day, max(nr.date), getdate()) - max(nr.bill_credit_period)) as overdue_days,
+    /* MAX(nr.date) + (MAX(nr.bill_credit_period) || ' days')::INTERVAL AS overdue_date, --PostgreSQL */
+    /* DATE_ADD(MAX(nr.date), INTERVAL MAX(nr.bill_credit_period) DAY) AS overdue_date, --MySQL */
     dateadd(day, max(nr.bill_credit_period), max(nr.date)) as overdue_date,
+    /* (CURRENT_DATE - MAX(nr.date))::INTEGER AS oustanding_days, --PostgreSQL */
+    /* DATEDIFF(CURDATE(), MAX(nr.date)) AS oustanding_days, --MySQL */
     datediff(day, max(nr.date), getdate()) as oustanding_days,
     max(nr.date) bill_date,
     max(nr.bill_credit_period) as bill_credit_period
