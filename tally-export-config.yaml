@@ -264,7 +264,7 @@ master:
           field: InfGSTHSNDescription
           type: text
         - name: gst_rate
-          field: if $$IsEmpty:$InfGSTIGSTRate then "0" else $InfGSTIGSTRate
+          field: InfGSTIGSTRate
           type: number
         - name: gst_taxability
           field: InfGSTTaxablility
