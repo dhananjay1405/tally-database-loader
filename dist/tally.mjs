@@ -71,7 +71,7 @@ class _tally {
     importData() {
         return new Promise(async (resolve, reject) => {
             try {
-                logger.logMessage('Tally to Database | version: 1.0.36');
+                logger.logMessage('Tally to Database | version: 1.0.37');
                 //Load YAML export definition file
                 let pathTallyExportDefinition = this.config.definition;
                 if (fs.existsSync(`./${pathTallyExportDefinition}`)) {
@@ -96,8 +96,8 @@ class _tally {
                         fs.mkdirSync('./csv');
                         //acquire last AlterID of master & transaction from last sync version of Database
                         logger.logMessage('Acquiring last AlterID from database');
-                        let lastAlterIdMasterDatabase = await database.executeScalar(`select coalesce(max(cast(value as int)),0) x from config where name = 'Last AlterID Master'`);
-                        let lastAlterIdTransactionDatabase = await database.executeScalar(`select coalesce(max(cast(value as int)),0) x from config where name = 'Last AlterID Transaction'`);
+                        let lastAlterIdMasterDatabase = await database.executeScalar(`select coalesce(max(cast(value as ${database.config.technology == 'mysql' ? 'unsigned int' : 'int'})),0) x from config where name = 'Last AlterID Master'`);
+                        let lastAlterIdTransactionDatabase = await database.executeScalar(`select coalesce(max(cast(value as ${database.config.technology == 'mysql' ? 'unsigned int' : 'int'})),0) x from config where name = 'Last AlterID Transaction'`);
                         //update active company information before starting import
                         logger.logMessage('Updating company information configuration table [%s]', new Date().toLocaleDateString());
                         await this.saveCompanyInfo();

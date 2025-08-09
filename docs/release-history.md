@@ -1,5 +1,12 @@
 ## Release History
 
+**Version: 1.0.37 [09-Aug-2025]**<br>
+Fixed:
+* For MySQL incremental sync was not working due to issue in SQL statement compatibility
+
+Added:
+* In the Graphical interface of the utility on entering valid FY start date in From Date, automatically FY end date is assigned in To Date
+
 **Version: 1.0.36 [26-Mar-2025]**<br>
 Fixed:
 * gst_rate field in table mst_stock_item generated error in database for scenario where GST rates are not applicable (like foreign companies or Indian companies where no GST is applicable). This scenario is handled by checking GST rate for blank value and inserting null into database

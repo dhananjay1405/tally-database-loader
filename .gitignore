@@ -8,5 +8,6 @@ import-log.txt
 error-log.txt
 *.zip
 *.exe
+*.duckdb
 bigquery-credentials.json
 adls-config.json

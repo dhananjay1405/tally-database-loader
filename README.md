@@ -39,8 +39,8 @@ Commandline utility to load data into Database Server from Tally software, inten
 <br><br>
 
 ## Version
-Latest Version: **1.0.36**<br>
-Updated on: **26-Mar-2025**
+Latest Version: **1.0.37**<br>
+Updated on: **09-Aug-2025**
 
 Note:
 1. I keep on fixing utility and adding fields into database. So you are requested to re-create existing databases and re-download utility folder
@@ -54,7 +54,7 @@ Note:
 
 Database Loader Utility is portable, and does not have a setup wizard like we find for software installation. Zip archive of utility can be downloaded from below link. Kindly use open-source &amp; free software [7-zip file archiver](https://www.7-zip.org/download.html) to un-compress utility archive.
 
-[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.36.7z)
+[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.37.7z)
 
 Also, it is a command-line utility having no window interface (to keep it minimal and faster)
 
@@ -115,7 +115,6 @@ Tally has in-built XML Server capability, which can import/export data in/out of
 ## Database Creation
 Database first needs to be created and then Tables needs to be created in which data from Tally will be loaded, before running utility. File **database-structure.sql** contains SQL for creating tables of database. Just ensure to create database using any of GUI Database Manager. That database name should be updated in **schema** property of *config.json*. Open-source database editor available freely are
 * [SQL Server Management Studio (SQL Server)](https://docs.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms)
-* [Azure Data Studio (SQL Server)](https://docs.microsoft.com/en-us/sql/azure-data-studio/download-azure-data-studio)
 * [pgAdmin (PostgreSQL Server)](https://www.pgadmin.org/download/)
 * [MySQL Workbench (MySQL Server)](https://dev.mysql.com/downloads/workbench/)
 * [Heidi SQL (SQL Server / MySQL / MariaDB / PostgreSQL)](https://www.heidisql.com/download.php/)

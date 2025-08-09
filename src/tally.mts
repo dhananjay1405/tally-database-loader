@@ -70,7 +70,7 @@ class _tally {
         return new Promise<void>(async (resolve, reject) => {
             try {
 
-                logger.logMessage('Tally to Database | version: 1.0.36');
+                logger.logMessage('Tally to Database | version: 1.0.37');
 
                 //Load YAML export definition file
                 let pathTallyExportDefinition = this.config.definition
@@ -101,8 +101,9 @@ class _tally {
 
                         //acquire last AlterID of master & transaction from last sync version of Database
                         logger.logMessage('Acquiring last AlterID from database');
-                        let lastAlterIdMasterDatabase = await database.executeScalar<number>(`select coalesce(max(cast(value as int)),0) x from config where name = 'Last AlterID Master'`);
-                        let lastAlterIdTransactionDatabase = await database.executeScalar<number>(`select coalesce(max(cast(value as int)),0) x from config where name = 'Last AlterID Transaction'`);
+                        
+                        let lastAlterIdMasterDatabase = await database.executeScalar<number>(`select coalesce(max(cast(value as ${database.config.technology == 'mysql' ? 'unsigned int' : 'int'})),0) x from config where name = 'Last AlterID Master'`);
+                        let lastAlterIdTransactionDatabase = await database.executeScalar<number>(`select coalesce(max(cast(value as ${database.config.technology == 'mysql' ? 'unsigned int' : 'int'})),0) x from config where name = 'Last AlterID Transaction'`);
 
                         //update active company information before starting import
                         logger.logMessage('Updating company information configuration table [%s]', new Date().toLocaleDateString());
@@ -120,7 +121,7 @@ class _tally {
                         let lastAlterIdMasterTally = this.lastAlterIdMaster;
                         let lastAlterIdTransactionTally = this.lastAlterIdTransaction;
 
-                        //acquire last AlterID of master & transaction from database
+                        // acquire last AlterID of master & transaction from database
                         // let lstPrimaryMasterTableNames = this.lstTableMaster.filter(p => p.nature == 'Primary').map(p => p.name);
                         // let sqlQuery = 'select max(coalesce(t.alterid,0)) from (';
                         // lstPrimaryMasterTableNames.forEach(p => sqlQuery += ` select max(alterid) as alterid from ${p} union`);

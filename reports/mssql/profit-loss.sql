@@ -1,5 +1,6 @@
 /* 
     Calculates balances of all Income Expenditure type ledgers
+	Scenario: when closing stock is entered manually
     
     Fields:
     group = Primary Group for the ledger (not to be confused with parent)

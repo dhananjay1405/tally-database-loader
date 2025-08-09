@@ -239,6 +239,22 @@
             }
         }
 
+        /**
+         * When tally_fromdate changes, if date is 1st April (YYYY-04-01), set tally_todate to 31st March next year
+         * @param {HTMLInputElement} e
+         */
+        function tally_fromdate_onchange(e) {
+            const val = e.value;
+            // Check if date is in format YYYY-MM-DD and is 1st April
+            if (/^\d{4}-04-01$/.test(val)) {
+                const year = parseInt(val.substring(0, 4));
+                const nextYear = year + 1;
+                // 31st March next year
+                const toDate = `${nextYear}-03-31`;
+                document.getElementById('tally_todate').value = toDate;
+            }
+        }
+
         async function loadConfig() {
             let resp = await fetch('http://localhost:8997/loadconfig');
             let respData = await resp.json();
@@ -533,7 +549,7 @@
                 <div class="mb-2 form-group row">
                     <label for="tally_fromdate" class="col-sm-3 col-form-label">From Date</label>
                     <div class="col-sm-9">
-                        <input type="date" class="form-control" id="tally_fromdate">
+                        <input type="date" class="form-control" id="tally_fromdate" onchange="tally_fromdate_onchange(this)">
                     </div>
                 </div>
                 <div class="mb-2 form-group row">

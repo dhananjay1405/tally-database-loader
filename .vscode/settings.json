@@ -1,5 +1,7 @@
 {
     "files.exclude": {
-        "dist/*.mjs.map": true
+        "dist/*.mjs.map": true,
+        "*.exe": true,
+        "*.duckdb": true
     }
 }
