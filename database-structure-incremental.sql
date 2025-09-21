@@ -92,7 +92,7 @@ create table mst_uom
  is_simple_unit tinyint not null,
  base_units nvarchar(1024) not null,
  additional_units nvarchar(1024) not null,
- conversion int not null
+ conversion decimal(15,4) not null
 );
 
 create table mst_godown
@@ -103,6 +103,15 @@ create table mst_godown
  parent nvarchar(1024) not null default '',
  _parent varchar(64) not null default '',
  address nvarchar(1024) not null default ''
+);
+
+create table mst_stock_category
+(
+ guid varchar(64) not null primary key,
+ alterid int not null default 0,
+ name nvarchar(1024) not null default '',
+ parent nvarchar(1024) not null default '',
+ _parent varchar(64) not null default ''
 );
 
 create table mst_stock_group
@@ -121,6 +130,8 @@ create table mst_stock_item
  name nvarchar(1024) not null default '',
  parent nvarchar(1024) not null default '',
  _parent varchar(64) not null default '',
+ category nvarchar(1024) not null default '',
+ _category varchar(64) not null default '',
  alias nvarchar(256) not null default '',
  description nvarchar(64) not null default '',
  notes nvarchar(64) not null default '',
@@ -129,7 +140,7 @@ create table mst_stock_item
  _uom varchar(64) not null default '',
  alternate_uom nvarchar(32) not null default '',
  _alternate_uom varchar(64) not null default '',
- conversion int not null default 0,
+ conversion decimal(15,4) not null default 0,
  opening_balance decimal(15,4) default 0,
  opening_rate decimal(15,4) default 0,
  opening_value decimal(17,2) default 0,

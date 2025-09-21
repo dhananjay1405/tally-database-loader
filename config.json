@@ -13,8 +13,8 @@
         "definition": "tally-export-config.yaml",
         "server": "localhost",
         "port": 9000,
-        "fromdate": "2024-04-01",
-        "todate": "2025-03-31",
+        "fromdate": "2025-04-01",
+        "todate": "2026-03-31",
         "sync": "full",
         "frequency": 0,
         "company": ""

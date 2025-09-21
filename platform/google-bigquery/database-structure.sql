@@ -68,7 +68,7 @@ create table tallydb.mst_uom
  is_simple_unit tinyint not null,
  base_units string(1024) not null,
  additional_units string(1024) not null,
- conversion int not null
+ conversion decimal(15,4) not null
 );
 
 create table tallydb.mst_godown
@@ -77,6 +77,13 @@ create table tallydb.mst_godown
  name string(1024) not null,
  parent string(1024) not null,
  address string(1024) not null
+);
+
+create table tallydb.mst_stock_category
+(
+ guid string(64) not null,
+ name string(1024) not null,
+ parent string(1024) not null
 );
 
 create table tallydb.mst_stock_group
@@ -91,13 +98,14 @@ create table tallydb.mst_stock_item
  guid string(64) not null,
  name string(1024) not null,
  parent string(1024) not null,
+ category string(1024) not null,
  alias string(256) not null,
  description string(64) not null,
  notes string(64) not null,
  part_number string(256) not null,
  uom string(32) not null,
  alternate_uom string(32) not null,
- conversion int not null,
+ conversion decimal(15,4) not null,
  opening_balance decimal(15,4),
  opening_rate decimal(15,4),
  opening_value decimal(17,2),

@@ -108,6 +108,7 @@ All the tables are related to each other with **one-to-many** relationship. The 
 |mst_godown(name)|trn_inventory(godown)|
 |mst_godown(name)|trn_batch(godown)|
 |mst_godown(name)|trn_batch(destination_godown)|
+|mst_stock_category(name)|mst_stock_item(category)|
 |mst_stock_group(name)|mst_stock_item(parent)|
 |mst_stock_item(name)|mst_gst_effective_rate(item)|
 |mst_stock_item(name)|mst_opening_batch_allocation(item)|

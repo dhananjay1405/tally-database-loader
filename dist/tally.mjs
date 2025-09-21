@@ -71,7 +71,7 @@ class _tally {
     importData() {
         return new Promise(async (resolve, reject) => {
             try {
-                logger.logMessage('Tally to Database | version: 1.0.37');
+                logger.logMessage('Tally to Database | version: 1.0.38');
                 //Load YAML export definition file
                 let pathTallyExportDefinition = this.config.definition;
                 if (fs.existsSync(`./${pathTallyExportDefinition}`)) {
@@ -110,7 +110,7 @@ class _tally {
                         await this.updateLastAlterId(); //Update last alter ID
                         let lastAlterIdMasterTally = this.lastAlterIdMaster;
                         let lastAlterIdTransactionTally = this.lastAlterIdTransaction;
-                        //acquire last AlterID of master & transaction from database
+                        // acquire last AlterID of master & transaction from database
                         // let lstPrimaryMasterTableNames = this.lstTableMaster.filter(p => p.nature == 'Primary').map(p => p.name);
                         // let sqlQuery = 'select max(coalesce(t.alterid,0)) from (';
                         // lstPrimaryMasterTableNames.forEach(p => sqlQuery += ` select max(alterid) as alterid from ${p} union`);

@@ -1,5 +1,12 @@
 ## Release History
 
+**Version: 1.0.38 [21-Sep-2025]**<br>
+Fixed:
+* Datatype for field conversion was changed from integer to decimal as it was truncating decimal places
+
+Added:
+* Table mst_stock_category added [#42](https://github.com/dhananjay1405/tally-database-loader/issues/42)
+
 **Version: 1.0.37 [09-Aug-2025]**<br>
 Fixed:
 * For MySQL incremental sync was not working due to issue in SQL statement compatibility

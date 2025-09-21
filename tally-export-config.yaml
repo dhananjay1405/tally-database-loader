@@ -184,6 +184,19 @@ master:
         - name: address
           field: if $$IsEmpty:$Address then "" else $$FullList:Address:$Address
           type: text
+    - name: mst_stock_category
+      collection: StockCategory
+      nature: Primary
+      fields:
+        - name: guid
+          field: Guid
+          type: text
+        - name: name
+          field: Name
+          type: text
+        - name: parent
+          field: if $$IsEqual:$Parent:$$SysName:Primary then "" else $Parent
+          type: text
     - name: mst_stock_group
       collection: StockGroup
       nature: Primary
@@ -211,6 +224,9 @@ master:
           type: text
         - name: parent
           field: if $$IsEqual:$Parent:$$SysName:Primary then "" else $Parent
+          type: text
+        - name: category
+          field: if $$IsEqual:$Category:$$SysName:NotApplicable then "" else $Category
           type: text
         - name: alias
           field: OnlyAlias
