@@ -1,7 +1,7 @@
 SELECT
   DATEFROMPARTS(2000,1,1) as date,
-  /* MAKEDATE(2000,1,1) as date --MySQL */
-  /* DATE '2000-01-01' as date --PostgreSQL */
+  /* MAKEDATE(2000,1,1) as date, --MySQL */
+  /* DATE '2000-01-01' as date, --PostgreSQL */
   'Opening Balance' as voucher_type,
   '' as voucher_number,
   l.name as ledger,
