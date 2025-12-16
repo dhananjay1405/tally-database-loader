@@ -82,6 +82,9 @@ master:
         - name: email
           field: Email
           type: text
+        - name: mobile
+          field: if NOT $$IsEmpty:$LedgerMobile then $$Sprintf:"%s %s":$LedgerCountryISDCode:$LedgerMobile else ""
+          type: text
         - name: it_pan
           field: IncomeTaxNumber
           type: text

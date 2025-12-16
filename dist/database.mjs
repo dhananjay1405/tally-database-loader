@@ -374,9 +374,6 @@ class _database {
                 let lstTruncateSQL = [];
                 for (let i = 0; i < lstTables.length; i++) {
                     let sqlQuery = `truncate table ${lstTables[i]}`;
-                    /*if (this.config.technology == 'db2') {
-                        sqlQuery += ' immediate';
-                    }*/
                     sqlQuery += ';';
                     lstTruncateSQL.push(sqlQuery);
                 }
@@ -488,6 +485,71 @@ class _database {
             catch (err) {
                 reject();
                 logger.logError('database.uploadAzureDataLake()', err);
+            }
+        });
+    }
+    listDatabaseTables() {
+        let retval = [];
+        return new Promise(async (resolve, reject) => {
+            try {
+                if (this.config.technology == 'mssql') {
+                    let sqlQuery = `select TABLE_NAME from INFORMATION_SCHEMA.TABLES where TABLE_CATALOG = '${this.config.schema}' and TABLE_TYPE = 'BASE TABLE' order by TABLE_NAME`;
+                    let result = await this.readMssql(sqlQuery);
+                    for (const row of result) {
+                        retval.push(row[0].value);
+                    }
+                }
+                else if (this.config.technology == 'mysql') {
+                    let sqlQuery = `select TABLE_NAME from INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA = '${this.config.schema}' order by TABLE_NAME`;
+                    let result = await this.executeMysql(sqlQuery);
+                    for (const row of result.data) {
+                        retval.push(row['TABLE_NAME']);
+                    }
+                }
+                else if (this.config.technology == 'postgres') {
+                    let sqlQuery = `select TABLE_NAME from INFORMATION_SCHEMA.TABLES where TABLE_CATALOG = '${this.config.schema}' and TABLE_TYPE = 'BASE TABLE' order by TABLE_NAME`;
+                    let result = await this.executePostgres(sqlQuery);
+                    for (const row of result.data) {
+                        retval.push(row[0]);
+                    }
+                }
+                else
+                    ;
+                resolve(retval);
+            }
+            catch (err) {
+                reject(err);
+                logger.logError('database.listDatabaseTables()', err);
+            }
+        });
+    }
+    createDatabaseTables(syncMode) {
+        return new Promise(async (resolve, reject) => {
+            let scriptFileName = './database-structure.sql';
+            if (syncMode == 'incremental')
+                scriptFileName = './database-structure-incremental.sql';
+            let sqlQuery = fs.readFileSync(scriptFileName, 'utf-8');
+            try {
+                if (this.config.technology == 'mssql') {
+                    await this.executeMssql(sqlQuery);
+                }
+                else if (this.config.technology == 'mysql') {
+                    sqlQuery = sqlQuery.replace(/nvarchar/gi, 'varchar'); //replace nvarchar with varchart for MySQL
+                    for (const tblSQL of sqlQuery.split(/;\s*$/gm)) {
+                        if (tblSQL.trim() != '')
+                            await this.executeMysql(tblSQL.trim());
+                    }
+                }
+                else if (this.config.technology == 'postgres') {
+                    sqlQuery = sqlQuery.replace(/nvarchar/gi, 'varchar'); //replace nvarchar with varchart for PostgreSQL
+                    sqlQuery = sqlQuery.replace(/tinyint/gi, 'smallint'); //replace tinyint with smallint for PostgreSQL
+                    await this.executePostgres(sqlQuery);
+                }
+                resolve();
+            }
+            catch (err) {
+                reject(err);
+                logger.logError('database.createDatabaseTables()', err);
             }
         });
     }

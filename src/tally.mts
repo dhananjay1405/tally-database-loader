@@ -70,7 +70,7 @@ class _tally {
         return new Promise<void>(async (resolve, reject) => {
             try {
 
-                logger.logMessage('Tally to Database | version: 1.0.38');
+                logger.logMessage('Tally to Database | version: 1.0.39');
 
                 //Load YAML export definition file
                 let pathTallyExportDefinition = this.config.definition
@@ -99,9 +99,42 @@ class _tally {
                             fs.rmSync('./csv', { recursive: true });
                         fs.mkdirSync('./csv');
 
+                        // check if all the tables required exists in database and create if not
+                        if (/^(mssql|mysql|postgres)$/g.test(database.config.technology)) {
+                            logger.logMessage('Verifying required database tables [%s]', new Date().toLocaleDateString());
+
+                            let lstTables: tableConfigYAML[] = [];
+                            lstTables.push(...this.lstTableMaster);
+                            lstTables.push(...this.lstTableTransaction);
+
+                            //fetch list of existing tables in database                        
+                            let lstDatabaseTables = await database.listDatabaseTables();
+
+                            //prepare list of required tables
+                            let lstRequiredTables = lstTables.map(p => p.name);
+                            lstRequiredTables.push('config'); //add config table
+                            lstRequiredTables.push('_diff'); //add temporary diff table
+                            lstRequiredTables.push('_delete'); //add temporary delete table
+                            lstRequiredTables.push('_vchnumber'); //add temporary voucher number table
+
+                            //verify if all the required tables exists in database
+                            let countRequiredTablesFound = 0;
+                            for (const requiredTable of lstRequiredTables) {
+                                if (lstDatabaseTables.includes(requiredTable)) {
+                                    countRequiredTablesFound++;
+                                }
+                            }
+
+                            //run create table script only if none of the required tables are found
+                            if (countRequiredTablesFound == 0) {
+                                logger.logMessage('Creating database tables [%s]', new Date().toLocaleDateString());
+                                await database.createDatabaseTables(this.config.sync);
+                            }
+                        }
+
                         //acquire last AlterID of master & transaction from last sync version of Database
                         logger.logMessage('Acquiring last AlterID from database');
-                        
+
                         let lastAlterIdMasterDatabase = await database.executeScalar<number>(`select coalesce(max(cast(value as ${database.config.technology == 'mysql' ? 'unsigned int' : 'int'})),0) x from config where name = 'Last AlterID Master'`);
                         let lastAlterIdTransactionDatabase = await database.executeScalar<number>(`select coalesce(max(cast(value as ${database.config.technology == 'mysql' ? 'unsigned int' : 'int'})),0) x from config where name = 'Last AlterID Transaction'`);
 
@@ -327,6 +360,32 @@ class _tally {
                     }
                     fs.mkdirSync('./csv');
 
+                    // check if all the tables required exists in database and create if not
+                    if (/^(mssql|mysql|postgres)$/g.test(database.config.technology)) {
+                        logger.logMessage('Verifying required database tables [%s]', new Date().toLocaleDateString());
+
+                        //fetch list of existing tables in database                        
+                        let lstDatabaseTables = await database.listDatabaseTables();
+
+                        //prepare list of required tables
+                        let lstRequiredTables = lstTables.map(p => p.name);
+                        lstRequiredTables.push('config'); //add config table
+
+                        //verify if all the required tables exists in database
+                        let countRequiredTablesFound = 0;
+                        for (const requiredTable of lstRequiredTables) {
+                            if (lstDatabaseTables.includes(requiredTable)) {
+                                countRequiredTablesFound++;
+                            }
+                        }
+
+                        //run create table script only if none of the required tables are found
+                        if (countRequiredTablesFound == 0) {
+                            logger.logMessage('Creating database tables [%s]', new Date().toLocaleDateString());
+                            await database.createDatabaseTables(this.config.sync);
+                        }
+                    }
+
                     if (/^(mssql|mysql|postgres|bigquery|csv)$/g.test(database.config.technology)) {
                         //update active company information before starting import
                         logger.logMessage('Updating company information configuration table [%s]', new Date().toLocaleDateString());
@@ -416,14 +475,14 @@ class _tally {
             try {
                 //acquire last AlterID of master & transaction from Tally (for current company)
                 let xmlPayLoad = '<?xml version="1.0" encoding="utf-8"?><ENVELOPE><HEADER><VERSION>1</VERSION><TALLYREQUEST>Export</TALLYREQUEST><TYPE>Data</TYPE><ID>MyReport</ID></HEADER><BODY><DESC><STATICVARIABLES><SVEXPORTFORMAT>ASCII (Comma Delimited)</SVEXPORTFORMAT></STATICVARIABLES><TDL><TDLMESSAGE><REPORT NAME="MyReport"><FORMS>MyForm</FORMS></REPORT><FORM NAME="MyForm"><PARTS>MyPart</PARTS></FORM><PART NAME="MyPart"><LINES>MyLine</LINES><REPEAT>MyLine : MyCollection</REPEAT><SCROLLED>Vertical</SCROLLED></PART><LINE NAME="MyLine"><FIELDS>FldAlterMaster,FldAlterTransaction</FIELDS></LINE><FIELD NAME="FldAlterMaster"><SET>$AltMstId</SET></FIELD><FIELD NAME="FldAlterTransaction"><SET>$AltVchId</SET></FIELD><COLLECTION NAME="MyCollection"><TYPE>Company</TYPE><FILTER>FilterActiveCompany</FILTER></COLLECTION><SYSTEM TYPE="Formulae" NAME="FilterActiveCompany">$$IsEqual:##SVCurrentCompany:$Name</SYSTEM></TDLMESSAGE></TDL></DESC></BODY></ENVELOPE>'
-                if(tally.config.company) { // substitute company name if found
-                    xmlPayLoad = xmlPayLoad.replace('##SVCurrentCompany', `"${ utility.String.escapeHTML(tally.config.company)}"`);    
+                if (tally.config.company) { // substitute company name if found
+                    xmlPayLoad = xmlPayLoad.replace('##SVCurrentCompany', `"${utility.String.escapeHTML(tally.config.company)}"`);
                 }
                 let contentLastAlterIdTally = await this.postTallyXML(xmlPayLoad);
-                if(contentLastAlterIdTally == '') { //target company is closed
+                if (contentLastAlterIdTally == '') { //target company is closed
                     this.lastAlterIdMaster = -1;
                     this.lastAlterIdTransaction - 1;
-                    if(!tally.config.company) {
+                    if (!tally.config.company) {
                         logger.logMessage('No company open in Tally');
                         return reject('Please select one or more company in Tally to sync data');
                     }
@@ -436,12 +495,12 @@ class _tally {
                     let lstAltId = contentLastAlterIdTally.replace(/\"/g, '').split(',');
                     this.lastAlterIdMaster = lstAltId.length >= 2 ? parseInt(lstAltId[0]) : 0;
                     this.lastAlterIdTransaction = lstAltId.length >= 2 ? parseInt(lstAltId[1]) : 0;
-    
+
                     // fill-up invalid alterID with zero
-                    if(isNaN(this.lastAlterIdMaster)) {
+                    if (isNaN(this.lastAlterIdMaster)) {
                         this.lastAlterIdMaster = 0;
                     }
-                    if(isNaN(this.lastAlterIdTransaction)) {
+                    if (isNaN(this.lastAlterIdTransaction)) {
                         this.lastAlterIdTransaction = 0;
                     }
                 }
@@ -580,7 +639,7 @@ class _tally {
                 let xmlCompany = `<?xml version="1.0" encoding="utf-8"?><ENVELOPE><HEADER><VERSION>1</VERSION><TALLYREQUEST>Export</TALLYREQUEST><TYPE>Data</TYPE><ID>TallyDatabaseLoaderReport</ID></HEADER><BODY><DESC><STATICVARIABLES><SVEXPORTFORMAT>ASCII (Comma Delimited)</SVEXPORTFORMAT></STATICVARIABLES><TDL><TDLMESSAGE><REPORT NAME="TallyDatabaseLoaderReport"><FORMS>MyForm</FORMS></REPORT><FORM NAME="MyForm"><PARTS>MyPart</PARTS></FORM><PART NAME="MyPart"><LINES>MyLine</LINES><REPEAT>MyLine : MyCollection</REPEAT><SCROLLED>Vertical</SCROLLED></PART><LINE NAME="MyLine"><FIELDS>FldGuid,FldName,FldBooksFrom,FldLastVoucherDate,FldLastAlterIdMaster,FldLastAlterIdTransaction,FldEOL</FIELDS></LINE><FIELD NAME="FldGuid"><SET>$Guid</SET></FIELD><FIELD NAME="FldName"><SET>$$StringFindAndReplace:$Name:'"':'""'</SET></FIELD><FIELD NAME="FldBooksFrom"><SET>(($$YearOfDate:$BooksFrom)*10000)+(($$MonthOfDate:$BooksFrom)*100)+(($$DayOfDate:$BooksFrom)*1)</SET></FIELD><FIELD NAME="FldLastVoucherDate"><SET>(($$YearOfDate:$LastVoucherDate)*10000)+(($$MonthOfDate:$LastVoucherDate)*100)+(($$DayOfDate:$LastVoucherDate)*1)</SET></FIELD><FIELD NAME="FldLastAlterIdMaster"><SET>$AltMstId</SET></FIELD><FIELD NAME="FldLastAlterIdTransaction"><SET>$AltVchId</SET></FIELD><FIELD NAME="FldEOL"><SET>†</SET></FIELD><COLLECTION NAME="MyCollection"><TYPE>Company</TYPE><FILTER>FilterActiveCompany</FILTER></COLLECTION><SYSTEM TYPE="Formulae" NAME="FilterActiveCompany">$$IsEqual:##SVCurrentCompany:$Name</SYSTEM></TDLMESSAGE></TDL></DESC></BODY></ENVELOPE>`;
                 if (this.config.company) //replce active company with specific company name if specified
                     xmlCompany = xmlCompany.replace('##SVCurrentCompany', `"${utility.String.escapeHTML(this.config.company)}"`);
-                
+
                 let strCompanyInfo = await this.postTallyXML(xmlCompany); //extract active company information
                 if (strCompanyInfo.endsWith(',"†",\r\n')) {
                     strCompanyInfo = strCompanyInfo.replace(/\",\"†\",\r\n/g, '').substr(1);
@@ -599,10 +658,10 @@ class _tally {
                         await database.executeNonQuery('truncate table config;');
                         await database.executeNonQuery(`insert into config(name,value) values('Update Timestamp','${new Date().toLocaleString()}'),('Company Name','${companyName}'),('Period From','${this.config.fromdate}'),('Period To','${this.config.todate}'),('Last AlterID Master','${altIdMaster}'),('Last AlterID Transaction','${altIdTransaction}');`);
                     }
-                    else if(/^(csv|bigquery)$/g.test(database.config.technology)) {
+                    else if (/^(csv|bigquery)$/g.test(database.config.technology)) {
                         let csvContent = `name,value\r\nUpdate Timestamp,${new Date().toLocaleString().replace(',', '')}\r\nCompany Name,${companyName}\r\nPeriod From,${this.config.fromdate}\r\nPeriod To,${this.config.todate}\r\Last AlterID nMaster,${altIdMaster}\r\Last AlterID nTransaction,${altIdTransaction}`;
                         fs.writeFileSync('./csv/config.csv', csvContent, { encoding: 'utf-8' });
-                        if(database.config.technology == 'bigquery') {
+                        if (database.config.technology == 'bigquery') {
                             await database.uploadGoogleBigQuery('config');
                         }
                     }
@@ -611,7 +670,7 @@ class _tally {
                     }
                 }
                 else {
-                    if(!tally.config.company) {
+                    if (!tally.config.company) {
                         logger.logMessage('No company open in Tally');
                         return reject('Please select one or more company in Tally to sync data');
                     }

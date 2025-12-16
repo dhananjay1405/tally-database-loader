@@ -39,24 +39,16 @@ Commandline utility to load data into Database Server from Tally software, inten
 <br><br>
 
 ## Version
-Latest Version: **1.0.38**<br>
-Updated on: **21-Sep-2025**
-
-Note:
-1. I keep on fixing utility and adding fields into database. So you are requested to re-create existing databases and re-download utility folder
-2. Incremental sync now works for SQL Server / MySQL / PostgreSQL. Going forward two separate version of **database-structure** and **tally-export-config** will be maintained. Files with suffix **incremental** are to be used for **incremental** sync &amp; other are for **full** sync.
-3. Structure of config.json file is changed. Ensure to download fresh version of utility
-
+Latest Version: **1.0.39**<br>
+Updated on: **16-Dec-2025**
 
 <br><br>
 
 ## Download
 
-Database Loader Utility is portable, and does not have a setup wizard like we find for software installation. Zip archive of utility can be downloaded from below link. Kindly use open-source &amp; free software [7-zip file archiver](https://www.7-zip.org/download.html) to un-compress utility archive.
+Database Loader Utility is portable, and does not have a setup wizard like we find for software installation. Zip archive of utility can be downloaded from below link.
 
-[Download Database Loader Utility](https://excelkida.com/resource/tally-database-loader-utility-1.0.38.7z)
-
-Also, it is a command-line utility having no window interface (to keep it minimal and faster)
+[https://excelkida.com/resource/tally-database-loader-utility-1.0.39.7z](https://excelkida.com/resource/tally-database-loader-utility-1.0.39.7z)
 
 <br><br>
 
@@ -111,21 +103,8 @@ Tally has in-built XML Server capability, which can import/export data in/out of
 <br><br>
 
 
-
 ## Database Creation
-Database first needs to be created and then Tables needs to be created in which data from Tally will be loaded, before running utility. File **database-structure.sql** contains SQL for creating tables of database. Just ensure to create database using any of GUI Database Manager. That database name should be updated in **schema** property of *config.json*. Open-source database editor available freely are
-* [SQL Server Management Studio (SQL Server)](https://docs.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms)
-* [pgAdmin (PostgreSQL Server)](https://www.pgadmin.org/download/)
-* [MySQL Workbench (MySQL Server)](https://dev.mysql.com/downloads/workbench/)
-* [Heidi SQL (SQL Server / MySQL / MariaDB / PostgreSQL)](https://www.heidisql.com/download.php/)
-
-Note: Database structure creation SQL script for PostgreSQL is avilable inside **platform/postgresql** folder of project. In future, database technology-wise separate SQL Script will be available for individual technologies.
-
-Utility support import into database server installed and hosted on
-* Same PC where Tally is
-* On any machine on LAN
-* Virtual Private Server
-* Cloud Database [ Microsoft Azure / Amazon Web Services (AWS) / Google Cloud Platform / Oracle Cloud ]
+Blank database first needs to be created. Afterwards utility will automatically create tables.
 
 <br><br>
 

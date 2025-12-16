@@ -56,6 +56,7 @@ create table mst_ledger
  mailing_country nvarchar(256) not null default '',
  mailing_pincode nvarchar(64) not null default '',
  email nvarchar(256) not null default '',
+ mobile nvarchar(32) not null default '',
  it_pan nvarchar(64) not null default '',
  gstn nvarchar(64) not null default '',
  gst_registration_type nvarchar(64) not null default '',

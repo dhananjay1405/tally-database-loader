@@ -1,5 +1,11 @@
 ## Release History
 
+**Version: 1.0.39 [16-Dec-2025]**<br>
+
+Added:
+* Ability to automatically create tables when a blank database is created
+* Table *mst_ledger* added field **mobile** to capture primary contact number
+
 **Version: 1.0.38 [21-Sep-2025]**<br>
 Fixed:
 * Datatype for field conversion was changed from integer to decimal as it was truncating decimal places

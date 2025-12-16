@@ -35,6 +35,7 @@ create table tallydb.mst_ledger
  mailing_country string(256) not null,
  mailing_pincode string(64) not null,
  email string(256) not null,
+ mobile string(32) not null,
  it_pan string(64) not null,
  gstn string(64) not null,
  gst_registration_type string(64) not null,

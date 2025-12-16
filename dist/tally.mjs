@@ -71,7 +71,7 @@ class _tally {
     importData() {
         return new Promise(async (resolve, reject) => {
             try {
-                logger.logMessage('Tally to Database | version: 1.0.38');
+                logger.logMessage('Tally to Database | version: 1.0.39');
                 //Load YAML export definition file
                 let pathTallyExportDefinition = this.config.definition;
                 if (fs.existsSync(`./${pathTallyExportDefinition}`)) {
@@ -94,6 +94,33 @@ class _tally {
                         if (fs.existsSync('./csv'))
                             fs.rmSync('./csv', { recursive: true });
                         fs.mkdirSync('./csv');
+                        // check if all the tables required exists in database and create if not
+                        if (/^(mssql|mysql|postgres)$/g.test(database.config.technology)) {
+                            logger.logMessage('Verifying required database tables [%s]', new Date().toLocaleDateString());
+                            let lstTables = [];
+                            lstTables.push(...this.lstTableMaster);
+                            lstTables.push(...this.lstTableTransaction);
+                            //fetch list of existing tables in database                        
+                            let lstDatabaseTables = await database.listDatabaseTables();
+                            //prepare list of required tables
+                            let lstRequiredTables = lstTables.map(p => p.name);
+                            lstRequiredTables.push('config'); //add config table
+                            lstRequiredTables.push('_diff'); //add temporary diff table
+                            lstRequiredTables.push('_delete'); //add temporary delete table
+                            lstRequiredTables.push('_vchnumber'); //add temporary voucher number table
+                            //verify if all the required tables exists in database
+                            let countRequiredTablesFound = 0;
+                            for (const requiredTable of lstRequiredTables) {
+                                if (lstDatabaseTables.includes(requiredTable)) {
+                                    countRequiredTablesFound++;
+                                }
+                            }
+                            //run create table script only if none of the required tables are found
+                            if (countRequiredTablesFound == 0) {
+                                logger.logMessage('Creating database tables [%s]', new Date().toLocaleDateString());
+                                await database.createDatabaseTables(this.config.sync);
+                            }
+                        }
                         //acquire last AlterID of master & transaction from last sync version of Database
                         logger.logMessage('Acquiring last AlterID from database');
                         let lastAlterIdMasterDatabase = await database.executeScalar(`select coalesce(max(cast(value as ${database.config.technology == 'mysql' ? 'unsigned int' : 'int'})),0) x from config where name = 'Last AlterID Master'`);
@@ -297,6 +324,27 @@ class _tally {
                         fs.rmSync('./csv', { recursive: true });
                     }
                     fs.mkdirSync('./csv');
+                    // check if all the tables required exists in database and create if not
+                    if (/^(mssql|mysql|postgres)$/g.test(database.config.technology)) {
+                        logger.logMessage('Verifying required database tables [%s]', new Date().toLocaleDateString());
+                        //fetch list of existing tables in database                        
+                        let lstDatabaseTables = await database.listDatabaseTables();
+                        //prepare list of required tables
+                        let lstRequiredTables = lstTables.map(p => p.name);
+                        lstRequiredTables.push('config'); //add config table
+                        //verify if all the required tables exists in database
+                        let countRequiredTablesFound = 0;
+                        for (const requiredTable of lstRequiredTables) {
+                            if (lstDatabaseTables.includes(requiredTable)) {
+                                countRequiredTablesFound++;
+                            }
+                        }
+                        //run create table script only if none of the required tables are found
+                        if (countRequiredTablesFound == 0) {
+                            logger.logMessage('Creating database tables [%s]', new Date().toLocaleDateString());
+                            await database.createDatabaseTables(this.config.sync);
+                        }
+                    }
                     if (/^(mssql|mysql|postgres|bigquery|csv)$/g.test(database.config.technology)) {
                         //update active company information before starting import
                         logger.logMessage('Updating company information configuration table [%s]', new Date().toLocaleDateString());
