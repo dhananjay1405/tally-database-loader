@@ -454,7 +454,7 @@ master:
           field: CalculationPeriod
           type: text
     - name: mst_gst_effective_rate
-      collection: StockItem.GstDetails
+      collection: StockItem.GstDetails.StateWiseDetails.RateDetails
       nature: Derived
       filters:
         - NOT $$IsEmpty:$GstApplicable
@@ -472,9 +472,18 @@ master:
         - name: hsn_code
           field: HsnCode
           type: text
+        - name: duty_head
+          field: GstRateDutyHead
+          type: text
         - name: rate
-          field: if NOT $$IsEmpty:$StateWiseDetails then $StateWiseDetails[First].RateDetails[3].GstRate else 0
+          field: GstRate
           type: number
+        - name: rate_per_unit
+          field: GstRatePerUnit
+          type: number
+        - name: valuation_type
+          field: if $$IsNotApplicable:$GstRateValuationType then "" else $GstRateValuationType
+          type: text
         - name: is_rcm_applicable
           field: IsReverseChargeApplicable
           type: logical
@@ -880,7 +889,7 @@ transaction:
         - name: tracking_number
           field: if ($$IsEmpty:$TrackingNumber or $$IsNotApplicable:$TrackingNumber) then "" else $TrackingNumber
           type: text
-    - name: trn_inventory_accounting
+    - name: trn_inventory_additional_cost
       collection: Voucher.LedgerEntries
       nature: Derived
       fetch:
@@ -902,6 +911,9 @@ transaction:
         - name: additional_allocation_type
           field: AddlAllocType
           type: text
+        - name: rate_of_invoice_tax
+          field: RateOfInvoiceTax
+          type: number
     - name: trn_employee
       collection: Voucher.CategoryEntry.EmployeeEntry
       nature: Derived

@@ -1,6 +1,6 @@
-import fs from 'fs';
-import util from 'util';
-import process from 'process';
+import fs from 'node:fs';
+import util from 'node:util';
+import process from 'node:process';
 import { utility } from './utility.mjs';
 class _logger {
     streamMessage;

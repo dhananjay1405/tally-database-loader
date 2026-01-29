@@ -45,6 +45,24 @@ class _utility {
                 .replace(/>/g, "&gt;")
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&apos;");
+        },
+        unescapeHTML(iHtmlStr) {
+            let retval = iHtmlStr;
+            //Replace Html escape characters with normal characters
+            let expr = retval.match(/&#(\d+);/g);
+            if (expr && expr.length) {
+                for (const item of expr) {
+                    let charCode = parseInt(item.replace(/&#(\d+);/, '$1'));
+                    retval = retval.replace(item, String.fromCharCode(charCode));
+                }
+            }
+            //Replace HTML entities with characters
+            retval = retval.replace(/&amp;/g, "&");
+            retval = retval.replace(/&lt;/g, "<");
+            retval = retval.replace(/&gt;/g, ">");
+            retval = retval.replace(/&quot;/g, "\"");
+            retval = retval.replace(/&apos;/g, "'");
+            return retval;
         }
     };
     Number = {

@@ -1,4 +1,4 @@
-import process from 'process';
+import process from 'node:process';
 import { tally } from './tally.mjs';
 import { database } from './database.mjs';
 import { logger } from './logger.mjs'

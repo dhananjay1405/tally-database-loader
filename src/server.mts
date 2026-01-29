@@ -1,6 +1,6 @@
-import http from 'http';
-import fs from 'fs';
-import child_process from 'child_process';
+import http from 'node:http';
+import fs from 'node:fs';
+import child_process from 'node:child_process';
 import { WebSocketServer } from 'ws';
 import { connectionConfig, tallyConfig } from './definition.mjs';
 

@@ -27,7 +27,7 @@ create table trn_cost_inventory_category_centre(guid varchar,ledger varchar,item
 create table trn_bill(guid varchar,ledger varchar,name varchar,amount decimal(17,2),billtype varchar,bill_credit_period int);
 create table trn_bank(guid varchar,ledger varchar,transaction_type varchar,instrument_date date,instrument_number varchar,bank_name varchar,amount decimal(17,2),bankers_date date);
 create table trn_batch(guid varchar,item varchar,name varchar,quantity decimal(15,4),amount decimal(17,2),godown varchar,destination_godown varchar,tracking_number varchar);
-create table trn_inventory_accounting(guid varchar,ledger varchar,amount decimal(17,2),additional_allocation_type varchar);
+create table trn_inventory_additional_cost(guid varchar,ledger varchar,amount decimal(17,2),additional_allocation_type varchar,rate_of_invoice_tax decimal(9,4));
 create table trn_employee(guid varchar,category varchar,employee_name varchar,amount decimal(17,2),employee_sort_order int);
 create table trn_payhead(guid varchar,category varchar,employee_name varchar,employee_sort_order int,payhead_name varchar,payhead_sort_order int,amount decimal(17,2));
 create table trn_attendance(guid varchar,employee_name varchar,attendancetype_name varchar,time_value decimal(17,2),type_value decimal(17,2));
@@ -60,7 +60,7 @@ copy trn_cost_inventory_category_centre from 'csv/trn_cost_inventory_category_ce
 copy trn_bill from 'csv/trn_bill.csv';
 copy trn_bank from 'csv/trn_bank.csv';
 copy trn_batch from 'csv/trn_batch.csv';
-copy trn_inventory_accounting from 'csv/trn_inventory_accounting.csv';
+copy trn_inventory_additional_cost from 'csv/trn_inventory_additional_cost.csv';
 copy trn_employee from 'csv/trn_employee.csv';
 copy trn_payhead from 'csv/trn_payhead.csv';
 copy trn_attendance from 'csv/trn_attendance.csv';

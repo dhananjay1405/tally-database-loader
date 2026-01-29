@@ -1,5 +1,19 @@
 ## Release History
 
+**Version: 1.0.40 [29-Jan-2026]**<br>
+
+Added:
+* Table **mst_gst_effective_rate** table now includes duty head and valuation type column for granular level data
+* **Collection** based extraction of data from Tally which is 2x faster and consumes 40% lesser RAM. A file **tally-export-config.json** is added for guided extraction of collections and transfer into database.
+
+Fixed:
+* Column name where textual data overflowing field max allowed length in database was displayed incorrectly due to 1 based column indexing for SQL Server [[#47](https://github.com/dhananjay1405/tally-database-loader/issues/47)]
+* Improving error messages for database import issues.
+* XML Requests where large amount of data was returned back by Tally faced 512 MB hard limit of processing (Node JS limitation). This limitation is now removed by streaming data to disk and then processing it in chunks in Collection based extraction method [#44](https://github.com/dhananjay1405/tally-database-loader/issues/44)
+
+Removed:
+* Support for Azure Data Lake Storage Gen2 since it is easier to load CSV files into Microsoft Fabric Lakehouse which is better approach offering Apache Spark for further analytics. Removing of the code and depedency made build lighter.
+
 **Version: 1.0.39 [16-Dec-2025]**<br>
 
 Added:

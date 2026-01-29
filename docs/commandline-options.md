@@ -13,27 +13,27 @@ node ./dist/index.mjs [[--option 01] [value 01] [--option 02] [value 02] ...]
 
 **Scenario 01:** We need to set from & to date dynamically (without changing config file), lets say **FY 2019-20 Q3**, then below is the command for that
 ```bat
-node ./dist/index.mjs --tally-fromdate 20191001 --tally-todate 20191231
+node ./dist/index.mjs --tally-fromdate "2019-10-01" --tally-todate "2019-12-31"
 ```
 
 **Scenario 02:** You have a tally company named *Reliance Industries*, created database of it by name *client_reliance* and want to export **FY 2019-20**  Then below is the command for that
 ```bat
-node ./dist/index.mjs --tally-fromdate 20191001 --tally-todate 20191231 --tally-company "Reliance Industries" --database-schema client_reliance
+node ./dist/index.mjs --tally-fromdate "2019-10-01" --tally-todate "2019-12-31" --tally-company "Reliance Industries" --database-schema client_reliance
 ```
 
 **Scenario 03:** We need to sync data for multiple companies of Tally. So, this requires creation of separate database for each company. And then sync of all the companies in one go can be done like this
 ```bat
 node ./dist/index.mjs --database-schema tallydb_airtel --tally-company "Bharti Airtel"
-node ./dist/index.mjs --database-schema tallydb_voda_idea --tally-company "Vodafone Idea Ltd FY 2021-22" --tally-fromdate 20210401 --tally-todate 20220331
+node ./dist/index.mjs --database-schema tallydb_voda_idea --tally-company "Vodafone Idea Ltd FY 2021-22" --tally-fromdate "2021-04-01" --tally-todate "2022-03-31"
 node ./dist/index.mjs --database-schema tallydb_jio --tally-company "Reliance Jio from (01-Apr-2022)"
 ```
 
 
 **Scenario 04:** Your have a single Tally company with 3 years of data FY 2017-18, FY 2018-19 and FY 2019-20 in it. Full sync for 3 years in single go by setting from-to dates is taking long time with Tally using up large amount of RAM. This can be setup as below with first line of syncing both master and transactions for first year, and then subsequent sync only pushing transactions of that year
 ```bat
-node ./dist/index.mjs --tally-fromdate 20170401 --tally-todate 20180331
-node ./dist/index.mjs --tally-fromdate 20180401 --tally-todate 20190331 --tally-master false --tally-truncate false
-node ./dist/index.mjs --tally-fromdate 20190401 --tally-todate 20200331 --tally-master false --tally-truncate false
+node ./dist/index.mjs --tally-fromdate "2017-04-01" --tally-todate "2018-03-31"
+node ./dist/index.mjs --tally-fromdate "2018-04-01" --tally-todate "2019-03-31" --tally-master false --tally-truncate false
+node ./dist/index.mjs --tally-fromdate "2019-04-01" --tally-todate "2020-03-31" --tally-master false --tally-truncate false
 ```
 
 The first line instructions sync to run with normal behaviour (with default mode of clear database and sync).

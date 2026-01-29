@@ -1,4 +1,4 @@
-interface connectionConfig {
+export interface connectionConfig {
     technology: string;
     server: string;
     port: number;
@@ -9,12 +9,12 @@ interface connectionConfig {
     loadmethod: string;
 }
 
-interface queryResult {
+export interface queryResult {
     rowCount: number;
     data: any[];
 }
 
-interface tallyConfig {
+export interface tallyConfig {
     definition: string;
     server: string;
     port: number;
@@ -25,29 +25,89 @@ interface tallyConfig {
     company: string;
 }
 
-interface fieldConfigYAML {
+export interface collectionConfigJSON {
+    collection: string; // name of collection as per Tally
+    table?: string; // table name for database / CSV mapping (optional)
+    fields: fieldConfigYAML[]; // list of fields
+    fetch?: string[]; // fetch list of fields which are not loaded by default
+    compute?: computeFieldConfig[]; // list of computed fields
+    filters?: filterConfigJson[];
+    subcollections?: collectionConfigJSON[];
+}
+
+export interface filterConfigJson {
+    name: string; // name of the filter
+    expression?: string; // filter expression (if not pre-defined)
+}
+
+export interface computeFieldConfig {
+    name: string; // name of the computed field
+    expression: string; // expression to compute the field value
+}
+
+export interface tableConfigJSON {
+    name: string; // table name for database / CSV mapping
+    isMaster: boolean; // is master table
+    collectionPaths: string[]; // list of collection / sub-collection hierarchy paths
+    fields: fieldConfigJSON[]; // list of fields
+    filter?: tableFilterJson;
+}
+
+export interface tableFilterJson {
+    field: string;
+    operator: string; // [ == != < > <= >= ]
+    value: string | number | boolean;
+}
+
+export interface fieldConfigJSON {
+    name: string; // name as per database
+    datatype: string; // data type as per database
+    source: string; // source field name as per Tally
+    transform?: transformFieldConfig; // transformation config (if any)
+}
+
+export interface transformFieldConfig {
+    replace?: string | transformOperationReplace;
+    concat?: string;
+    lookup?: transformOperationLookup;
+}
+
+export interface transformOperationReplace {
+    source: string;
+    target: string;
+}
+
+export interface transformOperationLookup {
+    sourceField: string;
+    lookupCollection: string;
+    lookupField: string
+    returnField: string;
+}
+
+export interface fieldConfigYAML {
     name: string;
     field: string;
     type: string;
 }
 
-interface tableFieldYAML {
+export interface tableFieldYAML {
     table: string;
     field: string;
 }
 
-interface tableConfigYAML {
+export interface tableConfigYAML {
     name: string;
     collection: string;
     nature: string;
     fields: fieldConfigYAML[];
     filters?: string[];
     fetch?: string[];
+    subcollections?: tableConfigYAML[];
     cascade_update?: tableFieldYAML[];
     cascade_delete?: tableFieldYAML[];
 }
 
-interface databaseFieldInfo {
+export interface databaseFieldInfo {
     fieldName: string;
     dataType: string;
     isNullable: boolean;
@@ -56,33 +116,32 @@ interface databaseFieldInfo {
     scale?: number;
 }
 
-interface cdmFileFormatSetting {
-    $type: string;
-    columnHeaders: boolean;
+export interface tdlDefinitionItem {
+    metadata: {
+        name: string;
+        type: string;
+    },
+    attributes: any[];
 }
 
-interface cdmAttribute {
+export interface tdlMessageItem {
+    definitions: tdlDefinitionItem[];
+}
+
+export interface tdlStaticVariableItem {
     name: string;
-    dataType: string;
+    value: string;
 }
 
-interface cdmPartition {
+export interface tdlRequestPayload {
+    static_variables: tdlStaticVariableItem[];
+    tdlmessage: tdlMessageItem[];
+}
+
+export interface companyInfo {
     name: string;
-    location: string;
-    fileFormatSettings: cdmFileFormatSetting;
+    booksfrom: Date;
+    iscompanyactive: boolean;
+    altmstid: number;
+    altvchid?: number;
 }
-
-interface cdmEntity {
-    $type: string;
-    name: string;
-    attributes: cdmAttribute[];
-    partitions: cdmPartition[];
-}
-
-interface cdmModel {
-    name: string;
-    version: string;
-    entities: cdmEntity[];
-}
-
-export { connectionConfig, queryResult, tallyConfig, fieldConfigYAML, tableFieldYAML, tableConfigYAML, databaseFieldInfo, cdmModel, cdmEntity, cdmPartition, cdmAttribute, cdmFileFormatSetting };

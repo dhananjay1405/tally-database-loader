@@ -1,0 +1,1978 @@
+{
+    "collections": [
+        {
+            "collection": "group",
+            "fetch": [
+                "guid",
+                "name",
+                "parent",
+                "_primarygroup",
+                "isrevenue",
+                "isdeemedpositive",
+                "isreserved",
+                "affectsgrossprofit",
+                "sortposition"
+            ]
+        },
+        {
+            "collection": "ledger",
+            "fetch": [
+                "guid",
+                "name",
+                "parent",
+                "onlyalias",
+                "description",
+                "narration",
+                "isrevenue",
+                "isdeemedpositive",
+                "openingbalance",
+                "closingbalance",
+                "mailingname",
+                "address",
+                "ledstatename",
+                "countryname",
+                "pincode",
+                "email",
+                "ledgermobile",
+                "ledgercountryisdcode",
+                "incometaxnumber",
+                "partygstin",
+                "gstregistrationtype",
+                "gsttypeofsupply",
+                "gstdutyhead",
+                "rateoftaxcalculation",
+                "bankaccholdername",
+                "bankdetails",
+                "ifscode",
+                "swiftcode",
+                "bankingconfigbank",
+                "bankbranchname",
+                "forpayroll",
+                "payslipname",
+                "paytype",
+                "paystattype",
+                "calculationtype",
+                "leavetype",
+                "calculationperiod",
+                "ledgstregdetails",
+                "ledgerclosingvalues.date",
+                "ledgerclosingvalues.amount",
+                "billallocations.openingbalance",
+                "billallocations.billdate",
+                "billallocations.name",
+                "billallocations.billcreditperiod",
+                "billallocations.isadvance"
+            ],
+            "compute": [
+                {
+                    "name": "mobile_number",
+                    "expression": "if NOT $$IsEmpty:$LedgerMobile then $$Sprintf:'%s %s':$LedgerCountryISDCode:$LedgerMobile else ''"
+                },
+                {
+                    "name": "gst_number",
+                    "expression": "if $$IsEmpty:$PartyGSTIN then $LedGSTRegDetails[Last].GSTIN else $PartyGSTIN"
+                },
+                {
+                    "name": "gst_registration_type",
+                    "expression": "if $$IsEmpty:$Gstregistrationtype then $LedGSTRegDetails[Last].Gstregistrationtype else $Gstregistrationtype"
+                },
+                {
+                    "name": "bill_credit_period",
+                    "expression": "$$Number:$BillCreditPeriod"
+                }
+            ]
+        },
+        {
+            "collection": "vouchertype",
+            "fetch": [
+                "guid",
+                "name",
+                "parent",
+                "numberingmethod",
+                "isdeemedpositive",
+                "affectsstock"
+            ],
+            "compute": [
+                {
+                    "name": "isordervoucher",
+                    "expression": "$$isordervch:$name"
+                },
+                {
+                    "name": "isinventoryvoucher",
+                    "expression": "$$isinventoryvch:$name"
+                },
+                {
+                    "name": "isaccountingvoucher",
+                    "expression": "$$isaccountingvch:$name"
+                }
+            ]
+        },
+        {
+            "collection": "unit",
+            "fetch": [
+                "guid",
+                "symbol",
+                "formalname",
+                "issimpleunit",
+                "baseunits",
+                "additionalunits",
+                "conversion"
+            ]
+        },
+        {
+            "collection": "godown",
+            "fetch": [
+                "guid",
+                "name",
+                "parent",
+                "address"
+            ]
+        },
+        {
+            "collection": "stockcategory",
+            "fetch": [
+                "guid",
+                "name",
+                "parent"
+            ]
+        },
+        {
+            "collection": "stockgroup",
+            "fetch": [
+                "guid",
+                "name",
+                "parent"
+            ]
+        },
+        {
+            "collection": "stockitem",
+            "fetch": [
+                "guid",
+                "name",
+                "parent",
+                "category",
+                "onlyalias",
+                "description",
+                "narration",
+                "partno",
+                "baseunits",
+                "additionalunits",
+                "conversion",
+                "openingbalance",
+                "openingrate",
+                "openingvalue",
+                "closingbalance",
+                "closingrate",
+                "closingvalue",
+                "costingmethod",
+                "gstmsttypeofsupply",
+                "infgsthsncode",
+                "infgsthsndescription",
+                "infgstigstrate",
+                "infgsttaxablility",
+                "gstdetails.applicablefrom",
+                "gstdetails.hsn",
+                "gstdetails.hsncode",
+                "gstdetails.statewisedetails",
+                "gstdetails.isreversechargeapplicable",
+                "gstdetails.gstnatureoftransaction",
+                "gstdetails.natureofgoods",
+                "gstdetails.supplytype",
+                "gstdetails.taxability",
+                "batchallocations.batchname",
+                "batchallocations.openingbalance",
+                "batchallocations.openingrate",
+                "batchallocations.openingvalue",
+                "batchallocations.godownname",
+                "batchallocations.mfdon",
+                "standardcostlist.date",
+                "standardcostlist.rate",
+                "standardpricelist.date",
+                "standardpricelist.rate"
+            ]
+        },
+        {
+            "collection": "costcategory",
+            "fetch": [
+                "guid",
+                "name",
+                "allocaterevenue",
+                "allocatenonrevenue"
+            ]
+        },
+        {
+            "collection": "costcentre",
+            "fetch": [
+                "guid",
+                "name",
+                "parent",
+                "category",
+                "forpayroll",
+                "mailingname",
+                "dateofjoin",
+                "deactivationdate",
+                "designation",
+                "function",
+                "location",
+                "gender",
+                "dateofbirth",
+                "bloodgroup",
+                "fathername",
+                "spousename",
+                "address",
+                "mobilenumber",
+                "emailid",
+                "pannumber",
+                "aadharnumber",
+                "uannumber",
+                "pfaccountnumber",
+                "pfjoiningdate",
+                "pfrelievingdate",
+                "praccountnumber"
+            ]
+        },
+        {
+            "collection": "attendancetype",
+            "fetch": [
+                "guid",
+                "name",
+                "parent",
+                "baseunits",
+                "attendanceproductiontype",
+                "attendanceperiod"
+            ]
+        },
+        {
+            "collection": "voucher",
+            "fetch": [
+                "guid",
+                "date",
+                "vouchertypename",
+                "vouchernumber",
+                "reference",
+                "referencedate",
+                "narration",
+                "partyledgername",
+                "placeofsupply",
+                "isinvoice",
+                "allledgerentries.ledgername",
+                "allledgerentries.amount",
+                "allledgerentries.billallocations.name",
+                "allledgerentries.billallocations.amount",
+                "allledgerentries.billallocations.billtype",
+                "allledgerentries.billallocations.billcreditperiod",
+                "allledgerentries.bankallocations.transactiontype",
+                "allledgerentries.bankallocations.instrumentdate",
+                "allledgerentries.bankallocations.instrumentnumber",
+                "allledgerentries.bankallocations.bankname",
+                "allledgerentries.bankallocations.amount",
+                "allledgerentries.bankallocations.bankersdate",
+                "allledgerentries.costcentreallocations.name",
+                "allledgerentries.costcentreallocations.amount",
+                "allledgerentries.categoryallocations.category",
+                "allledgerentries.categoryallocations.costcentreallocations.name",
+                "allledgerentries.categoryallocations.costcentreallocations.amount",
+                "allledgerentries.inventoryallocations.stockitemname",
+                "allledgerentries.inventoryallocations.categoryallocations.category",
+                "allledgerentries.inventoryallocations.categoryallocations.costcentreallocations.name",
+                "allledgerentries.inventoryallocations.categoryallocations.costcentreallocations.amount",
+                "allinventoryentries.itemname",
+                "allinventoryentries.billedqty",
+                "allinventoryentries.rate",
+                "allinventoryentries.amount",
+                "allinventoryentries.addlamount",
+                "allinventoryentries.discountamount",
+                "allinventoryentries.godownname",
+                "allinventoryentries.trackingnumber",
+                "allinventoryentries.orderno",
+                "allinventoryentries.orderduedate",
+                "allinventoryentries.batchallocations.batchname",
+                "allinventoryentries.batchallocations.billedqty",
+                "allinventoryentries.batchallocations.amount",
+                "allinventoryentries.batchallocations.godownname",
+                "allinventoryentries.batchallocations.destinationgodownname",
+                "allinventoryentries.batchallocations.trackingnumber",
+                "attendanceentries.name",
+                "attendanceentries.attendancetype",
+                "attendanceentries.timevalue",
+                "attendanceentries.typevalue",
+                "categoryentry.category",
+                "categoryentry.employeeentry.employeename",
+                "categoryentry.employeeentry.amount",
+                "categoryentry.employeeentry.sortorder",
+                "categoryentry.employeeentry.payheadallocations.payheadname",
+                "categoryentry.employeeentry.payheadallocations.payheadsortorder",
+                "categoryentry.employeeentry.payheadallocations.amount",
+                "ledgerentries.addlalloctype",
+                "ledgerentries.rateofinvoicetax"
+            ],
+            "compute": [
+                {
+                    "name": "is_accounting_voucher",
+                    "expression": "$$IsAccountingVch:$VoucherTypeName"
+                },
+                {
+                    "name": "is_inventory_voucher",
+                    "expression": "$$IsInventoryVch:$VoucherTypeName"
+                },
+                {
+                    "name": "is_order_voucher",
+                    "expression": "$$IsOrderVch:$VoucherTypeName"
+                }
+            ],
+            "filters": [
+                {
+                    "name": "isnonoptionalcancelledvchs"
+                }
+            ]
+        }
+    ],
+    "tables": [
+        {
+            "name": "mst_group",
+            "isMaster": true,
+            "collectionPaths": [
+                "group"
+            ],
+            "fields": [
+                {
+                    "name": "guid",
+                    "datatype": "string",
+                    "source": "guid"
+                },
+                {
+                    "name": "name",
+                    "datatype": "string",
+                    "source": "name"
+                },
+                {
+                    "name": "parent",
+                    "datatype": "string",
+                    "source": "parent",
+                    "transform": {
+                        "replace": "\u0004 Primary"
+                    }
+                },
+                {
+                    "name": "primary_group",
+                    "datatype": "string",
+                    "source": "_primarygroup"
+                },
+                {
+                    "name": "is_revenue",
+                    "datatype": "boolean",
+                    "source": "isrevenue"
+                },
+                {
+                    "name": "is_deemedpositive",
+                    "datatype": "boolean",
+                    "source": "isdeemedpositive"
+                },
+                {
+                    "name": "is_reserved",
+                    "datatype": "boolean",
+                    "source": "isreserved"
+                },
+                {
+                    "name": "affects_gross_profit",
+                    "datatype": "boolean",
+                    "source": "affectsgrossprofit"
+                },
+                {
+                    "name": "sort_position",
+                    "datatype": "number",
+                    "source": "sortPosition"
+                }
+            ]
+        },
+        {
+            "name": "mst_ledger",
+            "isMaster": true,
+            "collectionPaths": [
+                "ledger"
+            ],
+            "fields": [
+                {
+                    "name": "guid",
+                    "datatype": "string",
+                    "source": "guid"
+                },
+                {
+                    "name": "name",
+                    "datatype": "string",
+                    "source": "name"
+                },
+                {
+                    "name": "parent",
+                    "datatype": "string",
+                    "source": "parent",
+                    "transform": {
+                        "replace": "\u0004 Primary"
+                    }
+                },
+                {
+                    "name": "alias",
+                    "datatype": "string",
+                    "source": "onlyalias"
+                },
+                {
+                    "name": "description",
+                    "datatype": "string",
+                    "source": "description"
+                },
+                {
+                    "name": "notes",
+                    "datatype": "string",
+                    "source": "narration"
+                },
+                {
+                    "name": "is_revenue",
+                    "datatype": "boolean",
+                    "source": "isrevenue"
+                },
+                {
+                    "name": "is_deemedpositive",
+                    "datatype": "boolean",
+                    "source": "isdeemedpositive"
+                },
+                {
+                    "name": "opening_balance",
+                    "datatype": "decimal",
+                    "source": "openingbalance"
+                },
+                {
+                    "name": "closing_balance",
+                    "datatype": "decimal",
+                    "source": "closingbalance"
+                },
+                {
+                    "name": "mailing_name",
+                    "datatype": "string",
+                    "source": "mailingname"
+                },
+                {
+                    "name": "mailing_address",
+                    "datatype": "string",
+                    "source": "address",
+                    "transform": {
+                        "concat": ","
+                    }
+                },
+                {
+                    "name": "mailing_state",
+                    "datatype": "string",
+                    "source": "ledstatename"
+                },
+                {
+                    "name": "mailing_country",
+                    "datatype": "string",
+                    "source": "countryname"
+                },
+                {
+                    "name": "mailing_pincode",
+                    "datatype": "string",
+                    "source": "pincode"
+                },
+                {
+                    "name": "email",
+                    "datatype": "string",
+                    "source": "email"
+                },
+                {
+                    "name": "mobile",
+                    "datatype": "string",
+                    "source": "mobile_number"
+                },
+                {
+                    "name": "it_pan",
+                    "datatype": "string",
+                    "source": "incometaxnumber"
+                },
+                {
+                    "name": "gstn",
+                    "datatype": "string",
+                    "source": "gst_number"
+                },
+                {
+                    "name": "gst_registration_type",
+                    "datatype": "string",
+                    "source": "gst_registration_type"
+                },
+                {
+                    "name": "gst_supply_type",
+                    "datatype": "string",
+                    "source": "gsttypeofsupply"
+                },
+                {
+                    "name": "gst_duty_head",
+                    "datatype": "string",
+                    "source": "gstdutyhead"
+                },
+                {
+                    "name": "tax_rate",
+                    "datatype": "decimal",
+                    "source": "rateoftaxcalculation"
+                },
+                {
+                    "name": "bank_account_holder",
+                    "datatype": "string",
+                    "source": "bankaccholdername"
+                },
+                {
+                    "name": "bank_account_number",
+                    "datatype": "string",
+                    "source": "bankdetails"
+                },
+                {
+                    "name": "bank_ifsc",
+                    "datatype": "string",
+                    "source": "ifscode"
+                },
+                {
+                    "name": "bank_swift",
+                    "datatype": "string",
+                    "source": "swiftcode"
+                },
+                {
+                    "name": "bank_name",
+                    "datatype": "string",
+                    "source": "bankingconfigbank"
+                },
+                {
+                    "name": "bank_branch",
+                    "datatype": "string",
+                    "source": "bankbranchname"
+                },
+                {
+                    "name": "bill_credit_period",
+                    "datatype": "number",
+                    "source": "bill_credit_period"
+                }
+            ]
+        },
+        {
+            "name": "mst_vouchertype",
+            "isMaster": true,
+            "collectionPaths": [
+                "vouchertype"
+            ],
+            "fields": [
+                {
+                    "name": "guid",
+                    "datatype": "string",
+                    "source": "guid"
+                },
+                {
+                    "name": "name",
+                    "datatype": "string",
+                    "source": "name"
+                },
+                {
+                    "name": "parent",
+                    "datatype": "string",
+                    "source": "parent"
+                },
+                {
+                    "name": "numbering_method",
+                    "datatype": "string",
+                    "source": "numberingmethod"
+                },
+                {
+                    "name": "is_deemedpositive",
+                    "datatype": "boolean",
+                    "source": "isdeemedpositive"
+                },
+                {
+                    "name": "affects_stock",
+                    "datatype": "boolean",
+                    "source": "affectsstock"
+                }
+            ]
+        },
+        {
+            "name": "mst_uom",
+            "isMaster": true,
+            "collectionPaths": [
+                "unit"
+            ],
+            "fields": [
+                {
+                    "name": "guid",
+                    "datatype": "string",
+                    "source": "guid"
+                },
+                {
+                    "name": "name",
+                    "datatype": "string",
+                    "source": "symbol"
+                },
+                {
+                    "name": "formalname",
+                    "datatype": "string",
+                    "source": "formalname"
+                },
+                {
+                    "name": "is_simple_unit",
+                    "datatype": "boolean",
+                    "source": "issimpleunit"
+                },
+                {
+                    "name": "base_units",
+                    "datatype": "string",
+                    "source": "baseunits"
+                },
+                {
+                    "name": "additional_units",
+                    "datatype": "string",
+                    "source": "additionalunits"
+                },
+                {
+                    "name": "conversion",
+                    "datatype": "decimal",
+                    "source": "conversion"
+                }
+            ]
+        },
+        {
+            "name": "mst_godown",
+            "isMaster": true,
+            "collectionPaths": [
+                "godown"
+            ],
+            "fields": [
+                {
+                    "name": "guid",
+                    "datatype": "string",
+                    "source": "guid"
+                },
+                {
+                    "name": "name",
+                    "datatype": "string",
+                    "source": "name"
+                },
+                {
+                    "name": "parent",
+                    "datatype": "string",
+                    "source": "parent"
+                },
+                {
+                    "name": "address",
+                    "datatype": "string",
+                    "source": "address",
+                    "transform": {
+                        "concat": ","
+                    }
+                }
+            ]
+        },
+        {
+            "name": "mst_stock_category",
+            "isMaster": true,
+            "collectionPaths": [
+                "stockcategory"
+            ],
+            "fields": [
+                {
+                    "name": "guid",
+                    "datatype": "string",
+                    "source": "guid"
+                },
+                {
+                    "name": "name",
+                    "datatype": "string",
+                    "source": "name"
+                },
+                {
+                    "name": "parent",
+                    "datatype": "string",
+                    "source": "parent",
+                    "transform": {
+                        "replace": "\u0004 Primary"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "mst_stock_group",
+            "isMaster": true,
+            "collectionPaths": [
+                "stockgroup"
+            ],
+            "fields": [
+                {
+                    "name": "guid",
+                    "datatype": "string",
+                    "source": "guid"
+                },
+                {
+                    "name": "name",
+                    "datatype": "string",
+                    "source": "name"
+                },
+                {
+                    "name": "parent",
+                    "datatype": "string",
+                    "source": "parent",
+                    "transform": {
+                        "replace": "\u0004 Primary"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "mst_stock_item",
+            "isMaster": true,
+            "collectionPaths": [
+                "stockitem"
+            ],
+            "fields": [
+                {
+                    "name": "guid",
+                    "datatype": "string",
+                    "source": "guid"
+                },
+                {
+                    "name": "name",
+                    "datatype": "string",
+                    "source": "name"
+                },
+                {
+                    "name": "parent",
+                    "datatype": "string",
+                    "source": "parent",
+                    "transform": {
+                        "replace": "\u0004 Primary"
+                    }
+                },
+                {
+                    "name": "category",
+                    "datatype": "string",
+                    "source": "category",
+                    "transform": {
+                        "replace": "\u0004 Not Applicable"
+                    }
+                },
+                {
+                    "name": "alias",
+                    "datatype": "string",
+                    "source": "onlyalias"
+                },
+                {
+                    "name": "description",
+                    "datatype": "string",
+                    "source": "description"
+                },
+                {
+                    "name": "notes",
+                    "datatype": "string",
+                    "source": "narration"
+                },
+                {
+                    "name": "part_number",
+                    "datatype": "string",
+                    "source": "partno"
+                },
+                {
+                    "name": "uom",
+                    "datatype": "string",
+                    "source": "baseunits",
+                    "transform": {
+                        "replace": "\u0004 Not Applicable"
+                    }
+                },
+                {
+                    "name": "alternate_uom",
+                    "datatype": "string",
+                    "source": "baseunits",
+                    "transform": {
+                        "replace": "\u0004 Not Applicable"
+                    }
+                },
+                {
+                    "name": "conversion",
+                    "datatype": "decimal",
+                    "source": "conversion"
+                },
+                {
+                    "name": "opening_balance",
+                    "datatype": "decimal",
+                    "source": "openingbalance"
+                },
+                {
+                    "name": "opening_rate",
+                    "datatype": "decimal",
+                    "source": "openingrate"
+                },
+                {
+                    "name": "opening_value",
+                    "datatype": "decimal",
+                    "source": "openingvalue"
+                },
+                {
+                    "name": "closing_balance",
+                    "datatype": "decimal",
+                    "source": "closingbalance"
+                },
+                {
+                    "name": "closing_rate",
+                    "datatype": "decimal",
+                    "source": "closingrate"
+                },
+                {
+                    "name": "closing_value",
+                    "datatype": "decimal",
+                    "source": "closingvalue"
+                },
+                {
+                    "name": "costing_method",
+                    "datatype": "string",
+                    "source": "costingmethod"
+                },
+                {
+                    "name": "gst_type_of_supply",
+                    "datatype": "string",
+                    "source": "gstmsttypeofsupply"
+                },
+                {
+                    "name": "gst_hsn_code",
+                    "datatype": "string",
+                    "source": "infgsthsncode"
+                },
+                {
+                    "name": "gst_hsn_description",
+                    "datatype": "string",
+                    "source": "infgsthsndescription"
+                },
+                {
+                    "name": "gst_rate",
+                    "datatype": "decimal",
+                    "source": "infgstigstrate"
+                },
+                {
+                    "name": "gst_taxability",
+                    "datatype": "string",
+                    "source": "infgsttaxablility"
+                }
+            ]
+        },
+        {
+            "name": "mst_cost_category",
+            "isMaster": true,
+            "collectionPaths": [
+                "costcategory"
+            ],
+            "fields": [
+                {
+                    "name": "guid",
+                    "datatype": "string",
+                    "source": "guid"
+                },
+                {
+                    "name": "name",
+                    "datatype": "string",
+                    "source": "name"
+                },
+                {
+                    "name": "allocate_revenue",
+                    "datatype": "boolean",
+                    "source": "allocaterevenue"
+                },
+                {
+                    "name": "allocate_non_revenue",
+                    "datatype": "boolean",
+                    "source": "allocatenonrevenue"
+                }
+            ]
+        },
+        {
+            "name": "mst_cost_centre",
+            "isMaster": true,
+            "collectionPaths": [
+                "costcentre"
+            ],
+            "fields": [
+                {
+                    "name": "guid",
+                    "datatype": "string",
+                    "source": "guid"
+                },
+                {
+                    "name": "name",
+                    "datatype": "string",
+                    "source": "name"
+                },
+                {
+                    "name": "parent",
+                    "datatype": "string",
+                    "source": "parent"
+                },
+                {
+                    "name": "category",
+                    "datatype": "string",
+                    "source": "category"
+                }
+            ]
+        },
+        {
+            "name": "mst_attendance_type",
+            "isMaster": true,
+            "collectionPaths": [
+                "attendancetype"
+            ],
+            "fields": [
+                {
+                    "name": "guid",
+                    "datatype": "string",
+                    "source": "guid"
+                },
+                {
+                    "name": "name",
+                    "datatype": "string",
+                    "source": "name"
+                },
+                {
+                    "name": "parent",
+                    "datatype": "string",
+                    "source": "parent",
+                    "transform": {
+                        "replace": "\u0004 Primary"
+                    }
+                },
+                {
+                    "name": "uom",
+                    "datatype": "string",
+                    "source": "baseunits",
+                    "transform": {
+                        "replace": "\u0004 Not Applicable"
+                    }
+                },
+                {
+                    "name": "attendance_type",
+                    "datatype": "string",
+                    "source": "attendanceproductiontype"
+                },
+                {
+                    "name": "attendance_period",
+                    "datatype": "string",
+                    "source": "attendanceperiod"
+                }
+            ]
+        },
+        {
+            "name": "mst_employee",
+            "isMaster": true,
+            "collectionPaths": [
+                "costcentre"
+            ],
+            "filter": {
+                "field": "forpayroll",
+                "operator": "==",
+                "value": true
+            },
+            "fields": [
+                {
+                    "name": "guid",
+                    "datatype": "string",
+                    "source": "guid"
+                },
+                {
+                    "name": "name",
+                    "datatype": "string",
+                    "source": "name"
+                },
+                {
+                    "name": "parent",
+                    "datatype": "string",
+                    "source": "parent",
+                    "transform": {
+                        "replace": "\u0004 Primary"
+                    }
+                },
+                {
+                    "name": "id_number",
+                    "datatype": "string",
+                    "source": "mailingname"
+                },
+                {
+                    "name": "date_of_joining",
+                    "datatype": "date",
+                    "source": "dateofjoin"
+                },
+                {
+                    "name": "date_of_release",
+                    "datatype": "date",
+                    "source": "deactivationdate"
+                },
+                {
+                    "name": "designation",
+                    "datatype": "string",
+                    "source": "designation"
+                },
+                {
+                    "name": "function_role",
+                    "datatype": "string",
+                    "source": "function"
+                },
+                {
+                    "name": "location",
+                    "datatype": "string",
+                    "source": "location"
+                },
+                {
+                    "name": "gender",
+                    "datatype": "string",
+                    "source": "Gender",
+                    "transform": {
+                        "replace": "\u0004 Unknown"
+                    }
+                },
+                {
+                    "name": "date_of_birth",
+                    "datatype": "date",
+                    "source": "dateofbirth"
+                },
+                {
+                    "name": "blood_group",
+                    "datatype": "string",
+                    "source": "bloodgroup"
+                },
+                {
+                    "name": "father_mother_name",
+                    "datatype": "string",
+                    "source": "fathername"
+                },
+                {
+                    "name": "spouse_name",
+                    "datatype": "string",
+                    "source": "spousename"
+                },
+                {
+                    "name": "address",
+                    "datatype": "string",
+                    "source": "address",
+                    "transform": {
+                        "concat": ","
+                    }
+                },
+                {
+                    "name": "mobile",
+                    "datatype": "string",
+                    "source": "mobilenumber"
+                },
+                {
+                    "name": "email",
+                    "datatype": "string",
+                    "source": "emailid"
+                },
+                {
+                    "name": "pan",
+                    "datatype": "string",
+                    "source": "pannumber"
+                },
+                {
+                    "name": "aadhar",
+                    "datatype": "string",
+                    "source": "aadharnumber"
+                },
+                {
+                    "name": "uan",
+                    "datatype": "string",
+                    "source": "uannumber"
+                },
+                {
+                    "name": "pf_number",
+                    "datatype": "string",
+                    "source": "pfaccountnumber"
+                },
+                {
+                    "name": "pf_joining_date",
+                    "datatype": "date",
+                    "source": "pfjoiningdate"
+                },
+                {
+                    "name": "pf_relieving_date",
+                    "datatype": "date",
+                    "source": "pfrelievingdate"
+                },
+                {
+                    "name": "pr_account_number",
+                    "datatype": "string",
+                    "source": "praccountnumber"
+                }
+            ]
+        },
+        {
+            "name": "mst_payhead",
+            "isMaster": true,
+            "collectionPaths": [
+                "ledger"
+            ],
+            "filter": {
+                "field": "forpayroll",
+                "operator": "==",
+                "value": true
+            },
+            "fields": [
+                {
+                    "name": "guid",
+                    "datatype": "string",
+                    "source": "guid"
+                },
+                {
+                    "name": "name",
+                    "datatype": "string",
+                    "source": "name"
+                },
+                {
+                    "name": "parent",
+                    "datatype": "string",
+                    "source": "parent",
+                    "transform": {
+                        "replace": "\u0004 Primary"
+                    }
+                },
+                {
+                    "name": "payslip_name",
+                    "datatype": "string",
+                    "source": "payslipname"
+                },
+                {
+                    "name": "pay_type",
+                    "datatype": "string",
+                    "source": "paytype",
+                    "transform": {
+                        "replace": "\u0004 Not Applicable"
+                    }
+                },
+                {
+                    "name": "income_type",
+                    "datatype": "string",
+                    "source": "paystattype",
+                    "transform": {
+                        "replace": "\u0004 Not Applicable"
+                    }
+                },
+                {
+                    "name": "calculation_type",
+                    "datatype": "string",
+                    "source": "calculationtype"
+                },
+                {
+                    "name": "leave_type",
+                    "datatype": "string",
+                    "source": "leavetype"
+                },
+                {
+                    "name": "calculation_period",
+                    "datatype": "string",
+                    "source": "calculationperiod"
+                }
+            ]
+        },
+        {
+            "name": "mst_gst_effective_rate",
+            "isMaster": true,
+            "collectionPaths": [
+                "stockitem.gstdetails.statewisedetails.ratedetails"
+            ],
+            "fields": [
+                {
+                    "name": "item",
+                    "datatype": "string",
+                    "source": "name"
+                },
+                {
+                    "name": "applicable_from",
+                    "datatype": "date",
+                    "source": "applicablefrom"
+                },
+                {
+                    "name": "hsn_description",
+                    "datatype": "string",
+                    "source": "hsn"
+                },
+                {
+                    "name": "hsn_code",
+                    "datatype": "string",
+                    "source": "hsncode"
+                },
+                {
+                    "name": "duty_head",
+                    "datatype": "string",
+                    "source": "gstratedutyhead"
+                },
+                {
+                    "name": "rate",
+                    "datatype": "decimal",
+                    "source": "gstrate"
+                },
+                {
+                    "name": "rate_per_unit",
+                    "datatype": "decimal",
+                    "source": "gstrateperunit"
+                },
+                {
+                    "name": "valuation_type",
+                    "datatype": "string",
+                    "source": "gstratevaluationtype",
+                    "transform": {
+                        "replace":"\u0004 Not Applicable"
+                    }
+                },
+                {
+                    "name": "is_rcm_applicable",
+                    "datatype": "boolean",
+                    "source": "isreversechargeapplicable"
+                },
+                {
+                    "name": "nature_of_transaction",
+                    "datatype": "string",
+                    "source": "gstnatureoftransaction"
+                },
+                {
+                    "name": "nature_of_goods",
+                    "datatype": "string",
+                    "source": "natureofgoods"
+                },
+                {
+                    "name": "supply_type",
+                    "datatype": "string",
+                    "source": "supplytype"
+                },
+                {
+                    "name": "taxability",
+                    "datatype": "string",
+                    "source": "taxability"
+                }
+            ]
+        },
+        {
+            "name": "mst_opening_batch_allocation",
+            "isMaster": true,
+            "collectionPaths": [
+                "stockitem.batchallocations"
+            ],
+            "fields": [
+                {
+                    "name": "name",
+                    "datatype": "string",
+                    "source": "batchname"
+                },
+                {
+                    "name": "item",
+                    "datatype": "string",
+                    "source": "name"
+                },
+                {
+                    "name": "opening_balance",
+                    "datatype": "decimal",
+                    "source": "openingbalance"
+                },
+                {
+                    "name": "opening_rate",
+                    "datatype": "decimal",
+                    "source": "openingrate"
+                },
+                {
+                    "name": "opening_value",
+                    "datatype": "decimal",
+                    "source": "openingvalue"
+                },
+                {
+                    "name": "godown",
+                    "datatype": "string",
+                    "source": "godownname"
+                },
+                {
+                    "name": "manufactured_on",
+                    "datatype": "date",
+                    "source": "mfdon"
+                }
+            ]
+        },
+        {
+            "name": "mst_opening_bill_allocation",
+            "isMaster": true,
+            "collectionPaths": [
+                "ledger.billallocations"
+            ],
+            "fields": [
+                {
+                    "name": "ledger",
+                    "datatype": "string",
+                    "source": "name"
+                },
+                {
+                    "name": "opening_balance",
+                    "datatype": "decimal",
+                    "source": "openingbalance"
+                },
+                {
+                    "name": "bill_date",
+                    "datatype": "date",
+                    "source": "billdate"
+                },
+                {
+                    "name": "name",
+                    "datatype": "string",
+                    "source": "name"
+                },
+                {
+                    "name": "bill_credit_period",
+                    "datatype": "number",
+                    "source": "billcreditperiod"
+                },
+                {
+                    "name": "is_advance",
+                    "datatype": "boolean",
+                    "source": "isadvance"
+                }
+            ]
+        },
+        {
+            "name": "trn_closingstock_ledger",
+            "isMaster": true,
+            "collectionPaths": [
+                "ledger.ledgerclosingvalues"
+            ],
+            "fields": [
+                {
+                    "name": "ledger",
+                    "datatype": "string",
+                    "source": "name"
+                },
+                {
+                    "name": "stock_date",
+                    "datatype": "date",
+                    "source": "date"
+                },
+                {
+                    "name": "stock_value",
+                    "datatype": "decimal",
+                    "source": "amount"
+                }
+            ]
+        },
+        {
+            "name": "mst_stockitem_standard_cost",
+            "isMaster": true,
+            "collectionPaths": [
+                "stockitem.standardcostlist"
+            ],
+            "fields": [
+                {
+                    "name": "item",
+                    "datatype": "string",
+                    "source": "name"
+                },
+                {
+                    "name": "date",
+                    "datatype": "date",
+                    "source": "date"
+                },
+                {
+                    "name": "rate",
+                    "datatype": "decimal",
+                    "source": "rate"
+                }
+            ]
+        },
+        {
+            "name": "mst_stockitem_standard_price",
+            "isMaster": true,
+            "collectionPaths": [
+                "stockitem.standardpricelist"
+            ],
+            "fields": [
+                {
+                    "name": "item",
+                    "datatype": "string",
+                    "source": "name"
+                },
+                {
+                    "name": "date",
+                    "datatype": "date",
+                    "source": "date"
+                },
+                {
+                    "name": "rate",
+                    "datatype": "decimal",
+                    "source": "rate"
+                }
+            ]
+        },
+        {
+            "name": "trn_voucher",
+            "isMaster": false,
+            "collectionPaths": [
+                "voucher"
+            ],
+            "fields": [
+                {
+                    "name": "guid",
+                    "datatype": "string",
+                    "source": "guid"
+                },
+                {
+                    "name": "date",
+                    "datatype": "date",
+                    "source": "date"
+                },
+                {
+                    "name": "voucher_type",
+                    "datatype": "string",
+                    "source": "vouchertypename"
+                },
+                {
+                    "name": "voucher_number",
+                    "datatype": "string",
+                    "source": "vouchernumber"
+                },
+                {
+                    "name": "reference_number",
+                    "datatype": "string",
+                    "source": "reference"
+                },
+                {
+                    "name": "reference_date",
+                    "datatype": "date",
+                    "source": "referencedate"
+                },
+                {
+                    "name": "narration",
+                    "datatype": "string",
+                    "source": "narration"
+                },
+                {
+                    "name": "party_name",
+                    "datatype": "string",
+                    "source": "partyledgername"
+                },
+                {
+                    "name": "place_of_supply",
+                    "datatype": "string",
+                    "source": "placeofsupply"
+                },
+                {
+                    "name": "is_invoice",
+                    "datatype": "boolean",
+                    "source": "isinvoice"
+                },
+                {
+                    "name": "is_accounting_voucher",
+                    "datatype": "boolean",
+                    "source": "is_accounting_voucher"
+                },
+                {
+                    "name": "is_inventory_voucher",
+                    "datatype": "boolean",
+                    "source": "is_inventory_voucher"
+                },
+                {
+                    "name": "is_order_voucher",
+                    "datatype": "boolean",
+                    "source": "is_order_voucher"
+                }
+            ]
+        },
+        {
+            "name": "trn_accounting",
+            "isMaster": false,
+            "collectionPaths": [
+                "voucher.allledgerentries"
+            ],
+            "fields": [
+                {
+                    "name": "guid",
+                    "datatype": "string",
+                    "source": "guid"
+                },
+                {
+                    "name": "ledger",
+                    "datatype": "string",
+                    "source": "ledgername"
+                },
+                {
+                    "name": "amount",
+                    "datatype": "decimal",
+                    "source": "amount"
+                },
+                {
+                    "name": "amount_forex",
+                    "datatype": "decimal",
+                    "source": "amount_forex"
+                },
+                {
+                    "name": "currency",
+                    "datatype": "string",
+                    "source": "currency"
+                }
+            ]
+        },
+        {
+            "name": "trn_inventory",
+            "isMaster": false,
+            "collectionPaths": [
+                "voucher.allinventoryentries"
+            ],
+            "fields": [
+                {
+                    "name": "guid",
+                    "datatype": "string",
+                    "source": "guid"
+                },
+                {
+                    "name": "item",
+                    "datatype": "string",
+                    "source": "stockitemname"
+                },
+                {
+                    "name": "quantity",
+                    "datatype": "decimal",
+                    "source": "actualqty"
+                },
+                {
+                    "name": "rate",
+                    "datatype": "decimal",
+                    "source": "rate"
+                },
+                {
+                    "name": "amount",
+                    "datatype": "decimal",
+                    "source": "amount"
+                },
+                {
+                    "name": "additional_amount",
+                    "datatype": "decimal",
+                    "source": "addlamount"
+                },
+                {
+                    "name": "discount_amount",
+                    "datatype": "decimal",
+                    "source": "discount"
+                },
+                {
+                    "name": "godown",
+                    "datatype": "string",
+                    "source": "godownname"
+                },
+                {
+                    "name": "tracking_number",
+                    "datatype": "string",
+                    "transform": {
+                        "replace": "\u0004 Not Applicable"
+                    }
+                },
+                {
+                    "name": "order_number",
+                    "datatype": "string",
+                    "transform": {
+                        "replace": "\u0004 Not Applicable"
+                    }
+                },
+                {
+                    "name": "order_duedate",
+                    "datatype": "date",
+                    "source": "orderduedate"
+                }
+            ]
+        },
+        {
+            "name": "trn_cost_centre",
+            "isMaster": false,
+            "collectionPaths": [
+                "voucher.allledgerentries.costcentreallocations"
+            ],
+            "fields": [
+                {
+                    "name": "guid",
+                    "datatype": "string",
+                    "source": "guid"
+                },
+                {
+                    "name": "ledger",
+                    "datatype": "string",
+                    "source": "ledgername"
+                },
+                {
+                    "name": "costcentre",
+                    "datatype": "string",
+                    "source": "name"
+                },
+                {
+                    "name": "amount",
+                    "datatype": "decimal",
+                    "source": "amount"
+                }
+            ]
+        },
+        {
+            "name": "trn_cost_category_centre",
+            "isMaster": false,
+            "collectionPaths": [
+                "voucher.allledgerentries.categoryallocations.costcentreallocations"
+            ],
+            "filter": {
+                "field": "iscancelled",
+                "operator": "!=",
+                "value": true
+            },
+            "fields": [
+                {
+                    "name": "guid",
+                    "datatype": "string",
+                    "source": "guid"
+                },
+                {
+                    "name": "ledger",
+                    "datatype": "string",
+                    "source": "ledgername"
+                },
+                {
+                    "name": "costcategory",
+                    "datatype": "string",
+                    "source": "category"
+                },
+                {
+                    "name": "costcentre",
+                    "datatype": "string",
+                    "source": "name"
+                },
+                {
+                    "name": "amount",
+                    "datatype": "decimal",
+                    "source": "amount"
+                }
+            ]
+        },
+        {
+            "name": "trn_cost_inventory_category_centre",
+            "isMaster": false,
+            "collectionPaths": [
+                "voucher.allledgerentries.inventoryallocations.categoryallocations.costcentreallocations"
+            ],
+            "fields": [
+                {
+                    "name": "guid",
+                    "datatype": "string",
+                    "source": "guid"
+                },
+                {
+                    "name": "ledger",
+                    "datatype": "string",
+                    "source": "ledgername"
+                },
+                {
+                    "name": "item",
+                    "datatype": "string",
+                    "source": "stockitemname"
+                },
+                {
+                    "name": "costcategory",
+                    "datatype": "string",
+                    "source": "category"
+                },
+                {
+                    "name": "costcentre",
+                    "datatype": "string",
+                    "source": "name"
+                },
+                {
+                    "name": "amount",
+                    "datatype": "decimal",
+                    "source": "amount"
+                }
+            ]
+        },
+        {
+            "name": "trn_bill",
+            "isMaster": false,
+            "collectionPaths": [
+                "voucher.allledgerentries.billallocations"
+            ],
+            "fields": [
+                {
+                    "name": "guid",
+                    "datatype": "string",
+                    "source": "guid"
+                },
+                {
+                    "name": "ledger",
+                    "datatype": "string",
+                    "source": "ledgername"
+                },
+                {
+                    "name": "name",
+                    "datatype": "string",
+                    "source": "name"
+                },
+                {
+                    "name": "amount",
+                    "datatype": "decimal",
+                    "source": "amount"
+                },
+                {
+                    "name": "billtype",
+                    "datatype": "string",
+                    "source": "billtype"
+                },
+                {
+                    "name": "bill_credit_period",
+                    "datatype": "number",
+                    "source": "billcreditperiod"
+                }
+            ]
+        },
+        {
+            "name": "trn_bank",
+            "isMaster": false,
+            "collectionPaths": [
+                "voucher.allledgerentries.bankallocations"
+            ],
+            "fields": [
+                {
+                    "name": "guid",
+                    "datatype": "string",
+                    "source": "guid"
+                },
+                {
+                    "name": "ledger",
+                    "datatype": "string",
+                    "source": "ledgername"
+                },
+                {
+                    "name": "transaction_type",
+                    "datatype": "string",
+                    "source": "transactiontype"
+                },
+                {
+                    "name": "instrument_date",
+                    "datatype": "date",
+                    "source": "instrumentdate"
+                },
+                {
+                    "name": "instrument_number",
+                    "datatype": "string",
+                    "source": "instrumentnumber"
+                },
+                {
+                    "name": "bank_name",
+                    "datatype": "string",
+                    "source": "bankname"
+                },
+                {
+                    "name": "amount",
+                    "datatype": "decimal",
+                    "source": "amount"
+                },
+                {
+                    "name": "bankers_date",
+                    "datatype": "date",
+                    "source": "bankersdate"
+                }
+            ]
+        },
+        {
+            "name": "trn_batch",
+            "isMaster": false,
+            "collectionPaths": [
+                "voucher.allinventoryentries.batchallocations"
+            ],
+            "fields": [
+                {
+                    "name": "guid",
+                    "datatype": "string",
+                    "source": "guid"
+                },
+                {
+                    "name": "item",
+                    "datatype": "string",
+                    "source": "stockitemname"
+                },
+                {
+                    "name": "name",
+                    "datatype": "string",
+                    "source": "batchname"
+                },
+                {
+                    "name": "quantity",
+                    "datatype": "decimal",
+                    "source": "actualqty"
+                },
+                {
+                    "name": "amount",
+                    "datatype": "decimal",
+                    "source": "amount"
+                },
+                {
+                    "name": "godown",
+                    "datatype": "string",
+                    "source": "godownname"
+                },
+                {
+                    "name": "destination_godown",
+                    "datatype": "string",
+                    "source": "destinationgodownname"
+                },
+                {
+                    "name": "tracking_number",
+                    "datatype": "string",
+                    "transform": {
+                        "replace": "\u0004 Not Applicable"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "trn_inventory_additional_cost",
+            "isMaster": false,
+            "collectionPaths": [
+                "voucher.ledgerentries"
+            ],
+            "filter": {
+                "field": "additional_allocation_type",
+                "operator": "!=",
+                "value": ""
+            },
+            "fields": [
+                {
+                    "name": "guid",
+                    "datatype": "string",
+                    "source": "guid"
+                },
+                {
+                    "name": "ledger",
+                    "datatype": "string",
+                    "source": "ledgername"
+                },
+                {
+                    "name": "amount",
+                    "datatype": "decimal",
+                    "source": "amount"
+                },
+                {
+                    "name": "additional_allocation_type",
+                    "datatype": "string",
+                    "source": "addlalloctype"
+                },
+                {
+                    "name": "rate_of_invoice_tax",
+                    "datatype": "number",
+                    "source": "rateofinvoicetax"
+                }
+            ]
+        },
+        {
+            "name": "trn_employee",
+            "isMaster": false,
+            "collectionPaths": [
+                "voucher.categoryentry.employeeentry"
+            ],
+            "fields": [
+                {
+                    "name": "guid",
+                    "datatype": "string",
+                    "source": "guid"
+                },
+                {
+                    "name": "category",
+                    "datatype": "string",
+                    "source": "category"
+                },
+                {
+                    "name": "employee_name",
+                    "datatype": "string",
+                    "source": "employeename"
+                },
+                {
+                    "name": "amount",
+                    "datatype": "decimal",
+                    "source": "amount"
+                },
+                {
+                    "name": "employee_sort_order",
+                    "datatype": "number",
+                    "source": "employeesortorder"
+                }
+            ]
+        },
+        {
+            "name": "trn_payhead",
+            "isMaster": false,
+            "collectionPaths": [
+                "voucher.categoryentry.employeeentry.payheadallocations"
+            ],
+            "fields": [
+                {
+                    "name": "guid",
+                    "datatype": "string",
+                    "source": "guid"
+                },
+                {
+                    "name": "category",
+                    "datatype": "string",
+                    "source": "category"
+                },
+                {
+                    "name": "employee_name",
+                    "datatype": "string",
+                    "source": "employeename"
+                },
+                {
+                    "name": "employee_sort_order",
+                    "datatype": "number",
+                    "source": "employeesortorder"
+                },
+                {
+                    "name": "payhead_name",
+                    "datatype": "string",
+                    "source": "payheadname"
+                },
+                {
+                    "name": "payhead_sort_order",
+                    "datatype": "number",
+                    "source": "payheadsortorder"
+                },
+                {
+                    "name": "amount",
+                    "datatype": "decimal",
+                    "source": "amount"
+                }
+            ]
+        },
+        {
+            "name": "trn_attendance",
+            "isMaster": false,
+            "collectionPaths": [
+                "voucher.attendanceentries"
+            ],
+            "fields": [
+                {
+                    "name": "guid",
+                    "datatype": "string",
+                    "source": "guid"
+                },
+                {
+                    "name": "employee_name",
+                    "datatype": "string",
+                    "source": "name"
+                },
+                {
+                    "name": "attendancetype_name",
+                    "datatype": "string",
+                    "source": "attendancetype"
+                },
+                {
+                    "name": "time_value",
+                    "datatype": "decimal",
+                    "source": "attdtypetimevalue"
+                },
+                {
+                    "name": "type_value",
+                    "datatype": "decimal",
+                    "source": "attdtypevalue"
+                }
+            ]
+        }
+    ]
+}

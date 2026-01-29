@@ -1,20 +1,19 @@
-import fs from 'fs';
-import { pipeline } from 'stream/promises';
-import mysql from 'mysql2';
+import fs from 'node:fs';
+import { pipeline } from 'node:stream/promises';
+import mysql from 'mysql2/promise';
 import mssql from 'tedious';
 import postgres from 'pg';
 import { BigQuery } from '@google-cloud/bigquery';
 import { from as pgLoadInto } from 'pg-copy-streams';
-import adls from '@azure/storage-file-datalake';
 import { logger } from './logger.mjs';
-import { connectionConfig, queryResult, tableConfigYAML, databaseFieldInfo, cdmModel, cdmEntity } from './definition.mjs';
+import { connectionConfig, queryResult, databaseFieldInfo, tableConfigJSON } from './definition.mjs';
 
-const maxQuerySize = 50000;
 let connectionPoolMysql: mysql.Pool;
 
 class _database {
 
     config: connectionConfig;
+    maxQuerySize = 65535; //maximum size of SQL query to be executed
     bigquery: BigQuery = new BigQuery();
     connectionPoolPostgres: postgres.Pool = new postgres.Pool({});
 
@@ -51,6 +50,13 @@ class _database {
             // initialize Google BigQuery connection
             if (this.config.technology.toLowerCase() == 'bigquery') {
                 this.bigquery = new BigQuery({ keyFilename: './bigquery-credentials.json' });
+            }
+
+            // modify max query size for different database technology
+            if (this.config.technology == 'mysql') {
+                this.maxQuerySize = 4194303; //4 MB for MySQL
+            } else if (this.config.technology == 'postgres') {
+                this.maxQuerySize = 16777215; //16 MB for PostgreSQL
             }
 
         } catch (err) {
@@ -90,8 +96,7 @@ class _database {
                         else;
                         throw (errorMessage || err);
                     }
-                }
-                else if (this.config.technology == 'mysql') {
+                } else if (this.config.technology == 'mysql') {
                     connectionPoolMysql = mysql.createPool({
                         host: this.config.server,
                         port: this.config.port,
@@ -103,8 +108,8 @@ class _database {
                         }
                     });
                     try {
-                        let connection = await connectionPoolMysql.promise().getConnection();
-                        connection.release();    
+                        let connection = await connectionPoolMysql.getConnection();
+                        connection.release();
                     } catch (connErr: any) {
                         let errorMessage = '';
                         if (connErr.code == 'ECONNREFUSED') errorMessage = 'Unable to make MySQL connection on specified port';
@@ -115,7 +120,6 @@ class _database {
                         else;
                         throw errorMessage || connErr;
                     }
-                    
                 }
                 else;
                 resolve();
@@ -134,7 +138,7 @@ class _database {
                     await this.connectionPoolPostgres.end();
                 }
                 else if (this.config.technology == 'mysql') {
-                    await connectionPoolMysql.promise().end();
+                    await connectionPoolMysql.end();
                 }
                 else;
                 resolve();
@@ -206,6 +210,63 @@ class _database {
         return retval;
     }
 
+    jsonToCsv(filePath: string, tableConfig: tableConfigJSON, lstTableData: any[], emitBOM: boolean = false): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            try {
+                let writeStream = fs.createWriteStream(filePath, { encoding: 'utf-8' });
+                
+                writeStream.on('error', (err) => {
+                    reject(err);
+                });
+                
+                writeStream.on('finish', () => {
+                    resolve();
+                });
+                
+                if (emitBOM) {
+                    writeStream.write('\ufeff'); //write BOM for UTF-8
+                }
+                //write header
+                let headerLine = tableConfig.fields.map(p => p.name).join(',');
+                writeStream.write(headerLine);
+
+                //write data rows
+                for (const row of lstTableData) {
+                    let rowLine = '\n';
+                    let lstRowValues: string[] = [];
+                    for (const targetField of tableConfig.fields) {
+                        let fieldValue = row[targetField.name];
+                        if (fieldValue === null || fieldValue === undefined) {
+                            lstRowValues.push('');
+                        } else if (typeof fieldValue === 'string') {
+                            if (fieldValue.includes('\n') || fieldValue.includes('\r') || fieldValue.includes('\t')) { //strip off new line, carriage return, tab characters
+                                fieldValue = fieldValue.replace(/\r/g, '').replace(/\n/g, ' ').replace(/\t/g, ' ');
+                            }
+                            if (fieldValue.includes('"')) {
+                                fieldValue = fieldValue.replace(/"/g, '""'); //escape double quotes with 2 instance of double quotes (as per ISO)
+                            }
+                            lstRowValues.push(`"${fieldValue}"`);
+                        } else if (typeof fieldValue === 'number') {
+                            lstRowValues.push(fieldValue.toString());
+                        } else if (typeof fieldValue === 'boolean') {
+                            lstRowValues.push(fieldValue ? '1' : '0');
+                        } else if (fieldValue instanceof Date) {
+                            let v = fieldValue.toISOString().split('T')[0];
+                            lstRowValues.push(`"${v}"`);
+                        }
+                    }
+                    rowLine += lstRowValues.join(',');
+                    writeStream.write(rowLine);
+                }
+                writeStream.end();
+                
+            } catch (err) {
+                logger.logError(`database.jsonToCsvTsv(${tableConfig.name})`, err);
+                reject(err);
+            }
+        });
+    }
+
     bulkLoad(csvFile: string, targetTable: string, lstFieldType: string[]): Promise<number> {
         return new Promise<number>(async (resolve, reject) => {
             let sqlQuery = '';
@@ -225,7 +286,7 @@ class _database {
                         let countBatch = 0; //number of rows in batch
 
                         //run a loop to keep on appending row to SQL Query values until max allowable size of query is exhausted
-                        while (lstLines.length && (sqlQuery.length + lstLines[0].length + 3 < maxQuerySize) && ++countBatch <= 1000) {
+                        while (lstLines.length && (sqlQuery.length + lstLines[0].length + 3 < this.maxQuerySize) && ++countBatch <= 1000) {
                             let activeLine = lstLines.shift() || '';
                             let lstValues = activeLine.split('\t');
                             for (let i = 0; i < lstValues.length; i++) {
@@ -250,7 +311,7 @@ class _database {
                             sqlQuery += `(${activeLine}),`; //enclose row values into round braces
                         }
 
-                        sqlQuery = sqlQuery.substr(0, sqlQuery.length - 1) + ';'; //remove last trailing comma and append colon
+                        sqlQuery = sqlQuery.slice(0, -1) + ';'; //remove last trailing comma and append colon
                         rowCount += await this.executeNonQuery(sqlQuery);
                     }
                 }
@@ -300,6 +361,37 @@ class _database {
         });
     }
 
+    bulkLoadTableJson(targetTable: tableConfigJSON, lstTableData: any[]): Promise<number> {
+        return new Promise<number>(async (resolve, reject) => {
+            let retval = 0;
+            try {
+                // convert all the boolean fields from true/false to 1/0
+                for (const field of targetTable.fields.filter(f => f.datatype == 'logical')) { //iterate only logical fields
+                    for (let i = 0; i < lstTableData.length; i++) {
+                        lstTableData[i][field.name] = lstTableData[i][field.name] ? 1 : 0;
+                    }
+                }
+
+                if (this.config.technology == 'mssql') {
+                    retval = await this.dumpDataMssqlJson(targetTable, lstTableData);
+                } else if (this.config.technology == 'postgres') {
+                    await this.jsonToCsv(`./csv/${targetTable.name}.data`, targetTable, lstTableData);
+                    retval = await this.dumpDataPostges(targetTable.name);
+                    fs.unlinkSync(`./csv/${targetTable.name}.data`);
+                } else if (this.config.technology == 'mysql') {
+                    retval = await this.dumpDataMysqlJson(targetTable, lstTableData);
+                };
+                resolve(retval);
+            } catch (err) {
+                logger.logError(`database.bulkLoadTableJson(${targetTable.name})`, err);
+                if (this.config.technology == 'postgres') {
+                    fs.renameSync(`./csv/${targetTable.name}.data`, `./csv/${targetTable.name}.csv`); //keep the CSV file for debugging
+                }
+                reject(err);
+            }
+        });
+    }
+
     executeNonQuery(sqlQuery: string | string[], values?: Map<string, any>): Promise<number> {
         return new Promise<number>(async (resolve, reject) => {
             try {
@@ -313,9 +405,6 @@ class _database {
                 else if (this.config.technology.toLowerCase() == 'postgres') {
                     retval = (await this.executePostgres(sqlQuery)).rowCount;
                 }
-                /*else if (this.config.technology.toLowerCase() == 'db2') {
-                    retval = (await this.executeDb2(sqlQuery)).rowCount;
-                }*/
                 else;
                 resolve(retval);
             } catch (err) {
@@ -389,98 +478,6 @@ class _database {
         });
     }
 
-    uploadAzureDataLake(lstTables: tableConfigYAML[]): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            try {
-                //extract connection string and domain from ADLS config file
-                let connectionString = '', domain = '';
-                connectionString = this.config.server;
-                let regDomain = /AccountName=([\w_-]+);/g.exec(connectionString);
-                if (regDomain)
-                    domain = regDomain[1];
-
-                //generate model.json
-                let objCdmModel: cdmModel = {
-                    name: this.config.schema,
-                    version: '1.0.0',
-                    entities: []
-                };
-
-                for (const targetTable of lstTables) {
-                    let objEntity: cdmEntity = {
-                        $type: 'LocalEntity',
-                        name: targetTable.name,
-                        attributes: [],
-                        partitions: [
-                            {
-                                name: targetTable.name,
-                                location: `https://${domain}.dfs.core.windows.net/tally/${this.config.schema}/${targetTable.name}.csv`,
-                                fileFormatSettings: {
-                                    $type: 'CsvFormatSettings',
-                                    columnHeaders: true
-                                }
-                            }
-                        ]
-                    };
-                    for (const targetField of targetTable.fields) {
-                        let cdmDataType = '';
-                        if (targetField.type == 'text') {
-                            cdmDataType = 'string';
-                        }
-                        else if (targetField.type == 'number' || targetField.type == 'logical') {
-                            cdmDataType = 'Int64';
-                        }
-                        else if (targetField.type == 'amount') {
-                            cdmDataType = 'decimal';
-                        }
-                        else if (targetField.type == 'date') {
-                            cdmDataType = 'date';
-                        }
-                        else { //fallback
-                            cdmDataType = 'text';
-                        }
-                        objEntity.attributes.push({
-                            name: targetField.name,
-                            dataType: cdmDataType
-                        });
-                    }
-                    objCdmModel.entities.push(objEntity);
-                }
-                let contentModel = JSON.stringify(objCdmModel);
-
-                //create tally container if not exists
-                const datalakeServiceClient = adls.DataLakeServiceClient.fromConnectionString(connectionString);
-                const fileSystemClient = datalakeServiceClient.getFileSystemClient('tally');
-                await fileSystemClient.createIfNotExists();
-
-                //create delete and re-create company directory
-                const directoryClient = fileSystemClient.getDirectoryClient(this.config.schema);
-                await directoryClient.deleteIfExists(true);
-
-                //write model.json
-                const fileClientModel = directoryClient.getFileClient('model.json');
-                await fileClientModel.create();
-                await fileClientModel.append(contentModel, 0, contentModel.length);
-                await fileClientModel.flush(contentModel.length);
-
-                //iterate through each csv file & write it
-                for (const targetTable of lstTables) {
-                    let contentCSV = fs.readFileSync(`./csv/${targetTable.name}.csv`);
-                    const fileClientCSV = directoryClient.getFileClient(`${targetTable.name}.csv`);
-                    await fileClientCSV.create();
-                    await fileClientCSV.append(contentCSV, 0, contentCSV.byteLength);
-                    await fileClientCSV.flush(contentCSV.byteLength);
-                    logger.logMessage('  %s: uploaded', targetTable.name);
-                }
-                resolve();
-
-            } catch (err) {
-                reject();
-                logger.logError('database.uploadAzureDataLake()', err);
-            }
-        });
-    }
-
     listDatabaseTables(): Promise<string[]> {
         let retval: string[] = [];
         return new Promise<string[]>(async (resolve, reject) => {
@@ -490,7 +487,7 @@ class _database {
                     let result = await this.readMssql(sqlQuery);
                     for (const row of result) {
                         retval.push(row[0].value);
-                    }                    
+                    }
                 }
                 else if (this.config.technology == 'mysql') {
                     let sqlQuery = `select TABLE_NAME from INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA = '${this.config.schema}' order by TABLE_NAME`;
@@ -521,7 +518,7 @@ class _database {
             let scriptFileName = './database-structure.sql'
             if (syncMode == 'incremental')
                 scriptFileName = './database-structure-incremental.sql'
-            
+
             let sqlQuery = fs.readFileSync(scriptFileName, 'utf-8')
             try {
                 if (this.config.technology == 'mssql') {
@@ -529,8 +526,8 @@ class _database {
                 }
                 else if (this.config.technology == 'mysql') {
                     sqlQuery = sqlQuery.replace(/nvarchar/gi, 'varchar'); //replace nvarchar with varchart for MySQL
-                    for(const tblSQL of sqlQuery.split(/;\s*$/gm)) {
-                        if(tblSQL.trim() != '')
+                    for (const tblSQL of sqlQuery.split(/;\s*$/gm)) {
+                        if (tblSQL.trim() != '')
                             await this.executeMysql(tblSQL.trim());
                     }
                 }
@@ -549,48 +546,30 @@ class _database {
     }
 
     private executeMysql(sqlQuery: string | string[]): Promise<queryResult> {
-        const executeQuery = (connection: mysql.PoolConnection, qry: string): Promise<queryResult> => {
-            return new Promise<queryResult>((_resolve, _reject) => {
-                connection.query(qry, (queryErr, results: any[] | any) => {
-                    if (queryErr) {
-                        connection.release();
-                        _reject(queryErr);
+        return new Promise<queryResult>(async (resolve, reject) => {
+            let conn = await connectionPoolMysql.getConnection();
+            try {
+                let rowCount = 0;
+                let data: any[] = [];
+                if (Array.isArray(sqlQuery)) { //multiple query
+                    for (const qry of sqlQuery) {
+                        const [result] = await conn.query<any[] | mysql.ResultSetHeader>(qry);
+                        rowCount = Array.isArray(result) ? result.length : result.affectedRows;
+                        data = Array.isArray(result) ? result : [];
                     }
-                    else {
-                        connection.release();
-                        _resolve({ rowCount: results['affectedRows'] || 0, data: results });
-                    }
-                        
-                });
-            });
-        }
-        return new Promise<queryResult>((resolve, reject) => {
-            connectionPoolMysql.getConnection(async (connErr, connection) => {
-                try {
-                    if (connErr) {
-                        throw connErr;
-                    }
-                    else {
-                        let rowCount = 0;
-                        let data: any[] = [];
-                        if (Array.isArray(sqlQuery)) { //multiple query
-                            for (const qry of sqlQuery) {
-                                await executeQuery(connection, qry);
-                            }
-                            resolve({ rowCount, data });
-                        }
-                        else { //single query
-                            let result = await executeQuery(connection, sqlQuery);
-                                rowCount = result.rowCount;
-                                data = result.data;
-                        }
-                        resolve({ rowCount, data });
-                    }
-                } catch (err) {
-                    logger.logError('database.executeMysql()', err);
-                    reject(err);
+                } else {
+                    const [result] = await conn.query<any[] | mysql.ResultSetHeader>(sqlQuery);
+                    rowCount = Array.isArray(result) ? result.length : result.affectedRows;
+                    data = Array.isArray(result) ? result : [];
                 }
-            });
+
+                resolve({ rowCount, data });
+            } catch (err) {
+                logger.logError('database.executeMysql()', err);
+                reject(err);
+            } finally {
+                connectionPoolMysql.releaseConnection(conn);
+            }
         });
     }
 
@@ -755,7 +734,7 @@ class _database {
                 resolve(ptrCopyQueryStream.rowCount || 0);
             } catch (err) {
                 reject(err);
-                logger.logError('database.dumpDataPostges()', err);
+                logger.logError(`database.dumpDataPostges(${targetTable})`, err);
             } finally {
                 connection.release();
             }
@@ -764,7 +743,7 @@ class _database {
 
     private dumpDataMysql(targetTable: string, lstFieldType: string[]): Promise<number> {
         return new Promise<number>(async (resolve, reject) => {
-            let connection = mysql.createConnection({
+            let connection = await mysql.createConnection({
                 host: this.config.server,
                 port: this.config.port,
                 database: this.config.schema,
@@ -776,36 +755,48 @@ class _database {
                 infileStreamFactory: p => fs.createReadStream(p)
             });
             try {
-                connection.connect(async (connErr) => {
-                    if (connErr) {
-                        let errorMessage = '';
-                        if (connErr.code == 'ECONNREFUSED') errorMessage = 'Unable to make MySQL connection on specified port';
-                        else if (connErr.code == 'ENOTFOUND') errorMessage = 'Unable to make MySQL connection to servername or IP address';
-                        else if (connErr.code == 'ER_BAD_DB_ERROR') errorMessage = 'Invalid MySQL database name';
-                        else if (connErr.code == 'ER_ACCESS_DENIED_ERROR') errorMessage = 'Invalid MySQL password';
-                        else if (connErr.code == 'ER_NOT_SUPPORTED_AUTH_MODE') errorMessage = 'Invalid MySQL username/password/Authentication';
-                        else;
-
-                        logger.logError('database.executeMysql()', errorMessage || connErr);
-                        reject('');
-                    }
-                    else {
-                        let sqlQuery = `load data local infile './csv/${targetTable}.data' into table ${targetTable} fields terminated by ',' enclosed by '"' escaped by '' lines terminated by '\r\n' ignore 1 lines ;`;
-                        connection.query(sqlQuery, async (queryErr, results: any[] | any) => {
-                            await connection.promise().end();
-                            if (queryErr) {
-                                //reject(queryErr);
-                                throw queryErr;
-                            }
-                            else {
-                                resolve(results['affectedRows'] || 0);
-                            }
-                        });
-                    }
-                });
-            } catch (err) {
+                await connection.connect();
+                let sqlQuery = `load data local infile './csv/${targetTable}.data' into table ${targetTable} fields terminated by ',' enclosed by '"' escaped by '' lines terminated by '\r\n' ignore 1 lines ;`;
+                let [result] = await connection.execute<mysql.ResultSetHeader>(sqlQuery);
+                resolve(result.affectedRows || 0);
+            } catch (err: mysql.QueryError | any) {
+                let errorMessage = '';
+                if (err && err.code) {
+                    if (err.code == 'ECONNREFUSED') errorMessage = 'Unable to make MySQL connection on specified port';
+                    else if (err.code == 'ENOTFOUND') errorMessage = 'Unable to make MySQL connection to servername or IP address';
+                    else if (err.code == 'ER_BAD_DB_ERROR') errorMessage = 'Invalid MySQL database name';
+                    else if (err.code == 'ER_ACCESS_DENIED_ERROR') errorMessage = 'Invalid MySQL password';
+                    else if (err.code == 'ER_NOT_SUPPORTED_AUTH_MODE') errorMessage = 'Invalid MySQL username/password/Authentication';
+                    else;
+                }
                 reject(err);
-                logger.logError('database.dumpDataMysql()', err);
+                logger.logError(`database.dumpDataMysql(${targetTable})`, errorMessage || err);
+            } finally {
+                await connection.end();
+            }
+        });
+    }
+
+    private dumpDataMysqlJson(targetTable: tableConfigJSON, lstTableData: any[]): Promise<number> {
+        return new Promise<number>(async (resolve, reject) => {
+            if (!lstTableData.length) { //skip bulk insert if no rows are found
+                return resolve(0);
+            }                
+            let conn = await connectionPoolMysql.getConnection();
+            try {
+                await conn.connect();
+                let values = lstTableData.map(row =>
+                    targetTable.fields.map(field => row[field.name])
+                );
+                let sqlQuery = `insert into ${targetTable.name} (${targetTable.fields.map(f => f.name).join(',')}) values ?`;
+                let [result] = await conn.query<mysql.ResultSetHeader>(sqlQuery, [values]);
+                resolve(result.affectedRows || 0);
+            } catch (err) {
+                logger.logError(`database.dumpDataMysqlJson(${targetTable.name})`, err);
+                this.jsonToCsv(`./csv/${targetTable.name}.csv`, targetTable, lstTableData); //keep the CSV file for debugging
+                reject(err);
+            } finally {
+                connectionPoolMysql.releaseConnection(conn);
             }
         });
     }
@@ -908,7 +899,7 @@ class _database {
                     if (msg.message.includes('invalid column length')) {
                         let regCol = msg.message.match(/\d+/g);
                         let fieldIndex = regCol?.length == 1 ? parseInt(regCol[0]) : -1;
-                        let fieldName = lstColumnInfo[fieldIndex].fieldName;
+                        let fieldName = lstColumnInfo[fieldIndex - 1].fieldName; //-1 as column index in error message is 1-based
                         errorDescription = `\r\nText value in the field "${fieldName}" is too long to accomodate in database.\r\nConsider increasing the field length in database.`;
                     }
                     logger.logError(`database.dumpDataMssql(${targetTable})`, msg.message + errorDescription);
@@ -918,6 +909,126 @@ class _database {
             } catch (err) {
                 reject(err);
                 logger.logError('database.dumpDataMssql()', err);
+            }
+        });
+    }
+
+    private dumpDataMssqlJson(targetTable: tableConfigJSON, lstTableData: any[]): Promise<number> {
+        return new Promise<number>(async (resolve, reject) => {
+            try {
+                if (!lstTableData.length) { //skip bulk insert if no rows are found
+                    return resolve(0);
+                }
+
+                let lstFieldInfoDB: databaseFieldInfo[] = await this.populateDatabaseTableInfo(targetTable.name);
+
+                let connection = new mssql.Connection({
+                    server: this.config.server,
+                    authentication: {
+                        options: {
+                            userName: this.config.username,
+                            password: this.config.password
+                        },
+                        type: 'default'
+                    },
+                    options: {
+                        database: this.config.schema,
+                        port: this.config.port,
+                        trustServerCertificate: true,
+                        encrypt: this.config.ssl,
+                        rowCollectionOnRequestCompletion: true,
+                        requestTimeout: 0
+                    }
+                });
+                connection.on('connect', (connErr) => {
+                    connection.on('errorMessage', (msg) => {
+                        let errorDescription = '';
+                        if (msg.message.includes('invalid column length')) {
+                            let regCol = msg.message.match(/\d+/g);
+                            let fieldIndex = regCol?.length == 1 ? parseInt(regCol[0]) : -1;
+                            let fieldName = targetTable.fields[fieldIndex - 1].name; //-1 as column index in error message is 1-based
+                            errorDescription = `\r\nText value in the field "${fieldName}" is too long to accomodate in database.\r\nConsider increasing the field length in database.`;
+                        }
+                        logger.logError(`database.dumpDataMssql(${targetTable})`, msg.message + errorDescription);
+                        reject(msg);
+                    });
+                    if (connErr) {
+                        let errorMessage = '';
+                        if (connErr.message.includes('getaddrinfo ENOTFOUND')) errorMessage = 'Unable to make SQL Server connection to specified servername or IP address';
+                        else if (connErr.message.includes('Could not connect (sequence)')) errorMessage = 'Unable to make SQL Server connection to specified port';
+                        else if (connErr.message.includes('Login failed for user')) errorMessage = 'Invalid Database / Username / Password';
+                        else;
+
+                        logger.logError('database.dumpDataMssql()', errorMessage || connErr);
+                        reject(connErr);
+                    }
+                    else {
+                        const blOptions = { keepNulls: true };
+                        const oBulkLoad = connection.newBulkLoad(targetTable.name, blOptions, function (err, rowCount) {
+                            connection.close();
+                            if (err) {
+                                return reject(err);
+                            }
+                            else {
+                                resolve(rowCount || 0);
+                            }
+                        });
+
+                        for (const col of targetTable.fields) {
+
+
+                            let dbColumnInfo = lstFieldInfoDB.find(f => f.fieldName.toLowerCase() == col.name.toLowerCase());
+
+                            if (dbColumnInfo) {
+                                let oColOpts: any = {
+                                    nullable: dbColumnInfo.isNullable
+                                };
+                                //set datatype
+                                let oColDataType: any;
+                                if (dbColumnInfo.dataType == 'nvarchar') oColDataType = mssql.TYPES.NVarChar;
+                                else if (dbColumnInfo.dataType == 'varchar') oColDataType = mssql.TYPES.VarChar;
+                                else if (dbColumnInfo.dataType == 'decimal') oColDataType = mssql.TYPES.Decimal;
+                                else if (dbColumnInfo.dataType == 'int') oColDataType = mssql.TYPES.Int;
+                                else if (dbColumnInfo.dataType == 'tinyint') oColDataType = mssql.TYPES.TinyInt;
+                                else if (col.datatype == 'date') oColDataType = mssql.TYPES.Date;
+                                else;
+
+                                //set string length for textual datatype
+                                if (dbColumnInfo.length) {
+                                    oColOpts.length = dbColumnInfo.length;
+                                }
+
+                                //set precision for decimal datatype
+                                if (dbColumnInfo.dataType == 'decimal') {
+                                    oColOpts.precision = dbColumnInfo.precision;
+                                    oColOpts.scale = dbColumnInfo.scale;
+                                }
+
+                                oBulkLoad.addColumn(col.name, oColDataType, oColOpts);
+                            } else {
+                                return reject(new Error(`Field "${col.name}" not found in database table "${targetTable.name}"`));
+                            }
+                        }
+                        connection.execBulkLoad(oBulkLoad, lstTableData);
+                    }
+                });
+                connection.on('errorMessage', (msg) => {
+                    let errorDescription = '';
+                    if (msg.message.includes('invalid column length')) {
+                        let regCol = msg.message.match(/\d+/g);
+                        let fieldIndex = regCol?.length == 1 ? parseInt(regCol[0]) : -1;
+                        let fieldName = targetTable.fields[fieldIndex - 1].name; //-1 as column index in error message is 1-based
+                        errorDescription = `\r\nText value in the field "${fieldName}" is too long to accomodate in database.\r\nConsider increasing the field length in database.`;
+                    }
+                    logger.logError(`database.dumpDataMssqlJson(${targetTable.name})`, msg.message + errorDescription);
+                    this.jsonToCsv(`./csv/${targetTable.name}.csv`, targetTable, lstTableData); //keep the CSV file for debugging
+                    reject(msg);
+                });
+                connection.connect();
+            } catch (err) {
+                logger.logError(`database.dumpDataMssqlJson(${targetTable.name})`, err);
+                this.jsonToCsv(`./csv/${targetTable.name}.csv`, targetTable, lstTableData); //keep the CSV file for debugging
+                reject(err);
             }
         });
     }
