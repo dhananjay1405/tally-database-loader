@@ -43,7 +43,8 @@ class _tally {
                 fromdate: 'auto',
                 todate: 'auto',
                 frequency: 0,
-                sync: 'full'
+                sync: 'full',
+                batchsize: 5000
             };
             logger.logError('tally()', err);
             throw err;
@@ -62,6 +63,7 @@ class _tally {
                 this.config.todate = /^\d{4}-?\d{2}-?\d{2}$/g.test(toDate) ? toDate : 'auto';
             }
             if (lstConfigs.has('tally-sync')) this.config.sync = lstConfigs.get('tally-sync') || 'full';
+            if (lstConfigs.has('tally-batchsize')) this.config.batchsize = parseInt(lstConfigs.get('tally-batchsize') || '5000');
             if (lstConfigs.has('tally-frequency')) this.config.frequency = parseInt(lstConfigs.get('tally-frequency') || '0');
             if (lstConfigs.has('tally-company')) this.config.company = lstConfigs.get('tally-company') || '';
 
@@ -79,7 +81,7 @@ class _tally {
         return new Promise<void>(async (resolve, reject) => {
             try {
 
-                logger.logMessage('Tally to Database | version: 1.0.40');
+                logger.logMessage('Tally to Database | version: 1.0.41');
 
                 let pathTallyExportDefinition = this.config.definition
                 if (pathTallyExportDefinition.endsWith('.yaml')) {
@@ -184,15 +186,6 @@ class _tally {
                         await this.updateLastAlterId(); //Update last alter ID
                         let lastAlterIdMasterTally = this.lastAlterIdMaster;
                         let lastAlterIdTransactionTally = this.lastAlterIdTransaction;
-
-                        // acquire last AlterID of master & transaction from database
-                        // let lstPrimaryMasterTableNames = this.lstTableMaster.filter(p => p.nature == 'Primary').map(p => p.name);
-                        // let sqlQuery = 'select max(coalesce(t.alterid,0)) from (';
-                        // lstPrimaryMasterTableNames.forEach(p => sqlQuery += ` select max(alterid) as alterid from ${p} union`);
-                        // sqlQuery = utility.String.strip(sqlQuery, 5);
-                        // sqlQuery += ') as t';
-                        // let lastAlterIdMasterDatabase = await database.executeScalar<number>(sqlQuery) || 0;
-                        // let lastAlterIdTransactionDatabase = await database.executeScalar<number>('select max(coalesce(alterid,0)) from trn_voucher') || 0;
 
                         //calculate flags to determine what changed
                         let flgIsMasterChanged = lastAlterIdMasterTally != lastAlterIdMasterDatabase;
@@ -489,16 +482,72 @@ class _tally {
                     } else {
                         //iterate through each collection and cache data in memory
                         logger.logMessage('Generating collections from Tally [%s]', new Date().toLocaleString());
+
+                        // generate master collections
                         for (const targetCollection of this.lstTallyCollectionDefinitionJson) {
-                            let timestampBegin = Date.now();
-                            let reqXmlPayload = this.generateCollectionRequestXMLPayload(targetCollection);
-                            await this.saveTallyXMLResponse(reqXmlPayload, `./csv/${targetCollection.collection}.xml`);
-                            let timestampEnd = Date.now();
-                            let elapsedSecond = utility.Number.round((timestampEnd - timestampBegin) / 1000, 3);
-                            logger.logMessage('  saving file %s.xml [%f sec]', targetCollection.collection, elapsedSecond);
-                            this.lstCollectionDataCache.set(targetCollection.collection, await this.parseXmlToJsonCollection(targetCollection.collection));
-                            fs.unlinkSync(`./csv/${targetCollection.collection}.xml`); //delete temporary file
+                            if (targetCollection.collection != 'voucher') { //process master collection
+                                let timestampBegin = Date.now();
+                                let reqXmlPayload = this.generateCollectionRequestXMLPayload(targetCollection);
+                                await this.saveTallyXMLResponse(reqXmlPayload, `./csv/${targetCollection.collection}.xml`);
+                                let timestampEnd = Date.now();
+                                let elapsedSecond = utility.Number.round((timestampEnd - timestampBegin) / 1000, 3);
+                                logger.logMessage('  saving file %s.xml [%f sec]', targetCollection.collection, elapsedSecond);
+                                this.lstCollectionDataCache.set(targetCollection.collection, await this.parseXmlToJsonCollection(targetCollection.collection));
+                                fs.unlinkSync(`./csv/${targetCollection.collection}.xml`); //delete temporary file
+                            } else {
+
+                                let lstVoucherCollectionData: any[] = [];
+
+                                const processVoucherCollectionDateRange = async (periodStartDate: Date, periodEndDate: Date, batchCtr: number = 0) => {
+                                    let timestampBegin = Date.now();
+                                    let targetCollection = this.lstTallyCollectionDefinitionJson.filter(p => p.collection == 'voucher')[0];
+                                    targetCollection.filters?.push({
+                                        name: 'fltrPeriod',
+                                        expression: `$Date &gt;= $$Date:"${utility.Date.format(periodStartDate, 'yyyyMMdd')}" and $Date &lt;= $$Date:"${utility.Date.format(periodEndDate, 'yyyyMMdd')}"`
+                                    });
+                                    let reqXmlPayload = this.generateCollectionRequestXMLPayload(targetCollection);
+                                    await this.saveTallyXMLResponse(reqXmlPayload, `./csv/${targetCollection.collection}.xml`);
+                                    let timestampEnd = Date.now();
+                                    let elapsedSecond = utility.Number.round((timestampEnd - timestampBegin) / 1000, 3);
+                                    if (batchCtr != 0) {
+                                        logger.logMessage('  saving file voucher.xml | batch #%d [%f sec]', batchCtr, elapsedSecond);
+                                    } else {
+                                        logger.logMessage('  saving file voucher.xml [%f sec]', elapsedSecond);
+                                    }
+                                    lstVoucherCollectionData.push(...await this.parseXmlToJsonCollection(targetCollection.collection));
+                                    fs.unlinkSync(`./csv/voucher.xml`); //delete temporary file
+                                }
+
+                                let lstDateCount = await this.generateVoucherDatewiseCount();
+                                let lstStartEndDateBatch: [Date, Date, number][] = [];
+                                if (lstDateCount.length > 0) {
+                                    lstStartEndDateBatch.push([lstDateCount[0][0], lstDateCount[0][0], lstDateCount[0][1]]); //initialize first batch
+                                }
+                                for (let i = 1; i < lstDateCount.length; i++) {
+                                    let [currDate, currCount] = lstDateCount[i];
+                                    let latestBatch = lstStartEndDateBatch[lstStartEndDateBatch.length - 1];
+                                    if (latestBatch[2] + currCount > this.config.batchsize) { //batch overflow
+                                        lstStartEndDateBatch.push([currDate, currDate, currCount]); //start new batch
+                                    } else {
+                                        latestBatch[1] = currDate; //extend end date
+                                        latestBatch[2] += currCount; //increment batch counter
+                                    }
+                                }
+
+                                if (lstStartEndDateBatch.length > 1) {
+                                    //process each voucher batch
+                                    for (let i = 0; i < lstStartEndDateBatch.length; i++) {
+                                        let [batchStartDate, batchEndDate, batchCount] = lstStartEndDateBatch[i];
+                                        await processVoucherCollectionDateRange(batchStartDate, batchEndDate, i + 1);
+                                    }
+                                } else {
+                                    await processVoucherCollectionDateRange(this.periodFromDate || new Date(), this.periodToDate || new Date());
+                                }
+
+                                this.lstCollectionDataCache.set(targetCollection.collection, lstVoucherCollectionData);
+                            }
                         }
+
                     }
 
                     if (this.truncateTable) {
@@ -1033,7 +1082,14 @@ class _tally {
     private generateCollectionRequestXMLPayload(targetCollection: collectionConfigJSON): string {
         let retval = '';
         try {
-            retval = '<ENVELOPE>\n<HEADER>\n<VERSION>1</VERSION>\n<TALLYREQUEST>Export</TALLYREQUEST>\n<TYPE>Collection</TYPE>\n<ID>TallyDatabaseLoaderColl</ID>\n</HEADER>\n<BODY>\n<DESC>\n<TDL>\n<TDLMESSAGE>\n<COLLECTION NAME="TallyDatabaseLoaderColl">\n';
+            retval = '<ENVELOPE>\n<HEADER>\n<VERSION>1</VERSION>\n<TALLYREQUEST>Export</TALLYREQUEST>\n<TYPE>Collection</TYPE>\n<ID>TallyDatabaseLoaderColl</ID>\n</HEADER>\n<BODY>\n<DESC>\n<TDL>\n<TDLMESSAGE>\n';
+
+            if (!targetCollection.by && !targetCollection.aggrcompute) {
+                retval += '<COLLECTION NAME="TallyDatabaseLoaderColl">\n'
+            } else {
+                retval += '<COLLECTION NAME="TallyDatabaseLoaderCollEx">\n'
+            }
+
             retval += `<TYPE>${targetCollection.collection}</TYPE>\n`; //append collection name
             if (Array.isArray(targetCollection.compute) && targetCollection.compute.length > 0) { //append compute definitions (if any)
                 for (const computeDef of targetCollection.compute) {
@@ -1047,6 +1103,18 @@ class _tally {
                 retval += `<FILTER>${targetCollection.filters.map(f => f.name).join(',')}</FILTER>\n`;
             }
             retval += `</COLLECTION>\n`;
+
+            if (targetCollection.by && targetCollection.aggrcompute) {
+                retval += '<COLLECTION NAME="TallyDatabaseLoaderColl">\n<SOURCECOLLECTION>TallyDatabaseLoaderCollEx</SOURCECOLLECTION>\n';
+                for (const aggrBy of targetCollection.by) {
+                    retval += `<BY>${aggrBy}</BY>\n`;
+                }
+                for (const aggrComputeDef of targetCollection.aggrcompute) {
+                    retval += `<AGGRCOMPUTE>${aggrComputeDef}</AGGRCOMPUTE>\n`;
+                }
+                retval += `</COLLECTION>\n`;
+            }
+
             if (Array.isArray(targetCollection.filters) && targetCollection.filters.length > 0) { //append filter definitions (if any)
                 for (const filterDef of targetCollection.filters) {
                     if (filterDef.expression && filterDef.expression.trim() !== '') {
@@ -1285,7 +1353,7 @@ class _tally {
 
                     line = line.trim(); //remove leading & trailing spaces
 
-                    if (line.startsWith(`<${targetCollection.toUpperCase()} `)) { //check if line is start of collection item
+                    if (line == `<${targetCollection.toUpperCase()}>` || line.startsWith(`<${targetCollection.toUpperCase()} `)) { //check if line is start of collection item
                         isParsingCollection = true; //indicate flag for reading collection item
                         let currObj = {}; //initialize new object
 
@@ -1375,6 +1443,36 @@ class _tally {
             } catch (err) {
                 reject(err);
                 logger.logError(`tally.parseXmlToJsonCollection()`, err);
+            }
+        });
+    }
+
+    private generateVoucherDatewiseCount(): Promise<[Date, number][]> {
+        return new Promise<[Date, number][]>(async (resolve, reject) => {
+            try {
+                let retval: [Date, number][] = [];
+                let objTallyCollectionConfig: collectionConfigJSON = {
+                    collection: 'voucher',
+                    filters: [
+                        {
+                            name: 'IsNonOptionalCancelledVchs'
+                        }
+                    ],
+                    by: ['Date : $Date'],
+                    aggrcompute: ['Count : SUM : $$Number:1']
+                }
+                let xmlPayload = this.generateCollectionRequestXMLPayload(objTallyCollectionConfig);
+                let xmlContent = await this.postTallyXML(xmlPayload);
+                let collectionData = await this.parseXmlToJsonCollection('object', xmlContent);
+                for (let i = 0; i < collectionData.length; i++) {
+                    let itemDate = utility.Date.parse(collectionData[i]['date'], 'd-MMM-yy') || new Date(0);
+                    let itemCount = parseInt(collectionData[i]['count']);
+                    retval.push([itemDate, itemCount]);
+                }
+                resolve(retval);
+            } catch (err) {
+                logger.logError(`tally.generateVoucherDatewiseCount()`, err);
+                reject(err);
             }
         });
     }

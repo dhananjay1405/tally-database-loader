@@ -1,5 +1,10 @@
 ## Release History
 
+**Version: 1.0.41 [14-Feb-2026]**<br>
+
+Fixed:
+* Collection based extraction was failing when massive number of vouchers were extracted, due to inherent memory utilization limitation of Tally. Parameter named **batchsize** is introduced in *config.json* file to grab max 5000 (default value) vouchers at a time, to resolve this.
+
 **Version: 1.0.40 [29-Jan-2026]**<br>
 
 Added:

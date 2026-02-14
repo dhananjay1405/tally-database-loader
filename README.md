@@ -39,8 +39,8 @@ Commandline utility to load data into Database Server from Tally software, inten
 <br><br>
 
 ## Version
-Latest Version: **1.0.40**<br>
-Updated on: **29-Jan-2026**
+Latest Version: **1.0.41**<br>
+Updated on: **14-Feb-2026**
 
 Beta Feature:
 * Collection based data extraction with 2x performance and 40% less RAM usage. In definition simply change file extension ~~yaml~~ to **json**
@@ -51,7 +51,7 @@ Beta Feature:
 
 Database Loader Utility is portable, and does not have a setup wizard like we find for software installation. Zip archive of utility can be downloaded from below link.
 
-[https://excelkida.com/resource/tally-database-loader-utility-1.0.40.7z](https://excelkida.com/resource/tally-database-loader-utility-1.0.40.7z)
+[https://excelkida.com/resource/tally-database-loader-utility-1.0.41.7z](https://excelkida.com/resource/tally-database-loader-utility-1.0.41.7z)
 
 <br><br>
 
@@ -195,6 +195,7 @@ Few of the options of Tally may need modification, if default settings of Tally 
      "fromdate" : "2025-04-01",
      "todate" : "2026-03-31",
      "sync": "full",
+     "batchsize": 5000,
      "frequency": 0,
      "company": ""
 }
@@ -210,6 +211,7 @@ Few of the options of Tally may need modification, if default settings of Tally 
      "fromdate" : "2025-04-01",
      "todate" : "2026-03-31",
      "sync": "full",
+     "batchsize": 5000,
      "frequency": 0,
      "company": ""
 }
@@ -227,6 +229,7 @@ Few of the options of Tally may need modification, if default settings of Tally 
      "fromdate" : "auto",
      "todate" : "auto",
      "sync": "incremental",
+     "batchsize": 5000,
      "frequency": 5,
      "company": ""
 }
@@ -234,12 +237,13 @@ Few of the options of Tally may need modification, if default settings of Tally 
 
 | Setting | Value |
 | --- | --- |
-| definition | Name of export config file in the utility folder. This setting is to be used for easy switching between incremental and full sync, as both the files contains different structure  |
+| definition | Name of export config file in the utility folder. This setting is to be used for easy switching between incremental and full sync, as both the files contains different structure. The definition file is available in format **yaml** (Report-based) and **json** (Collection-based)  |
 | server | IP Address or Computer Name on which Tally XML Server is running (**localhost** is default value equivalent of IP Address 127.0.0.1). Change this if you need to capture data from a Tally running on different PC on your LAN |
 | port | By default Tally runs XML Server on port number **9000**. Modify this if you have assigned different port number in Tally XML Server settings (typically done when you want run Tally.ERP 9 and Tally Prime both at a same time parallely, where you will be changing this port number) |
 | master / transaction | **true** = Export master/transaction data from Tally (*default*) <br> **false** = Skip master/transaction data |
 | fromdate / todate | **YYYY-MM-DD** = Period from/to for export of transaction and opening balance <br> **auto** = This will export complete transactions (irrespective of selected Financial Year) from Tally by auto-detection of First & Last date of transaction |
 | sync | **full** = Sync complete data from Tally to Database Server (*default*)<br> **incremental** = Sync only that data which was added/modified/delete from last sync |
+| batchsize | Number of vouchers to extract from voucher collection at in single batch (applicable only in Collection-based extraction method). Default value is 5000 which is found to be stable. Do not increase this beyond 10000 since as the export might get stuck from tally indefinitely |
 | frequency | ping frequency in minutes to Tally to monitor changes in data and trigger sync (0 = off i.e. just run sync once and close it) |
 | company | Name of the company from which to export data or leave it blank to export from Active company of Tally (this parameter is intended for use when user needs to export data from specific company irrespective of it is active or not. Setup a powershell script to run a loop when multiple companies needs to be targeted one-by-one) |
 

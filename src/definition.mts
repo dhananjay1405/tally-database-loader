@@ -9,11 +9,6 @@ export interface connectionConfig {
     loadmethod: string;
 }
 
-export interface queryResult {
-    rowCount: number;
-    data: any[];
-}
-
 export interface tallyConfig {
     definition: string;
     server: string;
@@ -21,18 +16,23 @@ export interface tallyConfig {
     fromdate: string; // [ YYYYMMDD / auto ]
     todate: string; // [ YYYYMMDD / auto ]
     sync: string; // [ full / incremental ]
+    batchsize: number;
     frequency: number; // in minutes
     company: string;
 }
 
+export interface queryResult {
+    rowCount: number;
+    data: any[];
+}
+
 export interface collectionConfigJSON {
     collection: string; // name of collection as per Tally
-    table?: string; // table name for database / CSV mapping (optional)
-    fields: fieldConfigYAML[]; // list of fields
     fetch?: string[]; // fetch list of fields which are not loaded by default
     compute?: computeFieldConfig[]; // list of computed fields
     filters?: filterConfigJson[];
-    subcollections?: collectionConfigJSON[];
+    by?: string[]; // list of fields to group by
+    aggrcompute?: string[]; // list of aggregate computations (SUM, COUNT, AVG, MIN, MAX)
 }
 
 export interface filterConfigJson {

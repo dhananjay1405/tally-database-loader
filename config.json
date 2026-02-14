@@ -16,6 +16,7 @@
         "fromdate": "2025-04-01",
         "todate": "2026-03-31",
         "sync": "full",
+        "batchsize": 5000,
         "frequency": 0,
         "company": ""
     }
